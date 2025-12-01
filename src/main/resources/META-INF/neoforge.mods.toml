@@ -1,0 +1,27 @@
+# NeoForge mod metadata file
+
+modLoader="javafml"
+loaderVersion="[4,)"
+license="MIT"
+
+[[mods]]
+modId="arsenalcrafting"
+version="0.0.1"
+displayName="Arsenal Crafting"
+authors="ArsenalCrafting Team"
+description='''Forge modular tools & weapons, upgrade armor using skill points, and wield gadgets.
+'''
+
+[[dependencies.arsenalcrafting]]
+modId="neoforge"
+type="required"
+versionRange="[21.1.74,)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.arsenalcrafting]]
+modId="minecraft"
+type="required"
+versionRange="[1.21.1,1.22)"
+ordering="NONE"
+side="BOTH"
