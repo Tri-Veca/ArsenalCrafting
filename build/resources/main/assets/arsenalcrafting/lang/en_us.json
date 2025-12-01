@@ -24,6 +24,8 @@
   "item.arsenalcrafting.repairability": "Repairability: %s",
   "item.arsenalcrafting.augment_slots": "Augment Slots: %s",
 
+  "item.arsenalcrafting.auto_smelt_augment": "Auto Smelt Augment",
+
   "screen.arsenalcrafting.toolkit_title": "Tool Kit",
   "augment.arsenalcrafting.auto_smelt": "Auto Smelt"
 }
