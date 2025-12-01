@@ -7,7 +7,7 @@ forgedatauserdev
 --assetIndex
 17
 --assetsDir
-"C:\\Users\\Will Becker\\.gradle\\caches\\neoformruntime\\assets"
+C:\\Users\\Admin\\.gradle\\caches\\neoformruntime\\assets
 --gameDir
 .
 --fml.neoForgeVersion
@@ -24,6 +24,6 @@ forgedatauserdev
 arsenalcrafting
 --all
 --output
-"D:\\Minecraft Modding\\arsenalcrafting\\src\\generated\\resources"
+"C:\\Users\\Admin\\Desktop\\Minecraft Mods\\arsenalcrafting\\src\\generated\\resources"
 --existing
-"D:\\Minecraft Modding\\arsenalcrafting\\src\\main\\resources"
+"C:\\Users\\Admin\\Desktop\\Minecraft Mods\\arsenalcrafting\\src\\main\\resources"
