@@ -9,6 +9,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
 
@@ -32,46 +33,43 @@ public class AutoSmeltAugmentItem extends Item implements Augment  {
      * Converted to static so the pickaxe can call it directly as a utility method.
      * @return true if the drops were successfully handled (smelted and block removed), false otherwise.
      */
+
     public static boolean onBlockMined(ItemStack tool, Level level, BlockState state, BlockPos pos, LivingEntity entity) {
-        // Ensure we are only running this server-side
         if (!(level instanceof ServerLevel serverLevel)) {
             return false;
         }
+        // Check if block is already air
+        if (state.isAir()) {
+            System.out.println("[AutoSmelt] Block is already air, skipping");
+            return false;
+        }
 
-        // 1. Get the raw drops using the modern API signature for Block.getDrops.
         List<ItemStack> rawDrops = Block.getDrops(
                 state,
                 serverLevel,
                 pos,
-                level.getBlockEntity(pos), // Block entity at position (null if none)
+                level.getBlockEntity(pos),
                 entity,
                 tool
         );
 
         if (rawDrops.isEmpty()) {
-            return false; // Nothing to drop/smelt
+            return false;
         }
 
         boolean successfullySmeltedAnyItem = false;
         boolean droppedAnyItem = false;
 
         for (ItemStack rawDrop : rawDrops) {
-            // 2. Try to find a blasting or smelting recipe for the raw drop.
             Optional<ItemStack> smeltedResult = findSmeltingResult(serverLevel.getRecipeManager(), rawDrop, serverLevel);
 
             if (smeltedResult.isPresent()) {
                 ItemStack resultStack = smeltedResult.get();
 
-                // FIX: Only multiply count for ACTUAL ORES that get transformed
-                // Check if the result is different from the input (real smelting)
                 if (!ItemStack.isSameItem(rawDrop, resultStack)) {
-                    // This is a real smelting transformation (ore -> ingot)
-                    // Multiply the result count by the original drop count
                     resultStack.setCount(resultStack.getCount() * rawDrop.getCount());
                     System.out.println("[AutoSmelt] Smelting ore: " + rawDrop.getItem() + " -> " + resultStack.getItem() + " x" + resultStack.getCount());
                 } else {
-                    // This item doesn't actually change when smelted (like furnace, stone, etc.)
-                    // Just use the original drop count to avoid duplication
                     resultStack.setCount(rawDrop.getCount());
                     System.out.println("[AutoSmelt] No transformation for: " + rawDrop.getItem() + " (dropping original count)");
                 }
@@ -79,15 +77,24 @@ public class AutoSmeltAugmentItem extends Item implements Augment  {
                 Block.popResource(serverLevel, pos, resultStack);
                 successfullySmeltedAnyItem = true;
             } else {
-                // If the raw drop isn't smeltable, drop it normally
                 Block.popResource(serverLevel, pos, rawDrop);
                 droppedAnyItem = true;
             }
         }
 
         if (successfullySmeltedAnyItem || droppedAnyItem) {
-            // Since we manually dropped the item(s), remove the block without allowing it to drop items again.
-            level.destroyBlock(pos, false);
+            System.out.println("[AutoSmelt] Processing complete - DESTROYING block at " + pos);
+
+            // ALWAYS destroy the block after processing
+            boolean destroyed = level.destroyBlock(pos, false);
+            System.out.println("[AutoSmelt] destroyBlock returned: " + destroyed);
+
+            // If destroyBlock failed, force it to air
+            if (!destroyed) {
+                System.out.println("[AutoSmelt] Forcing block to air");
+                level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
+            }
+
             return true;
         }
 
@@ -102,7 +109,7 @@ public class AutoSmeltAugmentItem extends Item implements Augment  {
      * @param level The Level context needed for recipe lookup.
      * @return An Optional containing the smelted result ItemStack.
      */
-    private static Optional<ItemStack> findSmeltingResult(RecipeManager recipeManager, ItemStack input, Level level) {
+  public static Optional<ItemStack> findSmeltingResult(RecipeManager recipeManager, ItemStack input, Level level) {
 
         // 1. Create the canonical single-slot recipe input wrapper.
         // SingleRecipeInput replaced the old RecipeInput class from older versions.

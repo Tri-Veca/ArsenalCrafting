@@ -12,7 +12,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 // Placeholder for the complex multiblock core handling liquid metals and alloying.
-// This empty class structure resolves the dependency in ModBlockEntities.
+//This empty class structure resolves the dependency in ModBlockEntities.
 //will change from core to controller
 public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider {
     public AlloySmelterBlockEntity(BlockPos pos, BlockState state) {

@@ -3,15 +3,14 @@ package com.arsenalcrafting.mod.items.tool;
 import com.arsenalcrafting.mod.component.ToolAssemblyData;
 import com.arsenalcrafting.mod.config.TestModeConfig;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
-import com.arsenalcrafting.mod.items.augments.AutoSmeltAugmentItem;
-import com.arsenalcrafting.mod.items.augments.OreMinerAugmentItem;
+import com.arsenalcrafting.mod.core.augments.AugmentProcessor;
 import com.arsenalcrafting.mod.registry.ModComponents;
-import com.arsenalcrafting.mod.ArsenalCrafting;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -40,7 +39,6 @@ public class ArsenalPickaxeItem extends PickaxeItem {
     @Override
     public ItemStack getDefaultInstance() {
         ItemStack stack = super.getDefaultInstance();
-
 
         // Clean, centralized test mode logic
         if (TestModeConfig.isAutoSmeltEnabled()) {
@@ -99,92 +97,54 @@ public class ArsenalPickaxeItem extends PickaxeItem {
      * Overrides the block breaking logic to check for and delegate to augments.
      */
     @Override
-    public boolean mineBlock(@NotNull ItemStack stack, @NotNull Level level, @NotNull BlockState state, @NotNull BlockPos pos, @NotNull LivingEntity entity) {
+    public boolean mineBlock(@NotNull ItemStack stack, @NotNull Level level, @NotNull BlockState state,
+                             @NotNull BlockPos pos, @NotNull LivingEntity entity) {
 
         if (!level.isClientSide) {
-            System.out.println("[ArsenalPickaxeItem] mineBlock intercepted for: " + state.getBlock().getName().getString());
-        }
+            System.out.println("[ArsenalPickaxe] Processing augments for block: " +
+                    state.getBlock().getName().getString());
 
-        // --- BEGIN TEST MODE ---
-        if (TestModeConfig.isAutoSmeltEnabled() && !level.isClientSide) {
-            if (!stack.has(ModComponents.AUTO_SMELT_ENABLED.get())) {
-                stack.set(ModComponents.AUTO_SMELT_ENABLED.get(), true);
-                System.out.println("[TestMode] Auto-Smelt forced onto stack during mining");
+            // Process through AugmentProcessor with PICKAXE tool type
+            AugmentProcessor.ProcessResult result = AugmentProcessor.processBlockBreak(
+                    stack,
+                    ArsenalToolType.PICKAXE,  // Use ToolType enum
+                    level,
+                    state,
+                    pos,
+                    entity
+            );
 
+            if (result.handled) {
+                System.out.println("[ArsenalPickaxe] Augments handled drops - SKIPPING super.mineBlock()");
+                EquipmentSlot slot = entity.getMainHandItem() == stack
+                        ? EquipmentSlot.MAINHAND
+                        : EquipmentSlot.OFFHAND;
+
+                stack.hurtAndBreak(1, entity, slot);
+                return true; // This should prevent vanilla drops!
             }
 
-            if(!stack.has(ModComponents.ORE_MINER_ENABLED.get())){
-                stack.set(ModComponents.ORE_MINER_ENABLED.get(), true);
-                System.out.println("[TestMode] Ore-Miner forced onto stack during mining");
-            }
-        }
-        // --- END TEST MODE ---
-
-        // --- Augment Check and Delegation ---
-        if (!level.isClientSide) {
-
-            // Check if the tool has the Auto-Smelt component enabled.
-            boolean autoSmeltEnabled = stack.getOrDefault(ModComponents.AUTO_SMELT_ENABLED.get(), false);
-
-
-            if (autoSmeltEnabled) {
-                // --- DEBUG 2: Confirms the augment is enabled ---
-                System.out.println("[ArsenalPickaxeItem] Auto Smelt AUGMENT FOUND! Delegating now.");
-
-                // Delegate the block break handling to the augment class.
-                boolean dropsHandled = AutoSmeltAugmentItem.onBlockMined(stack, level, state, pos, entity);
-
-                // --- DEBUG 3: Confirm the result of the augment call ---
-                if (dropsHandled) {
-                    System.out.println("[ArsenalPickaxeItem] Augment finished: DROPS HANDLED (Smelted item was dropped).");
-                } else {
-                    System.out.println("[ArsenalPickaxeItem] Augment finished: DROPS NOT HANDLED (No recipe found, or block not harvestable).");
+                // Apply combo effects if any
+                if (result.specialCombo != null) {
+                    System.out.println("[ArsenalPickaxe] Special combo: " + result.specialCombo);
+                    // Add any combo-specific effects here
                 }
 
-                // We MUST still call super.mineBlock to ensure durability is consumed.
-                return super.mineBlock(stack, level, state, pos, entity); // NEED TO FIND DIFFERENT WAY BECAUSE THEN WE DONT GO THE ORE MINER!!!!!
+                return true; // Drops were handled by augments
             } else {
-                // --- DEBUG 4: Confirms the augment is not on the tool ---
-                System.out.println("[ArsenalPickaxeItem] Auto Smelt AUGMENT NOT FOUND. Consuming durability.");
+                System.out.println("[ArsenalPickaxe] No augment handled this block, using vanilla");
             }
 
-            // Check if the tool has the Ore-Miner component enabled.
-            boolean oreMinerEnabled = stack.getOrDefault(ModComponents.ORE_MINER_ENABLED.get(), false);
 
-            if (oreMinerEnabled) {
-                // --- DEBUG 2: Confirms the augment is enabled ---
-                System.out.println("[ArsenalPickaxeItem] Ore Miner AUGMENT FOUND! Delegating now.");
-
-                // Delegate the block break handling to the augment class.
-                boolean dropsHandled = OreMinerAugmentItem.onBlockMined(stack, level, state, pos, entity);
-
-                // --- DEBUG 3: Confirm the result of the augment call ---
-                if (dropsHandled) {
-                    System.out.println("[ArsenalPickaxeItem] Augment finished: DROPS HANDLED (Ore mine items were dropped).");
-                } else {
-                    System.out.println("[ArsenalPickaxeItem] Augment finished: DROPS NOT HANDLED (idk, or block not harvestable).");
-                }
-
-                // We MUST still call super.mineBlock to ensure durability is consumed.
-                //return super.mineBlock(stack, level, state, pos, entity);
-
-                // Return true because in the onBlockMined it consumes the durabillity
-
-            } else {
-                // --- DEBUG 4: Confirms the augment is not on the tool ---
-                System.out.println("[ArsenalPickaxeItem] Ore Miner AUGMENT NOT FOUND. Consuming durability.");
-            }
-        }
-
-        // If no augment, or on client side, proceed normally (consume durability and let vanilla handle drops).
+        // No augment handled it, use vanilla behavior
         return super.mineBlock(stack, level, state, pos, entity);
     }
-
 
     // Tooltip to show base stats and augment slots
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void appendHoverText(ItemStack stack, @Nullable Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, @Nullable Item.TooltipContext context,
+                                List<Component> tooltip, TooltipFlag flag) {
         // Retrieve dynamic material data from Data Components
         AlloyMaterial currentMaterial = baseMaterial; // Start with base material
 
@@ -221,7 +181,7 @@ public class ArsenalPickaxeItem extends PickaxeItem {
 
         }
 
-    // Title and Durability (Base Stats)
+        // Title and Durability (Base Stats)
         tooltip.add(Component.translatable("item.arsenalcrafting.tool_material", currentMaterial.getName())
                 .withStyle(currentMaterial.getColor()));
         tooltip.add(Component.translatable("item.arsenalcrafting.durability", currentMaterial.getDurability())
@@ -242,6 +202,7 @@ public class ArsenalPickaxeItem extends PickaxeItem {
                         usedSlots + "/" + totalSlots)
                 .withStyle(ChatFormatting.LIGHT_PURPLE));
     }
+
     // Add this helper method to count used augment slots
     private int countUsedAugmentSlots(ItemStack stack) {
         int usedSlots = 0;

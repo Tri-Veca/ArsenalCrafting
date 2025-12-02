@@ -1,6 +1,7 @@
 package com.arsenalcrafting.mod.items.augments;
 
 import com.arsenalcrafting.mod.core.augments.Augment;
+import com.arsenalcrafting.mod.registry.ModComponents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -11,14 +12,13 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
-import java.util.ArrayDeque;
-import java.util.HashSet;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 
 public class OreMinerAugmentItem extends Item implements Augment {
+    private static final int MAX_VEIN_BLOCKS = 64;
 
     public OreMinerAugmentItem(Properties properties) {
         super(properties);
@@ -35,14 +35,14 @@ public class OreMinerAugmentItem extends Item implements Augment {
                 || state.is(BlockTags.REDSTONE_ORES);
     }
 
+    public static boolean onBlockMined(ItemStack tool, Level level, BlockState state,
+                                       BlockPos pos, LivingEntity entity) {
+        System.out.println("[OreMiner] onBlockMined called for " + state.getBlock());
 
-    public static boolean onBlockMined(ItemStack tool, Level level, BlockState state, BlockPos pos, LivingEntity entity){
-        // Ensure we are only running this server-side
         if (!(level instanceof ServerLevel serverLevel)) {
             return false;
         }
 
-        // Only ores
         if (!isOre(state)) {
             return false;
         }
@@ -51,59 +51,152 @@ public class OreMinerAugmentItem extends Item implements Augment {
             return false;
         }
 
-        // vein-mine here
-        veinMineOre(serverLevel, pos, state, player, tool);
+        boolean autoSmeltEnabled = tool.getOrDefault(ModComponents.AUTO_SMELT_ENABLED.get(), false);
 
-        return true;
-
+        if (autoSmeltEnabled) {
+            System.out.println("[OreMiner] Auto-Smelt is active - ONLY doing vein mining from origin");
+            // Only do vein mining, origin was already smelted by Auto-Smelt
+            return veinMineOreWithSmelting(serverLevel, pos, state, player, tool);
+        } else {
+            // Normal vein mining (including origin)
+            return veinMineOre(serverLevel, pos, state, player, tool);
+        }
     }
 
-    private static final int MAX_VEIN_BLOCKS = 64; // safety limit
+    private static boolean veinMineOreWithSmelting(ServerLevel level, BlockPos origin,
+                                                   BlockState targetState, Player player,
+                                                   ItemStack tool) {
+        System.out.println("[OreMiner] Starting SMELT-VEIN at " + origin);
 
-    private static void veinMineOre(ServerLevel level,
-                                    BlockPos origin,
-                                    BlockState targetState,
-                                    Player player,
-                                    ItemStack tool) {
 
-        // We start from the original pos, but remember: in Item#mineBlock the center
-        // is already broken, so we never try to destroy origin, only neighbors.
+
         Queue<BlockPos> queue = new ArrayDeque<>();
         Set<BlockPos> visited = new HashSet<>();
 
-        queue.add(origin);
-        visited.add(origin);
+        // ============= IMPORTANT: DON'T PROCESS ORIGIN! =============
+        // Only add NEIGHBORS to queue
+        for (Direction dir : Direction.values()) {
+            BlockPos neighbor = origin.relative(dir);
+            queue.add(neighbor);
+            visited.add(neighbor);
+        }
+        visited.add(origin); // Mark origin as visited
 
         int broken = 0;
 
         while (!queue.isEmpty() && broken < MAX_VEIN_BLOCKS) {
             BlockPos current = queue.remove();
+            BlockState currentState = level.getBlockState(current);
 
-            for (Direction dir : Direction.values()) {
-                BlockPos next = current.relative(dir);
+            if (!currentState.is(targetState.getBlock())) continue;
 
-                if (visited.contains(next)) continue;
-                visited.add(next);
+            System.out.println("[OreMiner] Processing vein block at " + current);
 
-                BlockState other = level.getBlockState(next);
+            // ============= DIRECT SMELTING LOGIC =============
+            // Don't call AutoSmeltAugmentItem.onBlockMined() - that triggers the whole augment chain!
+            // Instead, copy the smelting logic directly:
 
-                // same ore block?
-                if (!other.is(targetState.getBlock())) continue;
+            List<ItemStack> rawDrops = Block.getDrops(
+                    currentState,
+                    level,
+                    current,
+                    level.getBlockEntity(current),
+                    player,
+                    tool
+            );
 
-                // break it and drop loot with correct tool + player
-                boolean destroyed = level.destroyBlock(next, true, player);
+            boolean processedAny = false;
+            for (ItemStack rawDrop : rawDrops) {
+                // Use the SAME findSmeltingResult method
+                Optional<ItemStack> smeltedResult = AutoSmeltAugmentItem.findSmeltingResult(
+                        level.getRecipeManager(), rawDrop, level
+                );
+
+                if (smeltedResult.isPresent()) {
+                    ItemStack result = smeltedResult.get().copy();
+                    if (!ItemStack.isSameItem(rawDrop, result)) {
+                        result.setCount(result.getCount() * rawDrop.getCount());
+                    } else {
+                        result.setCount(rawDrop.getCount());
+                    }
+                    Block.popResource(level, current, result);
+                    processedAny = true;
+                    System.out.println("[OreMiner] Smelted: " + result);
+                } else {
+                    Block.popResource(level, current, rawDrop);
+                    processedAny = true;
+                    System.out.println("[OreMiner] Dropped raw: " + rawDrop);
+                }
+            }
+
+            if (processedAny) {
+                // Destroy WITHOUT player parameter to avoid recursion
+                boolean destroyed = level.destroyBlock(current, false);
+
                 if (destroyed) {
                     broken++;
-
-                    // damage tool once per block (optional)
                     tool.hurtAndBreak(1, player, EquipmentSlot.MAINHAND);
                 }
-
-                // keep searching from this block too
-                if (broken < MAX_VEIN_BLOCKS) {
-                    queue.add(next);
+            }
+            // Add neighbors
+            if (broken < MAX_VEIN_BLOCKS) {
+                for (Direction dir : Direction.values()) {
+                    BlockPos next = current.relative(dir);
+                    if (!visited.contains(next)) {
+                        queue.add(next);
+                        visited.add(next);
+                    }
                 }
             }
         }
+
+        System.out.println("[OreMiner] Smelt-vein complete. Processed " + broken + " vein blocks");
+        System.out.println("[OreMiner] ORIGIN block was processed by Auto-Smelt separately");
+        return true;
+    }
+
+    private static boolean veinMineOre(ServerLevel level, BlockPos origin,
+                                       BlockState targetState, Player player,
+                                       ItemStack tool) {
+        Queue<BlockPos> queue = new ArrayDeque<>();
+        Set<BlockPos> visited = new HashSet<>();
+
+        // Start with neighbors (origin already broken by pickaxe)
+        for (Direction dir : Direction.values()) {
+            BlockPos neighbor = origin.relative(dir);
+            queue.add(neighbor);
+            visited.add(neighbor);
+        }
+        visited.add(origin); // Mark origin as visited
+
+        int broken = 0;
+
+        while (!queue.isEmpty() && broken < MAX_VEIN_BLOCKS) {
+            BlockPos current = queue.remove();
+            BlockState currentState = level.getBlockState(current);
+
+            if (!currentState.is(targetState.getBlock())) continue;
+
+            // Break and drop normally
+            boolean destroyed = level.destroyBlock(current, true, player);
+            if (destroyed) {
+                broken++;
+                tool.hurtAndBreak(1, player, EquipmentSlot.MAINHAND);
+            }
+
+            // Search neighbors
+            if (broken < MAX_VEIN_BLOCKS) {
+                for (Direction dir : Direction.values()) {
+                    BlockPos next = current.relative(dir);
+                    if (!visited.contains(next)) {
+                        queue.add(next);
+                        visited.add(next);
+                    }
+                }
+            }
+        }
+
+        // Return true if we broke any blocks (the original was already broken)
+        return broken > 0;
     }
 }
