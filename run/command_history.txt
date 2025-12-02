@@ -1,5 +1,0 @@
-/clear
-/gamemode survival
-/gamemode creative
-/gamemode survival
-/gamemode creative

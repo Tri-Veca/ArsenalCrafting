@@ -1,0 +1,13 @@
+# Gradle
+.gradle/
+build/
+out/
+
+# IntelliJ / IDEA
+.idea/
+*.iml
+
+# Minecraft / run configs
+run/
+logs/
+*.log
