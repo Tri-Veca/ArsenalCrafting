@@ -4,6 +4,7 @@ import com.arsenalcrafting.mod.component.ToolAssemblyData;
 import com.arsenalcrafting.mod.config.TestModeConfig;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.items.augments.AutoSmeltAugmentItem;
+import com.arsenalcrafting.mod.items.augments.OreMinerAugmentItem;
 import com.arsenalcrafting.mod.registry.ModComponents;
 import com.arsenalcrafting.mod.ArsenalCrafting;
 import net.minecraft.ChatFormatting;
@@ -45,6 +46,11 @@ public class ArsenalPickaxeItem extends PickaxeItem {
         if (TestModeConfig.isAutoSmeltEnabled()) {
             stack.set(ModComponents.AUTO_SMELT_ENABLED.get(), true);
             System.out.println("[TestMode] Pre-installed Auto-Smelt on new pickaxe");
+        }
+        // Clean, centralized test mode logic
+        if (TestModeConfig.isOreMinerEnabled()) {
+            stack.set(ModComponents.ORE_MINER_ENABLED.get(), true);
+            System.out.println("[TestMode] Pre-installed Ore-Miner on new pickaxe");
         }
 
         return stack;
@@ -104,6 +110,12 @@ public class ArsenalPickaxeItem extends PickaxeItem {
             if (!stack.has(ModComponents.AUTO_SMELT_ENABLED.get())) {
                 stack.set(ModComponents.AUTO_SMELT_ENABLED.get(), true);
                 System.out.println("[TestMode] Auto-Smelt forced onto stack during mining");
+
+            }
+
+            if(!stack.has(ModComponents.ORE_MINER_ENABLED.get())){
+                stack.set(ModComponents.ORE_MINER_ENABLED.get(), true);
+                System.out.println("[TestMode] Ore-Miner forced onto stack during mining");
             }
         }
         // --- END TEST MODE ---
@@ -113,6 +125,7 @@ public class ArsenalPickaxeItem extends PickaxeItem {
 
             // Check if the tool has the Auto-Smelt component enabled.
             boolean autoSmeltEnabled = stack.getOrDefault(ModComponents.AUTO_SMELT_ENABLED.get(), false);
+
 
             if (autoSmeltEnabled) {
                 // --- DEBUG 2: Confirms the augment is enabled ---
@@ -129,10 +142,37 @@ public class ArsenalPickaxeItem extends PickaxeItem {
                 }
 
                 // We MUST still call super.mineBlock to ensure durability is consumed.
-                return super.mineBlock(stack, level, state, pos, entity);
+                //return super.mineBlock(stack, level, state, pos, entity);
             } else {
                 // --- DEBUG 4: Confirms the augment is not on the tool ---
                 System.out.println("[ArsenalPickaxeItem] Auto Smelt AUGMENT NOT FOUND. Consuming durability.");
+            }
+
+            // Check if the tool has the Ore-Miner component enabled.
+            boolean oreMinerEnabled = stack.getOrDefault(ModComponents.ORE_MINER_ENABLED.get(), false);
+
+            if (oreMinerEnabled) {
+                // --- DEBUG 2: Confirms the augment is enabled ---
+                System.out.println("[ArsenalPickaxeItem] Ore Miner AUGMENT FOUND! Delegating now.");
+
+                // Delegate the block break handling to the augment class.
+                boolean dropsHandled = OreMinerAugmentItem.onBlockMined(stack, level, state, pos, entity);
+
+                // --- DEBUG 3: Confirm the result of the augment call ---
+                if (dropsHandled) {
+                    System.out.println("[ArsenalPickaxeItem] Augment finished: DROPS HANDLED (Ore mine items were dropped).");
+                } else {
+                    System.out.println("[ArsenalPickaxeItem] Augment finished: DROPS NOT HANDLED (idk, or block not harvestable).");
+                }
+
+                // We MUST still call super.mineBlock to ensure durability is consumed.
+                //return super.mineBlock(stack, level, state, pos, entity);
+
+                // Return true because in the onBlockMined it consumes the durabillity
+
+            } else {
+                // --- DEBUG 4: Confirms the augment is not on the tool ---
+                System.out.println("[ArsenalPickaxeItem] Ore Miner AUGMENT NOT FOUND. Consuming durability.");
             }
         }
 
@@ -161,12 +201,22 @@ public class ArsenalPickaxeItem extends PickaxeItem {
 
         // Display augment status if present
         boolean autoSmeltEnabled = stack.getOrDefault(ModComponents.AUTO_SMELT_ENABLED.get(), false);
+        boolean oreMinerEnabled = stack.getOrDefault(ModComponents.ORE_MINER_ENABLED.get(), false);
         if (autoSmeltEnabled) {
             tooltip.add(Component.translatable("augment.arsenalcrafting.auto_smelt").withStyle(ChatFormatting.GOLD));
 
             // Only show test mode warning if we're actually in test mode
             if (TestModeConfig.isAutoSmeltEnabled()) {
                 tooltip.add(Component.literal("TEST MODE: Auto Smelt").withStyle(ChatFormatting.RED));
+            }
+
+        }
+        if (oreMinerEnabled) {
+            tooltip.add(Component.translatable("augment.arsenalcrafting.ore_miner").withStyle(ChatFormatting.GOLD));
+
+            // Only show test mode warning if we're actually in test mode
+            if (TestModeConfig.isOreMinerEnabled()) {
+                tooltip.add(Component.literal("TEST MODE: Ore Miner").withStyle(ChatFormatting.RED));
             }
 
         }
@@ -198,6 +248,10 @@ public class ArsenalPickaxeItem extends PickaxeItem {
 
         // Count each augment type that's installed
         if (stack.getOrDefault(ModComponents.AUTO_SMELT_ENABLED.get(), false)) {
+            usedSlots++;
+        }
+
+        if (stack.getOrDefault(ModComponents.ORE_MINER_ENABLED.get(), false)) {
             usedSlots++;
         }
         // Add more augment checks here as you implement them:

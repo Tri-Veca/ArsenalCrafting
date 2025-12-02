@@ -25,7 +25,9 @@
   "item.arsenalcrafting.augment_slots": "Augment Slots: %s",
 
   "item.arsenalcrafting.auto_smelt_augment": "Auto Smelt Augment",
+  "item.arsenalcrafting.ore_miner_augment": "Ore Miner Augment",
 
   "screen.arsenalcrafting.toolkit_title": "Tool Kit",
-  "augment.arsenalcrafting.auto_smelt": "Auto Smelt"
+  "augment.arsenalcrafting.auto_smelt": "Auto Smelt",
+  "augment.arsenalcrafting.ore_miner": "Ore Miner"
 }

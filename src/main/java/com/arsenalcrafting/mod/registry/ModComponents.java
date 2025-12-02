@@ -32,6 +32,13 @@ public class ModComponents {
                     .cacheEncoding() // Default value when reading NBT where it wasn't present
                     .build());
 
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> ORE_MINER_ENABLED = COMPONENTS.register("ore_miner_enabled",
+            () -> DataComponentType.<Boolean>builder()
+                    .persistent(Codec.BOOL)
+                    .networkSynchronized(ByteBufCodecs.BOOL)
+                    .cacheEncoding() // Default value when reading NBT where it wasn't present
+                    .build());
+
 
     public static void register(IEventBus eventBus) {
         COMPONENTS.register(eventBus);

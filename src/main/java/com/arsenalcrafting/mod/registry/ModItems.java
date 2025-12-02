@@ -3,6 +3,7 @@ package com.arsenalcrafting.mod.registry;
 import com.arsenalcrafting.mod.ArsenalCrafting;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.items.augments.AutoSmeltAugmentItem;
+import com.arsenalcrafting.mod.items.augments.OreMinerAugmentItem;
 import com.arsenalcrafting.mod.items.tool.ArsenalPickaxeItem;
 import com.arsenalcrafting.mod.items.tool.toolparts.ToolHeadItem;
 import com.arsenalcrafting.mod.items.tool.toolparts.ToolRodItem;
@@ -35,6 +36,9 @@ public class ModItems {
 
     public static final DeferredHolder<Item, AutoSmeltAugmentItem> AUTO_SMELT_AUGMENT = ITEMS.register("auto_smelt_augment",
             () -> new AutoSmeltAugmentItem(new Item.Properties()));
+
+    public static final DeferredHolder<Item, OreMinerAugmentItem> ORE_MINER_AUGMENT = ITEMS.register("ore_miner_augment",
+            () -> new OreMinerAugmentItem(new Item.Properties()));
 
     // --- Other Key Items ---
     public static final DeferredHolder<Item, Item> REPAIR_KIT = ITEMS.register("repair_kit",

@@ -5,6 +5,7 @@ import com.arsenalcrafting.mod.component.ToolAssemblyData;
 import com.arsenalcrafting.mod.config.TestModeConfig;
 import com.arsenalcrafting.mod.core.augments.Augment;
 import com.arsenalcrafting.mod.items.augments.AutoSmeltAugmentItem;
+import com.arsenalcrafting.mod.items.augments.OreMinerAugmentItem;
 import com.arsenalcrafting.mod.items.tool.ArsenalPickaxeItem;
 import com.arsenalcrafting.mod.items.tool.toolparts.ToolHeadItem;
 import com.arsenalcrafting.mod.items.tool.toolparts.ToolRodItem;
@@ -95,6 +96,11 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
             tool.set(ModComponents.AUTO_SMELT_ENABLED.get(), true);
             System.out.println("[Toolkit] Auto Smelt augment installed!");
         }
+        if (augmentItem instanceof OreMinerAugmentItem) {
+            // Enable auto-smelt component
+            tool.set(ModComponents.ORE_MINER_ENABLED.get(), true);
+            System.out.println("[Toolkit] Ore Miner augment installed!");
+        }
     }
 
     public ToolkitBlockEntity(BlockPos pos, BlockState state) {
@@ -130,7 +136,7 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
                 // TEST MODE: Only pre-install on brand new tools
                 if (isNewTool && TestModeConfig.isAutoSmeltEnabled()) {
                     assembledTool.set(ModComponents.AUTO_SMELT_ENABLED.get(), true);
-                    System.out.println("[TestMode] Auto-Smelt pre-installed on newly crafted tool");
+                    System.out.println("[TestMode] Auto-Smelt pre-installed on newly crafted tool"); //DIDNT DO THIS TO ORE MINER
                 } else if (isNewTool) {
                     // Only initialize as disabled if not in test mode
                     assembledTool.set(ModComponents.AUTO_SMELT_ENABLED.get(), false);
