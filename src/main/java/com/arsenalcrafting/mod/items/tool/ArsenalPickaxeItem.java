@@ -142,7 +142,7 @@ public class ArsenalPickaxeItem extends PickaxeItem {
                 }
 
                 // We MUST still call super.mineBlock to ensure durability is consumed.
-                //return super.mineBlock(stack, level, state, pos, entity);
+                return super.mineBlock(stack, level, state, pos, entity); // NEED TO FIND DIFFERENT WAY BECAUSE THEN WE DONT GO THE ORE MINER!!!!!
             } else {
                 // --- DEBUG 4: Confirms the augment is not on the tool ---
                 System.out.println("[ArsenalPickaxeItem] Auto Smelt AUGMENT NOT FOUND. Consuming durability.");
