@@ -1,8 +1,10 @@
 package com.arsenalcrafting.mod.core.augments;
 
 import com.arsenalcrafting.mod.items.augments.AutoSmeltAugmentItem;
+import com.arsenalcrafting.mod.items.augments.FortuneAugmentItem;
 import com.arsenalcrafting.mod.items.augments.OreMinerAugmentItem;
 import com.arsenalcrafting.mod.items.tool.ArsenalToolType;
+import com.arsenalcrafting.mod.registry.ModComponents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -44,6 +46,43 @@ public class AugmentHandlers {
         public boolean handleBlockBreak(ItemStack tool, Level level, BlockState state,
                                         BlockPos pos, LivingEntity miner) {
             return OreMinerAugmentItem.onBlockMined(tool, level, state, pos, miner);
+        }
+    }
+
+    public static class Fortune implements AugmentHandler {
+
+        @Override
+        public int priority() {
+            // Run before AutoSmelt / OreMiner or after, depending on how you want the combo.
+            // You can adjust this value to tune ordering.
+            return 30;
+        }
+
+        @Override
+        public boolean isExclusive() {
+            // false so it can combo with AutoSmelt, OreMiner, Magnetism, etc.
+            return false;
+        }
+
+        @Override
+        public boolean supportsToolType(ArsenalToolType type) {
+            // Fortune only makes sense on pickaxes in your system
+            return type == ArsenalToolType.PICKAXE;
+        }
+
+        @Override
+        public boolean canHandleBlock(BlockState state, ItemStack tool) {
+            // Only run if Fortune is actually installed on the tool
+            return tool.getOrDefault(ModComponents.FORTUNE_ENABLED.get(), false);
+        }
+
+        @Override
+        public boolean handleBlockBreak(ItemStack tool,
+                                        Level level,
+                                        BlockState state,
+                                        BlockPos pos,
+                                        LivingEntity miner) {
+            return FortuneAugmentItem.onBlockMined(tool, level, state, pos, miner);
         }
     }
 

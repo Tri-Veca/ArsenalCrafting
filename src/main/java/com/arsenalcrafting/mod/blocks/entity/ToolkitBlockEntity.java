@@ -4,6 +4,7 @@ import com.arsenalcrafting.mod.client.menu.ToolkitMenu;
 import com.arsenalcrafting.mod.component.ToolAssemblyData;
 import com.arsenalcrafting.mod.config.TestModeConfig;
 import com.arsenalcrafting.mod.core.augments.Augment;
+import com.arsenalcrafting.mod.core.augments.InstallableAugmentItem;
 import com.arsenalcrafting.mod.items.augments.AutoSmeltAugmentItem;
 import com.arsenalcrafting.mod.items.augments.OreMinerAugmentItem;
 import com.arsenalcrafting.mod.items.tool.ArsenalPickaxeItem;
@@ -90,19 +91,12 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
     }
 
     private void installSingleAugment(ItemStack tool, Item augmentItem) {
-        // Handle different augment types
-        if (augmentItem instanceof AutoSmeltAugmentItem) {
-            // Enable auto-smelt component
-            tool.set(ModComponents.AUTO_SMELT_ENABLED.get(), true);
-            System.out.println("[Toolkit] Auto Smelt augment installed!");
-        }
-        if (augmentItem instanceof OreMinerAugmentItem) {
-            // Enable auto-smelt component
-            tool.set(ModComponents.ORE_MINER_ENABLED.get(), true);
-            System.out.println("[Toolkit] Ore Miner augment installed!");
+        if (augmentItem instanceof InstallableAugmentItem installable) {
+            installable.installOnTool(tool);
+        } else {
+            System.out.println("[Toolkit] Item " + augmentItem + " is not an augment or is missing InstallableAugmentItem.");
         }
     }
-
     public ToolkitBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.TOOLKIT.get(), pos, state);
     }

@@ -22,11 +22,9 @@ public class AugmentProcessor {
 
     static {
         // Register handlers from AugmentHandlers
-        register(ModComponents.AUTO_SMELT_ENABLED.get(), new AugmentHandlers.AutoSmelt());
-        register(ModComponents.ORE_MINER_ENABLED.get(), new AugmentHandlers.OreMiner());
-        // Future: register(ModComponents.MAGNET_ENABLED.get(), new AugmentHandlers.Magnet());
-        // Future: register(ModComponents.FIRE_ASPECT_ENABLED.get(), new AugmentHandlers.FireAspect());
-        // Future: register(ModComponents.LIFE_STEAL_ENABLED.get(), new AugmentHandlers.LifeSteal());
+        for (AugmentType type : AugmentType.values()) {
+            register(type.flag(), type.handler());
+        }
     }
 
     private static void register(DataComponentType<Boolean> componentKey, AugmentHandler handler) {
@@ -140,18 +138,16 @@ public class AugmentProcessor {
 
     // ============= HELPER METHODS =============
 
-    /**
-     * Get all active handlers for a tool, filtered by tool type
-     */
+    // Get ALL active handlers for a tool + type
     private static List<AugmentHandler> getHandlersForTool(ItemStack tool, ArsenalToolType toolType) {
         List<AugmentHandler> handlers = new ArrayList<>();
 
-        for (Map.Entry<DataComponentType<Boolean>, AugmentHandler> entry : REGISTRY.entrySet()) {
-            if (tool.getOrDefault(entry.getKey(), false)) {
-                AugmentHandler handler = entry.getValue();
-                if (handler.supportsToolType(toolType)) {
-                    handlers.add(handler);
-                }
+        for (AugmentType type : AugmentType.values()) {
+            if (!type.isOn(tool)) continue;
+
+            AugmentHandler handler = type.handler();
+            if (handler.supportsToolType(toolType)) {
+                handlers.add(handler);
             }
         }
 
@@ -209,6 +205,38 @@ public class AugmentProcessor {
         }
 
         return names;
+    }
+
+
+    // For UI / debug – which augments are actually on this tool?
+    public static List<AugmentType> getActiveAugments(ItemStack tool, ArsenalToolType toolType) {
+        List<AugmentType> result = new ArrayList<>();
+
+        for (AugmentType type : AugmentType.values()) {
+            if (type.isOn(tool) && type.handler().supportsToolType(toolType)) {
+                result.add(type);
+            }
+        }
+
+        return result;
+    }
+
+    // Debug helper: print everything to log
+    public static void debugDumpAugments(ItemStack tool, ArsenalToolType toolType) {
+        List<AugmentType> active = getActiveAugments(tool, toolType);
+        System.out.println("[Augments] Active augments (" + active.size() + "):");
+        for (AugmentType type : active) {
+            System.out.println(" - " + type.id());
+        }
+    }
+
+    public static void applyAllAugmentsForTesting(ItemStack tool, ArsenalToolType toolType) {
+        for (AugmentType type : AugmentType.values()) {
+            // Only set augments that actually support this tool type
+            if (type.handler().supportsToolType(toolType)) {
+                tool.set(type.flag(), true);
+            }
+        }
     }
 
     // ============= PUBLIC RESULT CLASS =============

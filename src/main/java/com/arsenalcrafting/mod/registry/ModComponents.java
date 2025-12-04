@@ -40,6 +40,24 @@ public class ModComponents {
                     .build());
 
 
+    // Fortune: on/off flag
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> FORTUNE_ENABLED =
+            COMPONENTS.register("fortune_enabled",
+                    () -> DataComponentType.<Boolean>builder()
+                            .persistent(Codec.BOOL)
+                            .networkSynchronized(ByteBufCodecs.BOOL)
+                            .cacheEncoding()
+                            .build());
+
+    // Fortune: tier (1–3)
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> FORTUNE_TIER =
+            COMPONENTS.register("fortune_tier",
+                    () -> DataComponentType.<Integer>builder()
+                            .persistent(Codec.INT)
+                            .networkSynchronized(ByteBufCodecs.VAR_INT)
+                            .cacheEncoding()
+                            .build());
+
     public static void register(IEventBus eventBus) {
         COMPONENTS.register(eventBus);
     }

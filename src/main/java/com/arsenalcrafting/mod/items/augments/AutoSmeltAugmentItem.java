@@ -1,6 +1,8 @@
 package com.arsenalcrafting.mod.items.augments;
 
 import com.arsenalcrafting.mod.core.augments.Augment;
+import com.arsenalcrafting.mod.core.augments.InstallableAugmentItem;
+import com.arsenalcrafting.mod.registry.ModComponents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
@@ -21,7 +23,7 @@ import java.util.Optional;
  * This class now extends Item and contains the static utility methods for
  * handling the smelting logic when a block is mined.
  */
-public class AutoSmeltAugmentItem extends Item implements Augment  {
+public class AutoSmeltAugmentItem extends Item implements Augment, InstallableAugmentItem {
 
     public AutoSmeltAugmentItem(Properties properties) {
         super(properties);
@@ -140,5 +142,11 @@ public class AutoSmeltAugmentItem extends Item implements Augment  {
         }
 
         return Optional.empty();
+    }
+
+    @Override
+    public void installOnTool(ItemStack tool) {
+        tool.set(ModComponents.ORE_MINER_ENABLED.get(), true);
+        System.out.println("[Toolkit] Ore-Miner augment installed!");
     }
 }

@@ -3,6 +3,7 @@ package com.arsenalcrafting.mod.registry;
 import com.arsenalcrafting.mod.ArsenalCrafting;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.items.augments.AutoSmeltAugmentItem;
+import com.arsenalcrafting.mod.items.augments.FortuneAugmentItem;
 import com.arsenalcrafting.mod.items.augments.OreMinerAugmentItem;
 import com.arsenalcrafting.mod.items.tool.ArsenalPickaxeItem;
 import com.arsenalcrafting.mod.items.tool.toolparts.ToolHeadItem;
@@ -35,10 +36,19 @@ public class ModItems {
             () -> new ArsenalPickaxeItem(AlloyMaterial.BRONZE, new Item.Properties().durability(1000)));
 
     public static final DeferredHolder<Item, AutoSmeltAugmentItem> AUTO_SMELT_AUGMENT = ITEMS.register("auto_smelt_augment",
-            () -> new AutoSmeltAugmentItem(new Item.Properties()));
+            () -> new AutoSmeltAugmentItem(new Item.Properties().stacksTo(1)));
 
     public static final DeferredHolder<Item, OreMinerAugmentItem> ORE_MINER_AUGMENT = ITEMS.register("ore_miner_augment",
-            () -> new OreMinerAugmentItem(new Item.Properties()));
+            () -> new OreMinerAugmentItem(new Item.Properties().stacksTo(1)));
+
+    public static final DeferredHolder<Item, Item> FORTUNE_T1_AUGMENT = ITEMS.register("fortune_t1_augment",
+                    () -> new FortuneAugmentItem(1, new Item.Properties().stacksTo(1)));
+
+    public static final DeferredHolder<Item, Item> FORTUNE_T2_AUGMENT = ITEMS.register("fortune_t2_augment",
+                    () -> new FortuneAugmentItem(2, new Item.Properties().stacksTo(1)));
+
+    public static final DeferredHolder<Item, Item> FORTUNE_T3_AUGMENT = ITEMS.register("fortune_t3_augment",
+                    () -> new FortuneAugmentItem(3, new Item.Properties().stacksTo(1)));
 
     // --- Other Key Items ---
     public static final DeferredHolder<Item, Item> REPAIR_KIT = ITEMS.register("repair_kit",

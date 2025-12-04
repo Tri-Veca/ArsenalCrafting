@@ -1,6 +1,7 @@
 package com.arsenalcrafting.mod.items.augments;
 
 import com.arsenalcrafting.mod.core.augments.Augment;
+import com.arsenalcrafting.mod.core.augments.InstallableAugmentItem;
 import com.arsenalcrafting.mod.registry.ModComponents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -17,7 +18,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.*;
 
-public class OreMinerAugmentItem extends Item implements Augment {
+public class OreMinerAugmentItem extends Item implements Augment,InstallableAugmentItem {
     private static final int MAX_VEIN_BLOCKS = 64;
 
     public OreMinerAugmentItem(Properties properties) {
@@ -198,5 +199,11 @@ public class OreMinerAugmentItem extends Item implements Augment {
 
         // Return true if we broke any blocks (the original was already broken)
         return broken > 0;
+    }
+
+    @Override
+    public void installOnTool(ItemStack tool) {
+        tool.set(ModComponents.AUTO_SMELT_ENABLED.get(), true);
+        System.out.println("[Toolkit] Auto-Smelt augment installed!");
     }
 }

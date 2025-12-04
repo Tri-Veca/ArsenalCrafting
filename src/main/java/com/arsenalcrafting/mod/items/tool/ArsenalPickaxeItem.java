@@ -4,6 +4,7 @@ import com.arsenalcrafting.mod.component.ToolAssemblyData;
 import com.arsenalcrafting.mod.config.TestModeConfig;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.core.augments.AugmentProcessor;
+import com.arsenalcrafting.mod.core.augments.AugmentType;
 import com.arsenalcrafting.mod.registry.ModComponents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -145,82 +146,128 @@ public class ArsenalPickaxeItem extends PickaxeItem {
     @OnlyIn(Dist.CLIENT)
     public void appendHoverText(ItemStack stack, @Nullable Item.TooltipContext context,
                                 List<Component> tooltip, TooltipFlag flag) {
-        // Retrieve dynamic material data from Data Components
-        AlloyMaterial currentMaterial = baseMaterial; // Start with base material
 
-        // Fetch tool assembly data using the modern component system (getOrDefault)
-        ToolAssemblyData assemblyData = stack.getOrDefault(ModComponents.TOOL_ASSEMBLY_DATA.get(), ToolAssemblyData.EMPTY);
+        AlloyMaterial currentMaterial = baseMaterial;
+
+        // =======================
+        // PART MATERIALS
+        // =======================
+        ToolAssemblyData assemblyData = stack.getOrDefault(
+                ModComponents.TOOL_ASSEMBLY_DATA.get(),
+                ToolAssemblyData.EMPTY
+        );
 
         if (!assemblyData.isEmpty()) {
             tooltip.add(Component.literal("")); // Separator
-            tooltip.add(Component.translatable("item.arsenalcrafting.tool_parts").withStyle(ChatFormatting.DARK_AQUA));
-            tooltip.add(Component.translatable("item.arsenalcrafting.head_material", assemblyData.headMaterial()).withStyle(ChatFormatting.WHITE));
-            tooltip.add(Component.translatable("item.arsenalcrafting.rod_material", assemblyData.rodMaterial()).withStyle(ChatFormatting.WHITE));
+            tooltip.add(Component.translatable("item.arsenalcrafting.tool_parts")
+                    .withStyle(ChatFormatting.DARK_AQUA));
+
+            tooltip.add(Component.translatable(
+                    "item.arsenalcrafting.head_material",
+                    assemblyData.headMaterial()
+            ).withStyle(ChatFormatting.WHITE));
+
+            tooltip.add(Component.translatable(
+                    "item.arsenalcrafting.rod_material",
+                    assemblyData.rodMaterial()
+            ).withStyle(ChatFormatting.WHITE));
+
             tooltip.add(Component.literal("")); // Separator
         }
 
-        // Display augment status if present
-        boolean autoSmeltEnabled = stack.getOrDefault(ModComponents.AUTO_SMELT_ENABLED.get(), false);
-        boolean oreMinerEnabled = stack.getOrDefault(ModComponents.ORE_MINER_ENABLED.get(), false);
-        if (autoSmeltEnabled) {
-            tooltip.add(Component.translatable("augment.arsenalcrafting.auto_smelt").withStyle(ChatFormatting.GOLD));
 
-            // Only show test mode warning if we're actually in test mode
-            if (TestModeConfig.isAutoSmeltEnabled()) {
-                tooltip.add(Component.literal("TEST MODE: Auto Smelt").withStyle(ChatFormatting.RED));
+        // =======================
+        // AUGMENTS
+        // =======================
+        List<AugmentType> activeAugments =
+                AugmentProcessor.getActiveAugments(stack, ArsenalToolType.PICKAXE);
+
+        if (!activeAugments.isEmpty()) {
+            tooltip.add(Component.literal("")); // Separator
+
+            for (AugmentType augment : activeAugments) {
+
+                // ⭐ FORTUNE SPECIAL CASE: show Tier
+                if (augment == AugmentType.FORTUNE) {
+                    int tier = stack.getOrDefault(ModComponents.FORTUNE_TIER.get(), 1);
+
+                    tooltip.add(
+                            Component.translatable(augment.translationKey())
+                                    .append(" ")
+                                    .append(Component.literal("Tier " + tier).withStyle(ChatFormatting.YELLOW))
+                                    .withStyle(ChatFormatting.GOLD)
+                    );
+                }
+
+                // Normal augments
+                else {
+                    tooltip.add(
+                            Component.translatable(augment.translationKey())
+                                    .withStyle(ChatFormatting.GOLD)
+                    );
+                }
+
+                // TEST MODE line
+                if (augment.isEnabledInTestMode()) {
+                    tooltip.add(
+                            Component.literal("TEST MODE: " + augment.id())
+                                    .withStyle(ChatFormatting.RED)
+                    );
+                }
             }
-
-        }
-        if (oreMinerEnabled) {
-            tooltip.add(Component.translatable("augment.arsenalcrafting.ore_miner").withStyle(ChatFormatting.GOLD));
-
-            // Only show test mode warning if we're actually in test mode
-            if (TestModeConfig.isOreMinerEnabled()) {
-                tooltip.add(Component.literal("TEST MODE: Ore Miner").withStyle(ChatFormatting.RED));
-            }
-
         }
 
-        // Title and Durability (Base Stats)
+
+        // =======================
+        // MATERIAL BASE STATS
+        // =======================
         tooltip.add(Component.translatable("item.arsenalcrafting.tool_material", currentMaterial.getName())
                 .withStyle(currentMaterial.getColor()));
+
         tooltip.add(Component.translatable("item.arsenalcrafting.durability", currentMaterial.getDurability())
                 .withStyle(currentMaterial.getColor()));
 
-        // Efficiency and Augment Modifier
-        tooltip.add(Component.translatable("item.arsenalcrafting.efficiency", String.format("%.1f", currentMaterial.getEfficiency()))
+        tooltip.add(Component.translatable("item.arsenalcrafting.efficiency",
+                        String.format("%.1f", currentMaterial.getEfficiency()))
                 .withStyle(ChatFormatting.BLUE));
-        tooltip.add(Component.translatable("item.arsenalcrafting.repairability", String.format("%.2f", currentMaterial.getModifier()))
+
+        tooltip.add(Component.translatable("item.arsenalcrafting.repairability",
+                        String.format("%.2f", currentMaterial.getModifier()))
                 .withStyle(ChatFormatting.DARK_GREEN));
 
-        // Augment Slots
+
+        // =======================
+        // AUGMENT SLOTS
+        // =======================
         int totalSlots = currentMaterial.getToolAugmentSlots();
         int usedSlots = countUsedAugmentSlots(stack);
 
-        tooltip.add(Component.literal("")); // Empty line for separation
-        tooltip.add(Component.translatable("item.arsenalcrafting.augment_slots",
-                        usedSlots + "/" + totalSlots)
-                .withStyle(ChatFormatting.LIGHT_PURPLE));
+        tooltip.add(Component.literal("")); // Separator
+        tooltip.add(
+                Component.translatable(
+                        "item.arsenalcrafting.augment_slots",
+                        usedSlots + "/" + totalSlots
+                ).withStyle(ChatFormatting.LIGHT_PURPLE)
+        );
     }
+
 
     // Add this helper method to count used augment slots
     private int countUsedAugmentSlots(ItemStack stack) {
         int usedSlots = 0;
 
-        // Count each augment type that's installed
-        if (stack.getOrDefault(ModComponents.AUTO_SMELT_ENABLED.get(), false)) {
-            usedSlots++;
-        }
+        // Loop ALL augments from the enum
+        for (AugmentType augment : AugmentType.values()) {
 
-        if (stack.getOrDefault(ModComponents.ORE_MINER_ENABLED.get(), false)) {
-            usedSlots++;
+            // Each augment has its own data component flag
+            if (stack.getOrDefault(augment.flag(), false)) {
+                usedSlots++;
+            }
         }
-        // Add more augment checks here as you implement them:
-        // if (stack.get(ModComponents.LIFE_STEAL_ENABLED.get())) { usedSlots++; }
-        // if (stack.get(ModComponents.FORTUNE_ENABLED.get())) { usedSlots++; }
 
         return usedSlots;
     }
+
 
     // Prevent Enchantments on Arsenal Tools
     @Override

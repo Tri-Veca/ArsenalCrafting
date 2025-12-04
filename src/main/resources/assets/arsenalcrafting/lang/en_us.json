@@ -24,10 +24,18 @@
   "item.arsenalcrafting.repairability": "Repairability: %s",
   "item.arsenalcrafting.augment_slots": "Augment Slots: %s",
 
+
+
   "item.arsenalcrafting.auto_smelt_augment": "Auto Smelt Augment",
   "item.arsenalcrafting.ore_miner_augment": "Ore Miner Augment",
+  "item.arsenalcrafting.fortune_t1_augment": "Fortune I Augment",
+  "item.arsenalcrafting.fortune_t2_augment": "Fortune II Augment",
+  "item.arsenalcrafting.fortune_t3_augment": "Fortune III Augment",
+
+
 
   "screen.arsenalcrafting.toolkit_title": "Tool Kit",
   "augment.arsenalcrafting.auto_smelt": "Auto Smelt",
-  "augment.arsenalcrafting.ore_miner": "Ore Miner"
+  "augment.arsenalcrafting.ore_miner": "Ore Miner",
+  "augment.arsenalcrafting.fortune": "Fortune"
 }
