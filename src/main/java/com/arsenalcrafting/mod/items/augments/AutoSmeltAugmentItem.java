@@ -146,7 +146,7 @@ public class AutoSmeltAugmentItem extends Item implements Augment, InstallableAu
 
     @Override
     public void installOnTool(ItemStack tool) {
-        tool.set(ModComponents.ORE_MINER_ENABLED.get(), true);
-        System.out.println("[Toolkit] Ore-Miner augment installed!");
+        tool.set(ModComponents.AUTO_SMELT_ENABLED.get(), true);
+        System.out.println("[Toolkit] Auto-Smelt augment installed!");
     }
 }
