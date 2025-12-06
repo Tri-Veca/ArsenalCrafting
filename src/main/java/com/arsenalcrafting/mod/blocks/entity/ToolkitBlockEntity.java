@@ -58,12 +58,14 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
                 // Only items that implement the Augment marker interface are valid
                 return stack.getItem() instanceof Augment;
             }
-            return switch (slot) {
+            if (switch (slot) {
                 case 0 -> stack.getItem() instanceof ToolHeadItem; // Slot 0: Head
                 case 3 -> stack.getItem() instanceof ToolRodItem;  // Slot 3: Rod (FIXED: was checking slot 1)
                 case 2 -> stack.getItem() instanceof ArsenalPickaxeItem; // ALLOW putting assembled tools back!
+                case 4, 6, 5, 7 -> stack.getItem() instanceof Augment; // Only let augments in augments slots!
                 default -> true; // Allow other items in unused slots for now
-            };
+            }) return true;
+            else return false;
         }
     };
     public void installAugments() {
@@ -136,6 +138,8 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
                     assembledTool.set(ModComponents.AUTO_SMELT_ENABLED.get(), false);
                 }
 
+                itemHandler.setStackInSlot(0, ItemStack.EMPTY); //Use the head
+                itemHandler.setStackInSlot(3, ItemStack.EMPTY); //Use the rod
                 itemHandler.setStackInSlot(2, assembledTool);
             }
         } else if (!outputSlot.isEmpty() && outputSlot.getItem() instanceof ArsenalPickaxeItem) {
