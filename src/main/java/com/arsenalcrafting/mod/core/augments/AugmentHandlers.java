@@ -6,6 +6,7 @@ import com.arsenalcrafting.mod.items.augments.OreMinerAugmentItem;
 import com.arsenalcrafting.mod.items.tool.ArsenalToolType;
 import com.arsenalcrafting.mod.registry.ModComponents;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -84,7 +85,11 @@ public class AugmentHandlers {
                                         LivingEntity miner) {
             return FortuneAugmentItem.onBlockMined(tool, level, state, pos, miner);
         }
+
     }
+
+
+
 
     // ============= COMBAT AUGMENTS =============
 

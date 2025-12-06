@@ -1,6 +1,7 @@
 package com.arsenalcrafting.mod.items.augments;
 
 import com.arsenalcrafting.mod.core.augments.Augment;
+import com.arsenalcrafting.mod.core.augments.AugmentHandlers;
 import com.arsenalcrafting.mod.core.augments.InstallableAugmentItem;
 import com.arsenalcrafting.mod.registry.ModComponents;
 import net.minecraft.core.BlockPos;
@@ -83,6 +84,7 @@ public class AutoSmeltAugmentItem extends Item implements Augment, InstallableAu
                 droppedAnyItem = true;
             }
         }
+
 
         if (successfullySmeltedAnyItem || droppedAnyItem) {
             System.out.println("[AutoSmelt] Processing complete - DESTROYING block at " + pos);
