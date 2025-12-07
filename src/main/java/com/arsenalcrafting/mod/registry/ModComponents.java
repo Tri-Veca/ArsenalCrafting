@@ -1,6 +1,7 @@
 package com.arsenalcrafting.mod.registry;
 
 import com.arsenalcrafting.mod.ArsenalCrafting;
+import com.arsenalcrafting.mod.component.DynamicComponents;
 import com.arsenalcrafting.mod.component.ToolAssemblyData;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.component.DataComponentType;
@@ -25,6 +26,7 @@ public class ModComponents {
      * Data component for storing the ON/OFF state of the Auto Smelt augment.
      * It uses a simple Boolean, where the presence of the component means the augment is active.
      */
+    /*
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> AUTO_SMELT_ENABLED = COMPONENTS.register("auto_smelt_enabled",
             () -> DataComponentType.<Boolean>builder()
                     .persistent(Codec.BOOL)
@@ -58,7 +60,15 @@ public class ModComponents {
                             .cacheEncoding()
                             .build());
 
-    public static void register(IEventBus eventBus) {
-        COMPONENTS.register(eventBus);
+     */
+
+    static {
+        // Register dynamic components FIRST
+        DynamicComponents.registerAll(COMPONENTS);
     }
-}
+
+
+        public static void register (IEventBus eventBus){
+            COMPONENTS.register(eventBus);
+        }
+    }

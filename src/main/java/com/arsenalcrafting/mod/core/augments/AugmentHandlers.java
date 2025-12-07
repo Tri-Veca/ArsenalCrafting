@@ -1,5 +1,6 @@
 package com.arsenalcrafting.mod.core.augments;
 
+import com.arsenalcrafting.mod.component.DynamicComponents;
 import com.arsenalcrafting.mod.items.augments.AutoSmeltAugmentItem;
 import com.arsenalcrafting.mod.items.augments.FortuneAugmentItem;
 import com.arsenalcrafting.mod.items.augments.OreMinerAugmentItem;
@@ -74,7 +75,7 @@ public class AugmentHandlers {
         @Override
         public boolean canHandleBlock(BlockState state, ItemStack tool) {
             // Only run if Fortune is actually installed on the tool
-            return tool.getOrDefault(ModComponents.FORTUNE_ENABLED.get(), false);
+            return tool.getOrDefault(DynamicComponents.getEnabledComponent("fortune"), false);
         }
 
         @Override

@@ -3,9 +3,9 @@ package com.arsenalcrafting.mod.items.tool;
 import com.arsenalcrafting.mod.component.ToolAssemblyData;
 import com.arsenalcrafting.mod.config.TestModeConfig;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
+import com.arsenalcrafting.mod.core.augments.AugmentManager;
 import com.arsenalcrafting.mod.core.augments.AugmentProcessor;
-import com.arsenalcrafting.mod.core.augments.AugmentType;
-import com.arsenalcrafting.mod.registry.ModComponents;
+import com.arsenalcrafting.mod.component.DynamicComponents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -41,15 +41,20 @@ public class ArsenalPickaxeItem extends PickaxeItem {
     public ItemStack getDefaultInstance() {
         ItemStack stack = super.getDefaultInstance();
 
-        // Clean, centralized test mode logic
-        if (TestModeConfig.isAutoSmeltEnabled()) {
-            stack.set(ModComponents.AUTO_SMELT_ENABLED.get(), true);
-            System.out.println("[TestMode] Pre-installed Auto-Smelt on new pickaxe");
-        }
-        // Clean, centralized test mode logic
-        if (TestModeConfig.isOreMinerEnabled()) {
-            stack.set(ModComponents.ORE_MINER_ENABLED.get(), true);
-            System.out.println("[TestMode] Pre-installed Ore-Miner on new pickaxe");
+        // Test mode: Install ALL augments that support pickaxes
+        if (TestModeConfig.isTestModeEnabled()) {
+            System.out.println("[TestMode] Installing all pickaxe augments on new pickaxe");
+
+            for (AugmentManager.AugmentDefinition def : AugmentManager.getAll()) {
+                var handler = AugmentManager.getHandler(def.id());
+                if (handler != null && handler.supportsToolType(ArsenalToolType.PICKAXE)) {
+                    // Check if this specific augment is enabled in test mode
+                    if (TestModeConfig.isAugmentEnabled(def.id())) {
+                        AugmentManager.install(def.id(), stack, def.hasTiers() ? def.maxTier() : 1);
+                        System.out.println("[TestMode] Installed: " + def.name());
+                    }
+                }
+            }
         }
 
         return stack;
@@ -108,7 +113,7 @@ public class ArsenalPickaxeItem extends PickaxeItem {
             // Process through AugmentProcessor with PICKAXE tool type
             AugmentProcessor.ProcessResult result = AugmentProcessor.processBlockBreak(
                     stack,
-                    ArsenalToolType.PICKAXE,  // Use ToolType enum
+                    ArsenalToolType.PICKAXE,
                     level,
                     state,
                     pos,
@@ -122,8 +127,6 @@ public class ArsenalPickaxeItem extends PickaxeItem {
                         : EquipmentSlot.OFFHAND;
 
                 stack.hurtAndBreak(1, entity, slot);
-                return true; // This should prevent vanilla drops!
-            }
 
                 // Apply combo effects if any
                 if (result.specialCombo != null) {
@@ -131,11 +134,11 @@ public class ArsenalPickaxeItem extends PickaxeItem {
                     // Add any combo-specific effects here
                 }
 
-                return true; // Drops were handled by augments
+                return true; // This should prevent vanilla drops!
             } else {
                 System.out.println("[ArsenalPickaxe] No augment handled this block, using vanilla");
             }
-
+        }
 
         // No augment handled it, use vanilla behavior
         return super.mineBlock(stack, level, state, pos, entity);
@@ -146,81 +149,57 @@ public class ArsenalPickaxeItem extends PickaxeItem {
     @OnlyIn(Dist.CLIENT)
     public void appendHoverText(ItemStack stack, @Nullable Item.TooltipContext context,
                                 List<Component> tooltip, TooltipFlag flag) {
-
-        AlloyMaterial currentMaterial = baseMaterial;
+        AlloyMaterial currentMaterial = baseMaterial; // Start with base material
 
         // =======================
-        // PART MATERIALS
+        // TOOL ASSEMBLY DATA (if any)
         // =======================
-        ToolAssemblyData assemblyData = stack.getOrDefault(
-                ModComponents.TOOL_ASSEMBLY_DATA.get(),
-                ToolAssemblyData.EMPTY
-        );
-
+        ToolAssemblyData assemblyData = stack.getOrDefault(com.arsenalcrafting.mod.registry.ModComponents.TOOL_ASSEMBLY_DATA.get(), ToolAssemblyData.EMPTY);
         if (!assemblyData.isEmpty()) {
             tooltip.add(Component.literal("")); // Separator
-            tooltip.add(Component.translatable("item.arsenalcrafting.tool_parts")
-                    .withStyle(ChatFormatting.DARK_AQUA));
-
-            tooltip.add(Component.translatable(
-                    "item.arsenalcrafting.head_material",
-                    assemblyData.headMaterial()
-            ).withStyle(ChatFormatting.WHITE));
-
-            tooltip.add(Component.translatable(
-                    "item.arsenalcrafting.rod_material",
-                    assemblyData.rodMaterial()
-            ).withStyle(ChatFormatting.WHITE));
-
+            tooltip.add(Component.translatable("item.arsenalcrafting.tool_parts").withStyle(ChatFormatting.DARK_AQUA));
+            tooltip.add(Component.translatable("item.arsenalcrafting.head_material", assemblyData.headMaterial()).withStyle(ChatFormatting.WHITE));
+            tooltip.add(Component.translatable("item.arsenalcrafting.rod_material", assemblyData.rodMaterial()).withStyle(ChatFormatting.WHITE));
             tooltip.add(Component.literal("")); // Separator
         }
 
-
         // =======================
-        // AUGMENTS
+        // ACTIVE AUGMENTS
         // =======================
-        List<AugmentType> activeAugments =
-                AugmentProcessor.getActiveAugments(stack, ArsenalToolType.PICKAXE);
-
-        if (!activeAugments.isEmpty()) {
-            tooltip.add(Component.literal("")); // Separator
-
-            for (AugmentType augment : activeAugments) {
-
-                // ⭐ FORTUNE SPECIAL CASE: show Tier
-                if (augment == AugmentType.FORTUNE) {
-                    int tier = stack.getOrDefault(ModComponents.FORTUNE_TIER.get(), 1);
-
-                    tooltip.add(
-                            Component.translatable(augment.translationKey())
-                                    .append(" ")
-                                    .append(Component.literal("Tier " + tier).withStyle(ChatFormatting.YELLOW))
-                                    .withStyle(ChatFormatting.GOLD)
-                    );
+        boolean hasAnyAugments = false;
+        for (AugmentManager.AugmentDefinition def : AugmentManager.getAll()) {
+            if (AugmentManager.isInstalled(def.id(), stack)) {
+                if (!hasAnyAugments) {
+                    tooltip.add(Component.literal("")); // Separator before first augment
+                    hasAnyAugments = true;
                 }
 
-                // Normal augments
-                else {
-                    tooltip.add(
-                            Component.translatable(augment.translationKey())
-                                    .withStyle(ChatFormatting.GOLD)
-                    );
+                Component augmentName = Component.translatable(AugmentManager.getTranslationKey(def.id()))
+                        .withStyle(ChatFormatting.GOLD);
+
+                // Add tier if applicable
+                if (def.hasTiers()) {
+                    int tier = AugmentManager.getTier(def.id(), stack);
+                    augmentName = Component.translatable("augment.arsenalcrafting.with_tier",
+                            Component.translatable(AugmentManager.getTranslationKey(def.id())),
+                            Component.literal(String.valueOf(tier))
+                    ).withStyle(ChatFormatting.GOLD);
                 }
+
+                tooltip.add(augmentName);
 
                 // TEST MODE line
-                if (augment.isEnabledInTestMode()) {
-                    tooltip.add(
-                            Component.literal("TEST MODE: " + augment.id())
-                                    .withStyle(ChatFormatting.RED)
-                    );
+                if (TestModeConfig.isAugmentEnabled(def.id())) {
+                    tooltip.add(Component.literal("TEST MODE: " + def.name())
+                            .withStyle(ChatFormatting.RED));
                 }
             }
         }
 
-
         // =======================
         // MATERIAL BASE STATS
         // =======================
+        tooltip.add(Component.literal("")); // Separator
         tooltip.add(Component.translatable("item.arsenalcrafting.tool_material", currentMaterial.getName())
                 .withStyle(currentMaterial.getColor()));
 
@@ -234,7 +213,6 @@ public class ArsenalPickaxeItem extends PickaxeItem {
         tooltip.add(Component.translatable("item.arsenalcrafting.repairability",
                         String.format("%.2f", currentMaterial.getModifier()))
                 .withStyle(ChatFormatting.DARK_GREEN));
-
 
         // =======================
         // AUGMENT SLOTS
@@ -251,23 +229,19 @@ public class ArsenalPickaxeItem extends PickaxeItem {
         );
     }
 
-
     // Add this helper method to count used augment slots
     private int countUsedAugmentSlots(ItemStack stack) {
         int usedSlots = 0;
 
-        // Loop ALL augments from the enum
-        for (AugmentType augment : AugmentType.values()) {
-
-            // Each augment has its own data component flag
-            if (stack.getOrDefault(augment.flag(), false)) {
+        // Loop ALL augments from the registry
+        for (AugmentManager.AugmentDefinition def : AugmentManager.getAll()) {
+            if (AugmentManager.isInstalled(def.id(), stack)) {
                 usedSlots++;
             }
         }
 
         return usedSlots;
     }
-
 
     // Prevent Enchantments on Arsenal Tools
     @Override

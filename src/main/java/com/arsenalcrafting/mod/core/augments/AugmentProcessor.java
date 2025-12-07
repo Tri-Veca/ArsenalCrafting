@@ -1,9 +1,7 @@
 package com.arsenalcrafting.mod.core.augments;
 
 import com.arsenalcrafting.mod.items.tool.ArsenalToolType;
-import com.arsenalcrafting.mod.registry.ModComponents;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponentType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -17,30 +15,30 @@ import java.util.*;
 
 public class AugmentProcessor {
 
-    // Registry: Component Type -> Handler Instance
-    private static final Map<DataComponentType<Boolean>, AugmentHandler> REGISTRY = new HashMap<>();
+    // Cache handlers to avoid repeated instantiation
+    private static final Map<String, AugmentHandler> HANDLER_CACHE = new HashMap<>();
 
-    static {
-        // Register handlers from AugmentHandlers
-        for (AugmentType type : AugmentType.values()) {
-            register(type.flag(), type.handler());
-        }
+    // Get cached handler instance
+    private static AugmentHandler getCachedHandler(String augmentId) {
+        return HANDLER_CACHE.computeIfAbsent(augmentId, id -> {
+            try {
+                AugmentManager.AugmentDefinition def = AugmentManager.get(id);
+                if (def != null) {
+                    return def.handlerClass().newInstance();
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to instantiate handler for augment: " + augmentId);
+                e.printStackTrace();
+            }
+            return null;
+        });
     }
 
-    private static void register(DataComponentType<Boolean> componentKey, AugmentHandler handler) {
-        REGISTRY.put(componentKey, handler);
-    }
-
-    // ============= PUBLIC PROCESSING METHODS =============
-
-    /**
-     * Process block breaking with all applicable augments
-     */
     public static ProcessResult processBlockBreak(ItemStack tool, ArsenalToolType toolType,
                                                   Level level, BlockState state,
                                                   BlockPos pos, LivingEntity miner) {
 
-        List<AugmentHandler> handlers = getHandlersForTool(tool, toolType);
+        List<AugmentHandler> handlers = getActiveHandlers(tool, toolType);
         handlers.sort(Comparator.comparingInt(AugmentHandler::priority));
 
         ProcessResult result = new ProcessResult();
@@ -73,6 +71,22 @@ public class AugmentProcessor {
         return result;
     }
 
+    private static List<AugmentHandler> getActiveHandlers(ItemStack tool, ArsenalToolType toolType) {
+        List<AugmentHandler> handlers = new ArrayList<>();
+
+        // Check all augments dynamically
+        for (AugmentManager.AugmentDefinition def : AugmentManager.getAll()) {
+            if (AugmentManager.isInstalled(def.id(), tool)) {
+                AugmentHandler handler = getCachedHandler(def.id());
+                if (handler != null && handler.supportsToolType(toolType)) {
+                    handlers.add(handler);
+                }
+            }
+        }
+
+        return handlers;
+    }
+
     /**
      * Process entity attacks with all applicable augments
      */
@@ -80,7 +94,7 @@ public class AugmentProcessor {
                                                     LivingEntity attacker, Entity target,
                                                     float damage) {
 
-        List<AugmentHandler> handlers = getHandlersForTool(tool, toolType);
+        List<AugmentHandler> handlers = getActiveHandlers(tool, toolType);
         handlers.sort(Comparator.comparingInt(AugmentHandler::priority));
 
         ProcessResult result = new ProcessResult();
@@ -107,7 +121,7 @@ public class AugmentProcessor {
      * Update tool each tick (for magnet, effects, etc.)
      */
     public static void processToolUpdate(ItemStack tool, ArsenalToolType toolType, Player player) {
-        List<AugmentHandler> handlers = getHandlersForTool(tool, toolType);
+        List<AugmentHandler> handlers = getActiveHandlers(tool, toolType);
 
         for (AugmentHandler handler : handlers) {
             handler.onToolUpdate(tool, player);
@@ -118,7 +132,7 @@ public class AugmentProcessor {
      * Called when tool is equipped
      */
     public static void processToolEquip(ItemStack tool, ArsenalToolType toolType, Player player) {
-        List<AugmentHandler> handlers = getHandlersForTool(tool, toolType);
+        List<AugmentHandler> handlers = getActiveHandlers(tool, toolType);
 
         for (AugmentHandler handler : handlers) {
             handler.onToolEquip(tool, player);
@@ -129,7 +143,7 @@ public class AugmentProcessor {
      * Called when tool is unequipped
      */
     public static void processToolUnequip(ItemStack tool, ArsenalToolType toolType, Player player) {
-        List<AugmentHandler> handlers = getHandlersForTool(tool, toolType);
+        List<AugmentHandler> handlers = getActiveHandlers(tool, toolType);
 
         for (AugmentHandler handler : handlers) {
             handler.onToolUnequip(tool, player);
@@ -138,28 +152,15 @@ public class AugmentProcessor {
 
     // ============= HELPER METHODS =============
 
-    // Get ALL active handlers for a tool + type
-    private static List<AugmentHandler> getHandlersForTool(ItemStack tool, ArsenalToolType toolType) {
-        List<AugmentHandler> handlers = new ArrayList<>();
-
-        for (AugmentType type : AugmentType.values()) {
-            if (!type.isOn(tool)) continue;
-
-            AugmentHandler handler = type.handler();
-            if (handler.supportsToolType(toolType)) {
-                handlers.add(handler);
-            }
-        }
-
-        return handlers;
-    }
-
     /**
      * Detect special combo effects
      */
     private static void detectCombos(List<AugmentHandler> handlers, ProcessResult result) {
-        boolean hasAutoSmelt = handlers.stream().anyMatch(h -> h instanceof AugmentHandlers.AutoSmelt);
-        boolean hasOreMiner = handlers.stream().anyMatch(h -> h instanceof AugmentHandlers.OreMiner);
+        // Check combo by class name (since we don't have AugmentType enum anymore)
+        boolean hasAutoSmelt = handlers.stream()
+                .anyMatch(h -> h.getClass().getSimpleName().contains("AutoSmelt"));
+        boolean hasOreMiner = handlers.stream()
+                .anyMatch(h -> h.getClass().getSimpleName().contains("OreMiner"));
 
         if (hasAutoSmelt && hasOreMiner) {
             result.specialCombo = "SMELT_VEIN";
@@ -167,8 +168,10 @@ public class AugmentProcessor {
         }
 
         // Add more combos as needed
-        boolean hasFireAspect = handlers.stream().anyMatch(h -> h instanceof AugmentHandlers.FireAspect);
-        boolean hasLifeSteal = handlers.stream().anyMatch(h -> h instanceof AugmentHandlers.LifeSteal);
+        boolean hasFireAspect = handlers.stream()
+                .anyMatch(h -> h.getClass().getSimpleName().contains("FireAspect"));
+        boolean hasLifeSteal = handlers.stream()
+                .anyMatch(h -> h.getClass().getSimpleName().contains("LifeSteal"));
 
         if (hasFireAspect && hasLifeSteal) {
             result.specialCombo = "VAMPIRIC_FLAME";
@@ -179,11 +182,17 @@ public class AugmentProcessor {
     /**
      * Check if a specific augment is active on a tool
      */
+    public static boolean hasAugment(ItemStack tool, String augmentId) {
+        return AugmentManager.isInstalled(augmentId, tool);
+    }
+
     public static boolean hasAugment(ItemStack tool, Class<? extends AugmentHandler> handlerClass) {
-        for (Map.Entry<DataComponentType<Boolean>, AugmentHandler> entry : REGISTRY.entrySet()) {
-            if (tool.getOrDefault(entry.getKey(), false) &&
-                    handlerClass.isInstance(entry.getValue())) {
-                return true;
+        for (AugmentManager.AugmentDefinition def : AugmentManager.getAll()) {
+            if (AugmentManager.isInstalled(def.id(), tool)) {
+                AugmentHandler handler = getCachedHandler(def.id());
+                if (handler != null && handlerClass.isInstance(handler)) {
+                    return true;
+                }
             }
         }
         return false;
@@ -195,11 +204,11 @@ public class AugmentProcessor {
     public static List<String> getActiveAugmentNames(ItemStack tool, @Nullable ArsenalToolType toolType) {
         List<String> names = new ArrayList<>();
 
-        for (Map.Entry<DataComponentType<Boolean>, AugmentHandler> entry : REGISTRY.entrySet()) {
-            if (tool.getOrDefault(entry.getKey(), false)) {
-                AugmentHandler handler = entry.getValue();
-                if (toolType == null || handler.supportsToolType(toolType)) {
-                    names.add(handler.getClass().getSimpleName());
+        for (AugmentManager.AugmentDefinition def : AugmentManager.getAll()) {
+            if (AugmentManager.isInstalled(def.id(), tool)) {
+                AugmentHandler handler = getCachedHandler(def.id());
+                if (handler != null && (toolType == null || handler.supportsToolType(toolType))) {
+                    names.add(def.name());
                 }
             }
         }
@@ -207,14 +216,36 @@ public class AugmentProcessor {
         return names;
     }
 
+    /**
+     * Get active augment IDs for a tool (for UI/debug)
+     */
+    public static List<String> getActiveAugmentIds(ItemStack tool, @Nullable ArsenalToolType toolType) {
+        List<String> ids = new ArrayList<>();
 
-    // For UI / debug – which augments are actually on this tool?
-    public static List<AugmentType> getActiveAugments(ItemStack tool, ArsenalToolType toolType) {
-        List<AugmentType> result = new ArrayList<>();
+        for (AugmentManager.AugmentDefinition def : AugmentManager.getAll()) {
+            if (AugmentManager.isInstalled(def.id(), tool)) {
+                AugmentHandler handler = getCachedHandler(def.id());
+                if (handler != null && (toolType == null || handler.supportsToolType(toolType))) {
+                    ids.add(def.id());
+                }
+            }
+        }
 
-        for (AugmentType type : AugmentType.values()) {
-            if (type.isOn(tool) && type.handler().supportsToolType(toolType)) {
-                result.add(type);
+        return ids;
+    }
+
+    /**
+     * Get augment definitions for active augments on a tool
+     */
+    public static List<AugmentManager.AugmentDefinition> getActiveAugments(ItemStack tool, ArsenalToolType toolType) {
+        List<AugmentManager.AugmentDefinition> result = new ArrayList<>();
+
+        for (AugmentManager.AugmentDefinition def : AugmentManager.getAll()) {
+            if (AugmentManager.isInstalled(def.id(), tool)) {
+                AugmentHandler handler = getCachedHandler(def.id());
+                if (handler != null && handler.supportsToolType(toolType)) {
+                    result.add(def);
+                }
             }
         }
 
@@ -223,19 +254,25 @@ public class AugmentProcessor {
 
     // Debug helper: print everything to log
     public static void debugDumpAugments(ItemStack tool, ArsenalToolType toolType) {
-        List<AugmentType> active = getActiveAugments(tool, toolType);
+        List<AugmentManager.AugmentDefinition> active = getActiveAugments(tool, toolType);
         System.out.println("[Augments] Active augments (" + active.size() + "):");
-        for (AugmentType type : active) {
-            System.out.println(" - " + type.id());
+        for (AugmentManager.AugmentDefinition def : active) {
+            System.out.println(" - " + def.id() + " (" + def.name() + ")");
         }
     }
 
     public static void applyAllAugmentsForTesting(ItemStack tool, ArsenalToolType toolType) {
-        for (AugmentType type : AugmentType.values()) {
-            // Only set augments that actually support this tool type
-            if (type.handler().supportsToolType(toolType)) {
-                tool.set(type.flag(), true);
+        for (AugmentManager.AugmentDefinition def : AugmentManager.getAll()) {
+            AugmentHandler handler = getCachedHandler(def.id());
+            if (handler != null && handler.supportsToolType(toolType)) {
+                AugmentManager.install(def.id(), tool, def.hasTiers() ? def.maxTier() : 1);
             }
+        }
+    }
+
+    public static void removeAllAugments(ItemStack tool) {
+        for (AugmentManager.AugmentDefinition def : AugmentManager.getAll()) {
+            AugmentManager.uninstall(def.id(), tool);
         }
     }
 

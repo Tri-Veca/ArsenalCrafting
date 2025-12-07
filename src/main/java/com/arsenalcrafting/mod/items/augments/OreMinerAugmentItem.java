@@ -1,5 +1,6 @@
 package com.arsenalcrafting.mod.items.augments;
 
+import com.arsenalcrafting.mod.component.DynamicComponents;
 import com.arsenalcrafting.mod.core.augments.Augment;
 import com.arsenalcrafting.mod.core.augments.InstallableAugmentItem;
 import com.arsenalcrafting.mod.registry.ModComponents;
@@ -52,7 +53,7 @@ public class OreMinerAugmentItem extends Item implements Augment,InstallableAugm
             return false;
         }
 
-        boolean autoSmeltEnabled = tool.getOrDefault(ModComponents.AUTO_SMELT_ENABLED.get(), false);
+        boolean autoSmeltEnabled = tool.getOrDefault(DynamicComponents.getEnabledComponent("auto_smelt"), false);
 
         if (autoSmeltEnabled) {
             System.out.println("[OreMiner] Auto-Smelt is active - ONLY doing vein mining from origin");
@@ -203,7 +204,7 @@ public class OreMinerAugmentItem extends Item implements Augment,InstallableAugm
 
     @Override
     public void installOnTool(ItemStack tool) {
-        tool.set(ModComponents.ORE_MINER_ENABLED.get(), true);
+        tool.set(DynamicComponents.getEnabledComponent("ore_miner"), true);
         System.out.println("[Toolkit] Ore-Miner augment installed!");
     }
 }

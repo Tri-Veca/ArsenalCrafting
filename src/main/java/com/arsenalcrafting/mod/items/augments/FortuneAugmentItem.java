@@ -1,5 +1,6 @@
 package com.arsenalcrafting.mod.items.augments;
 
+import com.arsenalcrafting.mod.component.DynamicComponents;
 import com.arsenalcrafting.mod.core.augments.Augment;
 import com.arsenalcrafting.mod.core.augments.InstallableAugmentItem;
 import com.arsenalcrafting.mod.registry.ModComponents;
@@ -30,8 +31,8 @@ public class FortuneAugmentItem extends Item implements Augment, InstallableAugm
 
     @Override
     public void installOnTool(ItemStack tool) {
-        tool.set(ModComponents.FORTUNE_ENABLED.get(), true);
-        tool.set(ModComponents.FORTUNE_TIER.get(), tier);
+        tool.set(DynamicComponents.getEnabledComponent("fortune"), true);
+        tool.set(DynamicComponents.getTierComponent("fortune"), tier);
         System.out.println("[Toolkit] Fortune tier " + tier + " installed!");
     }
 
@@ -65,7 +66,7 @@ public class FortuneAugmentItem extends Item implements Augment, InstallableAugm
         }
 
         // Read tier from the tool, default 1
-        int tier = tool.getOrDefault(ModComponents.FORTUNE_TIER.get(), 1);
+        int tier = tool.getOrDefault(DynamicComponents.getTierComponent("fortune"), 1);
         // Map tiers to "virtual Fortune level": 1 -> 2, 2 -> 3, 3 -> 4
         int fortuneLevel = switch (tier) {
             case 1 -> 2;

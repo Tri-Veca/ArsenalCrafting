@@ -1,5 +1,6 @@
 package com.arsenalcrafting.mod.items.augments;
 
+import com.arsenalcrafting.mod.component.DynamicComponents;
 import com.arsenalcrafting.mod.core.augments.Augment;
 import com.arsenalcrafting.mod.core.augments.AugmentHandlers;
 import com.arsenalcrafting.mod.core.augments.InstallableAugmentItem;
@@ -148,7 +149,7 @@ public class AutoSmeltAugmentItem extends Item implements Augment, InstallableAu
 
     @Override
     public void installOnTool(ItemStack tool) {
-        tool.set(ModComponents.AUTO_SMELT_ENABLED.get(), true);
+        tool.set(DynamicComponents.getEnabledComponent("auto_smelt"), true);
         System.out.println("[Toolkit] Auto-Smelt augment installed!");
     }
 }
