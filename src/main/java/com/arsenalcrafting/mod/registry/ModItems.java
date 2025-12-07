@@ -27,8 +27,6 @@ public class ModItems {
     public static final List<DeferredHolder<Item, UniversalAugmentItem>> UNIVERSAL_AUGMENTS = new ArrayList<>();
 
     // --- Core Alloy Parts (Phase 1: Copper/Bronze for MVP) ---
-    public static final DeferredHolder<Item, Item> COPPER_INGOT_PART = ITEMS.register("copper_ingot_part",
-            () -> new Item(new Item.Properties()));
     public static final DeferredHolder<Item, Item> BRONZE_INGOT_PART = ITEMS.register("bronze_ingot_part",
             () -> new Item(new Item.Properties()));
     public static final DeferredHolder<Item, Item> DRILL = ITEMS.register("drill",
@@ -36,9 +34,11 @@ public class ModItems {
 
     // --- Modular Tool Parts (Bronze Alloy) ---
     public static final DeferredHolder<Item, ToolHeadItem> BRONZE_PICKAXE_HEAD = ITEMS.register("bronze_pickaxe_head",
-            () -> new ToolHeadItem(new Item.Properties()));
+            () -> new ToolHeadItem(AlloyMaterial.BRONZE, new Item.Properties()));
     public static final DeferredHolder<Item, ToolRodItem> BRONZE_TOOL_ROD = ITEMS.register("bronze_tool_rod",
-            () -> new ToolRodItem(new Item.Properties()));
+            () -> new ToolRodItem(AlloyMaterial.BRONZE, new Item.Properties()));
+    public static final DeferredHolder<Item, ToolHeadItem> TITANIUM_PICKAXE_HEAD = ITEMS.register("titanium_pickaxe_head",
+            () -> new ToolHeadItem(AlloyMaterial.TITANIUM, new Item.Properties()));
     // Add Bronze Binding, Axe Head, Shovel Head, etc. later
 
     // --- Tools & Weapons (Base items use the lightest alloy by default) ---

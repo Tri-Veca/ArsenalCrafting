@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class SilkTouchAugmentItem extends Item implements Augment, InstallableAugmentItem {
+
     public SilkTouchAugmentItem(Properties properties) {
         super(properties);
     }

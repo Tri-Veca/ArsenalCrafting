@@ -1,11 +1,18 @@
 package com.arsenalcrafting.mod.items.tool.toolparts;
 
+import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import net.minecraft.world.item.Item;
 
-// Base class for all modular tool heads (e.g., Pickaxe Head, Axe Head).
-// This simple extension satisfies the registry requirements and the isItemValid check in the Block Entity.
 public class ToolHeadItem extends Item {
-    public ToolHeadItem(Properties properties) {
+
+    private final AlloyMaterial material;
+
+    public ToolHeadItem(AlloyMaterial material, Properties properties) {
         super(properties);
+        this.material = material;
+    }
+
+    public AlloyMaterial getMaterial() {
+        return material;
     }
 }

@@ -5,6 +5,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -15,7 +16,7 @@ public class ModCreativeTabs {
 
     // Main Arsenal Crafting Tab
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> ARSENAL_TAB = CREATIVE_MODE_TABS.register("arsenal_tab", () -> CreativeModeTab.builder()
-            .icon(() -> new ItemStack(ModItems.COPPER_INGOT_PART.get())) // Placeholder icon
+            .icon(() -> new ItemStack(Items.COPPER_INGOT)) // Placeholder icon
             .title(Component.translatable("itemGroup." + ArsenalCrafting.MOD_ID + ".arsenal_tab"))
             .displayItems((parameters, output) -> {
                 // Add all registered items to the tab

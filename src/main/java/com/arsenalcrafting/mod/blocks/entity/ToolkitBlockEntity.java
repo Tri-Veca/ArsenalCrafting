@@ -98,69 +98,72 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
 
     // --- Tool Assembly Logic (MVP) ---
     private void assembleTool() {
-        ItemStack head = itemHandler.getStackInSlot(0);
-        ItemStack rod = itemHandler.getStackInSlot(3);
-        ItemStack outputSlot = itemHandler.getStackInSlot(2);
+        // Input slots:
+        // 0 = head
+        // 3 = rod
+        // 2 = output
+        ItemStack headStack   = itemHandler.getStackInSlot(0);
+        ItemStack rodStack    = itemHandler.getStackInSlot(3);
+        ItemStack outputStack = itemHandler.getStackInSlot(2);
 
-        if (head.getItem() instanceof ToolHeadItem && rod.getItem() instanceof ToolRodItem) {
-            if (outputSlot.isEmpty() || outputSlot.getItem() instanceof ArsenalPickaxeItem) {
-
-                ItemStack assembledTool;
-                boolean isNewTool = false;
-
-                if (outputSlot.getItem() instanceof ArsenalPickaxeItem) {
-                    assembledTool = outputSlot.copy();
-                } else {
-                    assembledTool = new ItemStack(ModItems.ARSENAL_PICKAXE.get());
-                    isNewTool = true;
-                }
-
-                // Update tool assembly data
-                ToolAssemblyData assemblyData = new ToolAssemblyData(
-                        head.getDisplayName().getString(),
-                        rod.getDisplayName().getString()
-                );
-                assembledTool.set(ModComponents.TOOL_ASSEMBLY_DATA.get(), assemblyData);
-
-                // TEST MODE: Install enabled augments on new tools
-                if (isNewTool && TestModeConfig.isTestModeEnabled()) {
-                    installTestModeAugments(assembledTool);
-                }
-
-                itemHandler.setStackInSlot(0, ItemStack.EMPTY); //Use the head
-                itemHandler.setStackInSlot(3, ItemStack.EMPTY); //Use the rod
-                itemHandler.setStackInSlot(2, assembledTool);
-            }
-        } else if (!outputSlot.isEmpty() && outputSlot.getItem() instanceof ArsenalPickaxeItem) {
-            // Clear output logic (unchanged)
-            boolean headValid = head.getItem() instanceof ToolHeadItem;
-            boolean rodValid = rod.getItem() instanceof ToolRodItem;
-
-            if (!headValid && !rodValid) {
-                itemHandler.setStackInSlot(2, ItemStack.EMPTY);
-            }
+        // Need both parts present
+        if (headStack.isEmpty() || rodStack.isEmpty()) {
+            return;
         }
 
+        // Parts must be the correct item types
+        if (!(headStack.getItem() instanceof ToolHeadItem headItem)) {
+            return;
+        }
+        if (!(rodStack.getItem() instanceof ToolRodItem rodItem)) {
+            return;
+        }
+
+        // Output must be empty OR already an Arsenal Pickaxe
+        if (!outputStack.isEmpty() && !(outputStack.getItem() instanceof ArsenalPickaxeItem)) {
+            return;
+        }
+
+        // Create or copy the pickaxe stack
+        ItemStack assembledTool;
+        boolean isNewTool = false;
+
+        if (outputStack.isEmpty()) {
+            assembledTool = new ItemStack(ModItems.ARSENAL_PICKAXE.get());
+            isNewTool = true;
+        } else {
+            assembledTool = outputStack.copy();
+        }
+
+        // --- IMPORTANT PART: build ToolAssemblyData using *Strings* ---
+        // Your ToolAssemblyData currently expects (String, String),
+        // so we pass the alloy material names.
+        ToolAssemblyData assemblyData = new ToolAssemblyData(
+                headItem.getMaterial().getName(),  // String
+                rodItem.getMaterial().getName()    // String
+        );
+
+        // Store it on the item via your component system
+        assembledTool.set(ModComponents.TOOL_ASSEMBLY_DATA.get(), assemblyData);
+
+        // TODO: if you had any "test mode" / debug behavior before,
+        // reinsert it here, after setting assemblyData.
+
+        // Consume the input parts
+        itemHandler.setStackInSlot(0, ItemStack.EMPTY);
+        itemHandler.setStackInSlot(3, ItemStack.EMPTY);
+
+        // Place the assembled tool in the output slot
+        itemHandler.setStackInSlot(2, assembledTool);
+
+        // Mark BE changed & sync to client
         setChanged();
-    }
-
-    private void installTestModeAugments(ItemStack tool) {
-        System.out.println("[TestMode] Installing test augments on newly crafted tool");
-
-        for (var def : AugmentManager.getAll()) {
-            // Check if this augment is enabled in test mode
-            if (TestModeConfig.isAugmentEnabled(def.id())) {
-                var handler = AugmentManager.getHandler(def.id());
-                if (handler != null && handler.supportsToolType(ArsenalToolType.PICKAXE)) {
-                    // Install the augment with max tier if applicable
-                    int tier = def.hasTiers() ? def.maxTier() : 1;
-                    AugmentManager.install(def.id(), tool, tier);
-                    System.out.println("[TestMode] Installed: " + def.name() +
-                            (def.hasTiers() ? " Tier " + tier : ""));
-                }
-            }
+        if (level != null && !level.isClientSide) {
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
         }
     }
+
+
 
     // --- Data Handling (NBT Signatures) ---
 

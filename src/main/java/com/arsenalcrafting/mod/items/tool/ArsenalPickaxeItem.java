@@ -37,6 +37,11 @@ public class ArsenalPickaxeItem extends PickaxeItem {
         this.baseMaterial = material;
     }
 
+    public AlloyMaterial getBaseMaterial() {
+        return baseMaterial;
+    }
+
+
     @Override
     public ItemStack getDefaultInstance() {
         ItemStack stack = super.getDefaultInstance();

@@ -23,6 +23,7 @@ public class DataGenerators {
 
         // Client-side data (lang, models, textures)
         generator.addProvider(event.includeClient(), new LangGenerator(packOutput));
+        generator.addProvider(event.includeClient(), new ArsenalItemModelProvider(packOutput, existingFileHelper));
 
         // You can add more providers here:
         // generator.addProvider(event.includeServer(), new ArsenalRecipeProvider(packOutput, lookupProvider));

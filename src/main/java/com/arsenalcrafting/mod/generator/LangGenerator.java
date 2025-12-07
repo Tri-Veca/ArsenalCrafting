@@ -44,6 +44,7 @@ public class LangGenerator implements DataProvider {
         entries.put("item.arsenalcrafting.bronze_ingot_part", "Bronze Ingot");
         entries.put("item.arsenalcrafting.bronze_pickaxe_head", "Bronze Pickaxe Head");
         entries.put("item.arsenalcrafting.bronze_tool_rod", "Bronze Tool Rod");
+        entries.put("item.arsenalcrafting.titanium_pickaxe_head", "Titanium Pickaxe Head");
         entries.put("item.arsenalcrafting.arsenal_pickaxe", "Arsenal Pickaxe");
         entries.put("item.arsenalcrafting.repair_kit", "Tool Repair Kit");
         entries.put("item.arsenalcrafting.drill", "Drill");
