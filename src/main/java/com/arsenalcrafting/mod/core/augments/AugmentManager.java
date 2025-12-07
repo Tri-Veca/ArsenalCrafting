@@ -38,7 +38,7 @@ public class AugmentManager {
         ));
         register(new AugmentDefinition(
                 "silk_touch", "Silk Touch", "Get the exact block",
-                AugmentHandlers.Fortune.class, false, 1
+                AugmentHandlers.SilkTouch.class, false, 1
         ));
 
 

@@ -4,6 +4,7 @@ import com.arsenalcrafting.mod.component.DynamicComponents;
 import com.arsenalcrafting.mod.items.augments.AutoSmeltAugmentItem;
 import com.arsenalcrafting.mod.items.augments.FortuneAugmentItem;
 import com.arsenalcrafting.mod.items.augments.OreMinerAugmentItem;
+import com.arsenalcrafting.mod.items.augments.SilkTouchAugmentItem;
 import com.arsenalcrafting.mod.items.tool.ArsenalToolType;
 import com.arsenalcrafting.mod.registry.ModComponents;
 import net.minecraft.core.BlockPos;
@@ -48,6 +49,21 @@ public class AugmentHandlers {
         public boolean handleBlockBreak(ItemStack tool, Level level, BlockState state,
                                         BlockPos pos, LivingEntity miner) {
             return OreMinerAugmentItem.onBlockMined(tool, level, state, pos, miner);
+        }
+    }
+    public static class SilkTouch implements AugmentHandler {
+        @Override public int priority() { return 10; }
+        @Override public boolean isExclusive() { return true; } // TRUE to stop processing after vein mining
+
+        @Override
+        public boolean canHandleBlock(BlockState state, ItemStack tool) {
+            return true;
+        }
+
+        @Override
+        public boolean handleBlockBreak(ItemStack tool, Level level, BlockState state,
+                                        BlockPos pos, LivingEntity miner) {
+            return SilkTouchAugmentItem.onBlockMined(tool, level, state, pos, miner);
         }
     }
 

@@ -34,7 +34,7 @@ public class LangGenerator implements DataProvider {
 
         // 2. Blocks
         entries.put("block.arsenalcrafting.alloy_smelter_core", "Alloy Smelter Core");
-        entries.put("block.arsenalcrafting.toolkit", "Tool Assembly Station");
+        entries.put("block.arsenalcrafting.toolkit", "Tool Kit");
         entries.put("block.arsenalcrafting.void_casing", "Void Casing");
         entries.put("block.arsenalcrafting.iron_casing", "Iron Casing");
         entries.put("block.arsenalcrafting.alloy_smelter", "Alloy Smelter");
