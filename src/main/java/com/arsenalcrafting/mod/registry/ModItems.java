@@ -1,6 +1,7 @@
 package com.arsenalcrafting.mod.registry;
 
 import com.arsenalcrafting.mod.ArsenalCrafting;
+import com.arsenalcrafting.mod.core.alloy.AlloyItem;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
 import com.arsenalcrafting.mod.items.augments.AutoSmeltAugmentItem;
@@ -27,8 +28,9 @@ public class ModItems {
     public static final List<DeferredHolder<Item, UniversalAugmentItem>> UNIVERSAL_AUGMENTS = new ArrayList<>();
 
     // --- Core Alloy Parts (Phase 1: Copper/Bronze for MVP) ---
-    public static final DeferredHolder<Item, Item> BRONZE_INGOT_PART = ITEMS.register("bronze_ingot_part",
-            () -> new Item(new Item.Properties()));
+    public static final DeferredHolder<Item, Item> BRONZE_ALLOY = ITEMS.register("bronze_alloy",
+            () -> new AlloyItem(AlloyMaterial.BRONZE, new Item.Properties()));
+
     public static final DeferredHolder<Item, Item> DRILL = ITEMS.register("drill",
             () -> new Item(new Item.Properties()));
 
@@ -37,6 +39,7 @@ public class ModItems {
             () -> new ToolHeadItem(AlloyMaterial.BRONZE, new Item.Properties()));
     public static final DeferredHolder<Item, ToolRodItem> BRONZE_TOOL_ROD = ITEMS.register("bronze_tool_rod",
             () -> new ToolRodItem(AlloyMaterial.BRONZE, new Item.Properties()));
+
     public static final DeferredHolder<Item, ToolHeadItem> TITANIUM_PICKAXE_HEAD = ITEMS.register("titanium_pickaxe_head",
             () -> new ToolHeadItem(AlloyMaterial.TITANIUM, new Item.Properties()));
     // Add Bronze Binding, Axe Head, Shovel Head, etc. later

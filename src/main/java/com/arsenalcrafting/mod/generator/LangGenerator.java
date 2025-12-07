@@ -40,8 +40,7 @@ public class LangGenerator implements DataProvider {
         entries.put("block.arsenalcrafting.alloy_smelter", "Alloy Smelter");
 
         // 3. Basic Items & Parts
-        entries.put("item.arsenalcrafting.copper_ingot_part", "Copper Ingot");
-        entries.put("item.arsenalcrafting.bronze_ingot_part", "Bronze Ingot");
+        entries.put("item.arsenalcrafting.bronze_alloy", "Bronze Alloy");
         entries.put("item.arsenalcrafting.bronze_pickaxe_head", "Bronze Pickaxe Head");
         entries.put("item.arsenalcrafting.bronze_tool_rod", "Bronze Tool Rod");
         entries.put("item.arsenalcrafting.titanium_pickaxe_head", "Titanium Pickaxe Head");

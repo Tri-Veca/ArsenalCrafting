@@ -31,6 +31,7 @@ public class ArsenalItemModelProvider extends ItemModelProvider {
     protected void registerModels() {
         generateArsenalPickaxeModel();
         generateToolPartModels();
+        generateAlloyItemModels();
 
         // If you have other items, you can add them here as well.
     }
@@ -85,6 +86,23 @@ public class ArsenalItemModelProvider extends ItemModelProvider {
                     .texture("layer0", modLoc("item/tool_rod_item_base"));
         }
     }
+
+    private void generateAlloyItemModels() {
+        for (AlloyMaterial material : AlloyMaterial.values()) {
+            String key = material.getName().toLowerCase(Locale.ROOT); // e.g. "bronze"
+
+            // This will generate models like:
+            //  - bronze_alloy.json
+            //  - titanium_alloy.json
+            //
+            // If your registry names are different (e.g. "bronze_ingot"),
+            // change "_alloy" to "_ingot" or whatever you use.
+            getBuilder(key + "_alloy")
+                    .parent(new ModelFile.UncheckedModelFile(mcLoc("item/generated")))
+                    .texture("layer0", modLoc("item/alloy_base"));
+        }
+    }
+
 
     @Override
     public String getName() {

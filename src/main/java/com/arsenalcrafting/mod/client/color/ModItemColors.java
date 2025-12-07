@@ -2,6 +2,7 @@ package com.arsenalcrafting.mod.client.color;
 
 import com.arsenalcrafting.mod.ArsenalCrafting;
 import com.arsenalcrafting.mod.component.ToolAssemblyData;
+import com.arsenalcrafting.mod.core.alloy.AlloyItem;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.items.tool.ArsenalPickaxeItem;
 import com.arsenalcrafting.mod.items.tool.toolparts.ToolHeadItem;
@@ -40,6 +41,12 @@ public class ModItemColors {
                // ModItems.STEEL_TOOL_ROD.get(),
                 //ModItems.TITANIUM_TOOL_ROD.get()
                 // ...add more as you create them
+        );
+
+        event.register(ModItemColors::colorAlloyItem,
+                ModItems.BRONZE_ALLOY.get()
+                //ModItems.STEEL_ALLOY.get(), //TODO
+                //ModItems.TITANIUM_ALLOY.get()
         );
     }
 
@@ -96,6 +103,24 @@ public class ModItemColors {
 
         return 0xFFFFFFFF;
     }
+
+
+    // --------- ALLOYS (1-layer tint) ---------
+
+    private static int colorAlloyItem(ItemStack stack, int tintIndex) {
+        if (tintIndex != 0) return 0xFFFFFFFF;
+
+        Item item = stack.getItem();
+
+        // however you store the material for alloys
+        if (item instanceof AlloyItem alloy) {
+            return ensureOpaque(alloy.getMaterial().getItemColor());
+        }
+
+        return 0xFFFFFFFF;
+    }
+
+
 
     // --------- helpers ---------
 
