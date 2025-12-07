@@ -14,7 +14,7 @@ public enum AlloyMaterial {
             1.0f,
             4,
             ChatFormatting.GOLD,
-            0xFFFFC46B // <- was 0xFFC46B, now ARGB: FF (alpha) + FFC46B
+            0xFFD8A858 // <- was 0xFFC46B, now ARGB: FF (alpha) + FFC46B
     ),
     STEEL(
             "Steel",
