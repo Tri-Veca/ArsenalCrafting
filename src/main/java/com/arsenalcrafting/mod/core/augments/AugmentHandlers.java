@@ -1,11 +1,13 @@
 package com.arsenalcrafting.mod.core.augments;
 
+import com.arsenalcrafting.mod.component.DynamicComponents;
 import com.arsenalcrafting.mod.items.augments.AutoSmeltAugmentItem;
 import com.arsenalcrafting.mod.items.augments.FortuneAugmentItem;
 import com.arsenalcrafting.mod.items.augments.OreMinerAugmentItem;
 import com.arsenalcrafting.mod.items.tool.ArsenalToolType;
 import com.arsenalcrafting.mod.registry.ModComponents;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -73,7 +75,7 @@ public class AugmentHandlers {
         @Override
         public boolean canHandleBlock(BlockState state, ItemStack tool) {
             // Only run if Fortune is actually installed on the tool
-            return tool.getOrDefault(ModComponents.FORTUNE_ENABLED.get(), false);
+            return tool.getOrDefault(DynamicComponents.getEnabledComponent("fortune"), false);
         }
 
         @Override
@@ -84,7 +86,11 @@ public class AugmentHandlers {
                                         LivingEntity miner) {
             return FortuneAugmentItem.onBlockMined(tool, level, state, pos, miner);
         }
+
     }
+
+
+
 
     // ============= COMBAT AUGMENTS =============
 

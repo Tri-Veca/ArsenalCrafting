@@ -3,11 +3,10 @@ package com.arsenalcrafting.mod.blocks.entity;
 import com.arsenalcrafting.mod.client.menu.ToolkitMenu;
 import com.arsenalcrafting.mod.component.ToolAssemblyData;
 import com.arsenalcrafting.mod.config.TestModeConfig;
-import com.arsenalcrafting.mod.core.augments.Augment;
+import com.arsenalcrafting.mod.core.augments.AugmentManager;
 import com.arsenalcrafting.mod.core.augments.InstallableAugmentItem;
-import com.arsenalcrafting.mod.items.augments.AutoSmeltAugmentItem;
-import com.arsenalcrafting.mod.items.augments.OreMinerAugmentItem;
 import com.arsenalcrafting.mod.items.tool.ArsenalPickaxeItem;
+import com.arsenalcrafting.mod.items.tool.ArsenalToolType;
 import com.arsenalcrafting.mod.items.tool.toolparts.ToolHeadItem;
 import com.arsenalcrafting.mod.items.tool.toolparts.ToolRodItem;
 import com.arsenalcrafting.mod.registry.ModBlockEntities;
@@ -21,7 +20,6 @@ import net.minecraft.world.*;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -50,13 +48,11 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
             }
         }
 
-
-
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
             if (slot >= AUGMENT_SLOT_START && slot < AUGMENT_SLOT_END) {
-                // Only items that implement the Augment marker interface are valid
-                return stack.getItem() instanceof Augment;
+                // Only items that implement the InstallableAugmentItem interface are valid
+                return stack.getItem() instanceof InstallableAugmentItem;
             }
             if (switch (slot) {
                 case 0 -> stack.getItem() instanceof ToolHeadItem; // Slot 0: Head
@@ -68,6 +64,7 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
             else return false;
         }
     };
+
     public void installAugments() {
         ItemStack outputTool = itemHandler.getStackInSlot(2);
 
@@ -80,25 +77,20 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
         for (int i = AUGMENT_SLOT_START; i < AUGMENT_SLOT_END; i++) {
             ItemStack augmentStack = itemHandler.getStackInSlot(i);
 
-            if (!augmentStack.isEmpty() && augmentStack.getItem() instanceof Augment) {
-                // Install the augment based on its type
-                installSingleAugment(outputTool, augmentStack.getItem());
+            if (!augmentStack.isEmpty() && augmentStack.getItem() instanceof InstallableAugmentItem installable) {
+                // Install the augment
+                installable.installOnTool(outputTool);
 
                 // Consume the augment item
                 itemHandler.setStackInSlot(i, ItemStack.EMPTY);
+
+                System.out.println("[Toolkit] Augment installed from slot " + i);
             }
         }
 
         setChanged();
     }
 
-    private void installSingleAugment(ItemStack tool, Item augmentItem) {
-        if (augmentItem instanceof InstallableAugmentItem installable) {
-            installable.installOnTool(tool);
-        } else {
-            System.out.println("[Toolkit] Item " + augmentItem + " is not an augment or is missing InstallableAugmentItem.");
-        }
-    }
     public ToolkitBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.TOOLKIT.get(), pos, state);
     }
@@ -129,13 +121,9 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
                 );
                 assembledTool.set(ModComponents.TOOL_ASSEMBLY_DATA.get(), assemblyData);
 
-                // TEST MODE: Only pre-install on brand new tools
-                if (isNewTool && TestModeConfig.isAutoSmeltEnabled()) {
-                    assembledTool.set(ModComponents.AUTO_SMELT_ENABLED.get(), true);
-                    System.out.println("[TestMode] Auto-Smelt pre-installed on newly crafted tool"); //DIDNT DO THIS TO ORE MINER
-                } else if (isNewTool) {
-                    // Only initialize as disabled if not in test mode
-                    assembledTool.set(ModComponents.AUTO_SMELT_ENABLED.get(), false);
+                // TEST MODE: Install enabled augments on new tools
+                if (isNewTool && TestModeConfig.isTestModeEnabled()) {
+                    installTestModeAugments(assembledTool);
                 }
 
                 itemHandler.setStackInSlot(0, ItemStack.EMPTY); //Use the head
@@ -153,6 +141,24 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
         }
 
         setChanged();
+    }
+
+    private void installTestModeAugments(ItemStack tool) {
+        System.out.println("[TestMode] Installing test augments on newly crafted tool");
+
+        for (var def : AugmentManager.getAll()) {
+            // Check if this augment is enabled in test mode
+            if (TestModeConfig.isAugmentEnabled(def.id())) {
+                var handler = AugmentManager.getHandler(def.id());
+                if (handler != null && handler.supportsToolType(ArsenalToolType.PICKAXE)) {
+                    // Install the augment with max tier if applicable
+                    int tier = def.hasTiers() ? def.maxTier() : 1;
+                    AugmentManager.install(def.id(), tool, tier);
+                    System.out.println("[TestMode] Installed: " + def.name() +
+                            (def.hasTiers() ? " Tier " + tier : ""));
+                }
+            }
+        }
     }
 
     // --- Data Handling (NBT Signatures) ---
