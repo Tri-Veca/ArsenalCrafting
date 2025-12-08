@@ -73,6 +73,13 @@ public class ModItems {
         System.out.println("[ModItems] Registering alloy items...");
 
         for (AlloyMaterial material : AlloyMaterial.values()) {
+
+            // skip vanilla materials
+            if (!material.allowsAlloy()) {
+                System.out.println("[ModItems] Skipping vanilla material: " + material.name());
+                continue;
+            }
+
             System.out.println("[ModItems] Processing alloy: " + material.name());
 
             String itemId = material.name().toLowerCase() + "_alloy";
@@ -86,6 +93,7 @@ public class ModItems {
             System.out.println("[ModItems] Registered alloy item: " + itemId);
         }
     }
+
 
     // In ModItems.java - corrected
 

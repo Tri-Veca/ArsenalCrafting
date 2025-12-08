@@ -7,7 +7,7 @@ public enum AlloyMaterial {
 
     COPPER(
             "Copper",
-            0,              // tier: lowest
+            0,
             190,
             5.0f,
             0.75f,
@@ -16,7 +16,8 @@ public enum AlloyMaterial {
             1.0f,
             4,
             ChatFormatting.RED,
-            0xFFe77c56
+            0xFFe77c56,
+            false
     ),
     IRON(
             "Iron",
@@ -29,7 +30,8 @@ public enum AlloyMaterial {
             1.0f,
             4,
             ChatFormatting.WHITE,
-            0xFFFFFFFF
+            0xFFFFFFFF,
+            false
     ),
     GOLD(
             "Gold",
@@ -42,25 +44,27 @@ public enum AlloyMaterial {
             1.0f,
             4,
             ChatFormatting.YELLOW,
-            0xFFfdf55f
+            0xFFfdf55f,
+            false
     ),
     DIAMOND(
             "Diamond",
-            3,              // tier
-            1561,           // durability
-            8.0f,           // mining speed
-            1.0f,           // attack speed
-            3.0f,           // damage bonus
+            3,
+            1561,
+            8.0f,
+            1.0f,
+            3.0f,
             1.0f,
             1.0f,
             4,
             ChatFormatting.AQUA,
-            0xFF4aedd9
+            0xFF4aedd9,
+            false
     ),
 
     BRONZE(
             "Bronze",
-            0,              // tier: lowest
+            0,
             500,
             5.0f,
             0.75f,
@@ -69,11 +73,12 @@ public enum AlloyMaterial {
             1.0f,
             4,
             ChatFormatting.GOLD,
-            0xFFE5A01D
+            0xFFE5A01D,
+            true
     ),
     STEEL(
             "Steel",
-            3,              // tier: middle
+            3,
             1500,
             7.0f,
             1.5f,
@@ -82,11 +87,12 @@ public enum AlloyMaterial {
             1.2f,
             4,
             ChatFormatting.GRAY,
-            0xFFC0C0C0
+            0xFFC0C0C0,
+            true
     ),
     TITANIUM(
             "Titanium",
-            4,              // tier: highest (for now)
+            4,
             5000,
             9.0f,
             3.0f,
@@ -95,8 +101,10 @@ public enum AlloyMaterial {
             1.5f,
             4,
             ChatFormatting.AQUA,
-            0xFFA0E4FF
+            0xFFA0E4FF,
+            true
     );
+
 
     private final String name;
     private final int tier;
@@ -109,6 +117,8 @@ public enum AlloyMaterial {
     private final int toolAugmentSlots;
     private final ChatFormatting color;
     private final int itemColor;
+    private final boolean allowAlloy;
+
 
     AlloyMaterial(String name,
                   int tier,
@@ -120,7 +130,8 @@ public enum AlloyMaterial {
                   float arc,
                   int toolAugmentSlots,
                   ChatFormatting color,
-                  int itemColor) {
+                  int itemColor,
+                  boolean allowAlloy) {
         this.name = name;
         this.tier = tier;
         this.durability = durability;
@@ -132,7 +143,9 @@ public enum AlloyMaterial {
         this.toolAugmentSlots = toolAugmentSlots;
         this.color = color;
         this.itemColor = itemColor;
+        this.allowAlloy = allowAlloy;
     }
+
 
     public String getName() { return name; }
     public int getItemColor() { return itemColor; }
@@ -146,6 +159,8 @@ public enum AlloyMaterial {
     public int getToolAugmentSlots() { return toolAugmentSlots; }
     public ChatFormatting getColor() { return color; }
     public int getTier() { return tier; }
+    public boolean allowsAlloy() { return allowAlloy; }
+
 
     // --- helpers ---
 
