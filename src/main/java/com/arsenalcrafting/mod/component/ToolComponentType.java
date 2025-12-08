@@ -19,10 +19,6 @@ public enum ToolComponentType {
     CORE("core", "core");
 
 
-
-
-
-
     private final String id;
     private final String displayName;
 

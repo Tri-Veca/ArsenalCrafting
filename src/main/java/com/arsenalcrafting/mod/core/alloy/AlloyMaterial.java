@@ -5,6 +5,59 @@ import org.jetbrains.annotations.Nullable;
 
 public enum AlloyMaterial {
 
+    COPPER(
+            "Copper",
+            0,              // tier: lowest
+            190,
+            5.0f,
+            0.75f,
+            1.0f,
+            1.0f,
+            1.0f,
+            4,
+            ChatFormatting.RED,
+            0xFFe77c56
+    ),
+    IRON(
+            "Iron",
+            2,
+            250,
+            6.0f,
+            0.9f,
+            2.0f,
+            1.0f,
+            1.0f,
+            4,
+            ChatFormatting.WHITE,
+            0xFFFFFFFF
+    ),
+    GOLD(
+            "Gold",
+            2,
+            32,
+            12.0f,
+            1.2f,
+            1.0f,
+            1.0f,
+            1.0f,
+            4,
+            ChatFormatting.YELLOW,
+            0xFFfdf55f
+    ),
+    DIAMOND(
+            "Diamond",
+            3,              // tier
+            1561,           // durability
+            8.0f,           // mining speed
+            1.0f,           // attack speed
+            3.0f,           // damage bonus
+            1.0f,
+            1.0f,
+            4,
+            ChatFormatting.AQUA,
+            0xFF4aedd9
+    ),
+
     BRONZE(
             "Bronze",
             0,              // tier: lowest
@@ -20,7 +73,7 @@ public enum AlloyMaterial {
     ),
     STEEL(
             "Steel",
-            1,              // tier: middle
+            3,              // tier: middle
             1500,
             7.0f,
             1.5f,
@@ -33,7 +86,7 @@ public enum AlloyMaterial {
     ),
     TITANIUM(
             "Titanium",
-            2,              // tier: highest (for now)
+            4,              // tier: highest (for now)
             5000,
             9.0f,
             3.0f,

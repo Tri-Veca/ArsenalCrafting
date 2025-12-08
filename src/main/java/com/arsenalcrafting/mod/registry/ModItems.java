@@ -38,6 +38,8 @@ public class ModItems {
 
     public static final DeferredHolder<Item, Item> DRILL = ITEMS.register("drill",
             () -> new Item(new Item.Properties()));
+    public static final DeferredHolder<Item, Item> SAW = ITEMS.register("saw",
+            () -> new Item(new Item.Properties()));
 
     // --- Modular Tool Parts (Bronze Alloy) ---
     /*
