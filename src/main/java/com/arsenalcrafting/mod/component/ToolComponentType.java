@@ -8,16 +8,20 @@ public enum ToolComponentType {
 
 
     // Handles/Rods
-    TOOL_ROD("tool_rod", "Tool Rod");
+    TOOL_ROD("tool_rod", "Tool Rod"),
     /*HILT("hilt", "Hilt"),
     POMMEL("pommel", "Pommel"),
-    GRIP("grip", "Grip"),
-
-    // Attachments/Bindings
-    BINDING("binding", "Binding"),
-
+   GRIP("grip", "Grip"),
 
      */
+
+     //Attachments/Bindings
+    CORE("core", "core");
+
+
+
+
+
 
     private final String id;
     private final String displayName;

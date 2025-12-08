@@ -1,11 +1,14 @@
-// 1.21.1	2025-12-08T01:15:23.7153956	ArsenalCrafting Item Models
+// 1.21.1	2025-12-07T20:19:10.7834994	ArsenalCrafting Item Models
 777688b3862f6c8e3812ac5e1212e9920024b557 assets/arsenalcrafting/models/item/arsenal_pickaxe.json
 9d16c0f55cb46ee238512b5032b85e19f0d116e3 assets/arsenalcrafting/models/item/bronze_alloy.json
+087ba66f3f4dd20c54ef41cdac4390cb939e6613 assets/arsenalcrafting/models/item/bronze_core.json
 781d75908e6193de6aae9c7d046f99fbd41afee3 assets/arsenalcrafting/models/item/bronze_pickaxe_head.json
 087ba66f3f4dd20c54ef41cdac4390cb939e6613 assets/arsenalcrafting/models/item/bronze_tool_rod.json
 9d16c0f55cb46ee238512b5032b85e19f0d116e3 assets/arsenalcrafting/models/item/steel_alloy.json
+087ba66f3f4dd20c54ef41cdac4390cb939e6613 assets/arsenalcrafting/models/item/steel_core.json
 781d75908e6193de6aae9c7d046f99fbd41afee3 assets/arsenalcrafting/models/item/steel_pickaxe_head.json
 087ba66f3f4dd20c54ef41cdac4390cb939e6613 assets/arsenalcrafting/models/item/steel_tool_rod.json
 9d16c0f55cb46ee238512b5032b85e19f0d116e3 assets/arsenalcrafting/models/item/titanium_alloy.json
+087ba66f3f4dd20c54ef41cdac4390cb939e6613 assets/arsenalcrafting/models/item/titanium_core.json
 781d75908e6193de6aae9c7d046f99fbd41afee3 assets/arsenalcrafting/models/item/titanium_pickaxe_head.json
 087ba66f3f4dd20c54ef41cdac4390cb939e6613 assets/arsenalcrafting/models/item/titanium_tool_rod.json

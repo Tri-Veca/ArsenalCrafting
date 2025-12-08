@@ -18,7 +18,7 @@ public class ModCreativeTabs {
 
     // Main Arsenal Crafting Tab
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> ARSENAL_TAB = CREATIVE_MODE_TABS.register("arsenal_tab", () -> CreativeModeTab.builder()
-            .icon(() -> new ItemStack(ItemStackHelper.getAlloyStack(AlloyMaterial.BRONZE).getItem())) // Placeholder icon
+            .icon(() -> new ItemStack(ItemStackHelper.getAlloyStack(AlloyMaterial.TITANIUM).getItem())) // Placeholder icon
             .title(Component.translatable("itemGroup." + ArsenalCrafting.MOD_ID + ".arsenal_tab"))
             .displayItems((parameters, output) -> {
                 // Add all registered items to the tab
