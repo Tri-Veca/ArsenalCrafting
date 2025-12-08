@@ -10,6 +10,7 @@ public class AlloyItem extends Item {
         this.material = material;
     }
 
+
     public AlloyMaterial getMaterial() {
         return material;
     }

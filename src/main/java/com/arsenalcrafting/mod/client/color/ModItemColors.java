@@ -16,6 +16,7 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 @OnlyIn(Dist.CLIENT)
 @EventBusSubscriber(
@@ -43,12 +44,15 @@ public class ModItemColors {
                 // ...add more as you create them
         );
 
-        event.register(ModItemColors::colorAlloyItem,
-                ModItems.BRONZE_ALLOY.get()
-                //ModItems.STEEL_ALLOY.get(), //TODO
-                //ModItems.TITANIUM_ALLOY.get()
-        );
+        for (DeferredHolder<Item, Item> alloyHolder : ModItems.ALLOY_ITEMS.values()) {
+            Item alloyItem = alloyHolder.get();
+            if (alloyItem != null) {
+                event.register(ModItemColors::colorAlloyItem, alloyItem);
+                System.out.println("[ModItemColors] Registered color for alloy: " + alloyHolder.getId());
+            }
+        }
     }
+
 
     // --------- PICKAXE (2-layer tint: head + rod) ---------
 

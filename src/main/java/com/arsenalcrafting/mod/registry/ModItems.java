@@ -18,7 +18,9 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ModItems {
     public static final DeferredRegister<Item> ITEMS =
@@ -26,10 +28,13 @@ public class ModItems {
 
     // Keep track of all universal augment items for reference
     public static final List<DeferredHolder<Item, UniversalAugmentItem>> UNIVERSAL_AUGMENTS = new ArrayList<>();
+    public static final Map<AlloyMaterial, DeferredHolder<Item, Item>> ALLOY_ITEMS = new HashMap<>();
 
     // --- Core Alloy Parts (Phase 1: Copper/Bronze for MVP) ---
-    public static final DeferredHolder<Item, Item> BRONZE_ALLOY = ITEMS.register("bronze_alloy",
+    /*public static final DeferredHolder<Item, Item> BRONZE_ALLOY = ITEMS.register("bronze_alloy",
             () -> new AlloyItem(AlloyMaterial.BRONZE, new Item.Properties()));
+
+     */
 
     public static final DeferredHolder<Item, Item> DRILL = ITEMS.register("drill",
             () -> new Item(new Item.Properties()));
@@ -48,24 +53,7 @@ public class ModItems {
     public static final DeferredHolder<Item, ArsenalPickaxeItem> ARSENAL_PICKAXE = ITEMS.register("arsenal_pickaxe",
             () -> new ArsenalPickaxeItem(AlloyMaterial.BRONZE, new Item.Properties().durability(1000)));
 
-    // --- OLD AUGMENT ITEMS (Keep for backwards compatibility during migration) ---
-    /*
-    public static final DeferredHolder<Item, AutoSmeltAugmentItem> AUTO_SMELT_AUGMENT = ITEMS.register("auto_smelt_augment",
-            () -> new AutoSmeltAugmentItem(new Item.Properties().stacksTo(1)));
 
-    public static final DeferredHolder<Item, OreMinerAugmentItem> ORE_MINER_AUGMENT = ITEMS.register("ore_miner_augment",
-            () -> new OreMinerAugmentItem(new Item.Properties().stacksTo(1)));
-
-    public static final DeferredHolder<Item, FortuneAugmentItem> FORTUNE_T1_AUGMENT = ITEMS.register("fortune_t1_augment",
-            () -> new FortuneAugmentItem(1, new Item.Properties().stacksTo(1)));
-
-    public static final DeferredHolder<Item, FortuneAugmentItem> FORTUNE_T2_AUGMENT = ITEMS.register("fortune_t2_augment",
-            () -> new FortuneAugmentItem(2, new Item.Properties().stacksTo(1)));
-
-    public static final DeferredHolder<Item, FortuneAugmentItem> FORTUNE_T3_AUGMENT = ITEMS.register("fortune_t3_augment",
-            () -> new FortuneAugmentItem(3, new Item.Properties().stacksTo(1)));
-
-     */
 
     // --- UNIVERSAL AUGMENT ITEMS (Auto-generated from AugmentManager) ---
     // These are registered in a static block to ensure AugmentManager is initialized first
@@ -74,6 +62,24 @@ public class ModItems {
         // Note: Static blocks run when class is loaded, which happens before registration
 
         // We'll use a helper method that gets called during mod construction
+    }
+
+    public static void registerAlloys() {
+        System.out.println("[ModItems] Registering alloy items...");
+
+        for (AlloyMaterial material : AlloyMaterial.values()) {
+            System.out.println("[ModItems] Processing alloy: " + material.name());
+
+            String itemId = material.name().toLowerCase() + "_alloy";
+
+            DeferredHolder<Item, Item> holder = ITEMS.register(
+                    itemId,
+                    () -> new AlloyItem(material, new Item.Properties())
+            );
+
+            ALLOY_ITEMS.put(material, holder);
+            System.out.println("[ModItems] Registered alloy item: " + itemId);
+        }
     }
 
     // Helper method to register all universal augment items
@@ -116,6 +122,8 @@ public class ModItems {
         System.out.println("[ModItems] Total universal augments registered: " + UNIVERSAL_AUGMENTS.size());
     }
 
+
+
     // --- Other Key Items ---
     public static final DeferredHolder<Item, Item> REPAIR_KIT = ITEMS.register("repair_kit",
             () -> new Item(new Item.Properties()));
@@ -123,6 +131,7 @@ public class ModItems {
     public static void register(IEventBus eventBus) {
         // Register universal augment items
         registerUniversalAugments();
+        registerAlloys();
 
         // Register all items with NeoForge
         ITEMS.register(eventBus);

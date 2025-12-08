@@ -1,6 +1,7 @@
 package com.arsenalcrafting.mod.generator;
 
 import com.arsenalcrafting.mod.ArsenalCrafting;
+import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
 import com.google.gson.JsonObject;
 import net.minecraft.data.CachedOutput;
@@ -39,16 +40,38 @@ public class LangGenerator implements DataProvider {
         entries.put("block.arsenalcrafting.iron_casing", "Iron Casing");
         entries.put("block.arsenalcrafting.alloy_smelter", "Alloy Smelter");
 
-        // 3. Basic Items & Parts
-        entries.put("item.arsenalcrafting.bronze_alloy", "Bronze Alloy");
+        // 3. Basic Items & Parts (Auto-generated Alloys)
+        System.out.println("[LangGenerator] Adding alloy entries...");
+        for (AlloyMaterial material : AlloyMaterial.values()) {
+            String materialName = material.getName();
+            String materialId = material.name().toLowerCase();
+
+            // Alloy ingot/item
+            entries.put("item.arsenalcrafting." + materialId + "_alloy", materialName + " Alloy");
+            System.out.println("[LangGenerator] Added: " + materialId + "_alloy");
+
+            // Tool parts (optional - you can auto-generate these too if needed)
+            // entries.put("item.arsenalcrafting." + materialId + "_pickaxe_head", materialName + " Pickaxe Head");
+            // entries.put("item.arsenalcrafting." + materialId + "_tool_rod", materialName + " Tool Rod");
+        }
+
+        // Manual tool parts (for now, you could auto-generate these too)
         entries.put("item.arsenalcrafting.bronze_pickaxe_head", "Bronze Pickaxe Head");
         entries.put("item.arsenalcrafting.bronze_tool_rod", "Bronze Tool Rod");
         entries.put("item.arsenalcrafting.titanium_pickaxe_head", "Titanium Pickaxe Head");
+
+        // Other items
         entries.put("item.arsenalcrafting.arsenal_pickaxe", "Arsenal Pickaxe");
         entries.put("item.arsenalcrafting.repair_kit", "Tool Repair Kit");
         entries.put("item.arsenalcrafting.drill", "Drill");
 
-        // 4. Tooltips & GUI
+        // 4. Alloy material names (for tooltips)
+        for (AlloyMaterial material : AlloyMaterial.values()) {
+            String materialName = material.getName();
+            entries.put("material.arsenalcrafting." + material.name().toLowerCase(), materialName);
+        }
+
+        // 5. Tooltips & GUI
         entries.put("item.arsenalcrafting.tool_parts", "--- Assembled Parts ---");
         entries.put("item.arsenalcrafting.head_material", "Head: %s");
         entries.put("item.arsenalcrafting.rod_material", "Rod: %s");
@@ -57,19 +80,21 @@ public class LangGenerator implements DataProvider {
         entries.put("item.arsenalcrafting.efficiency", "Efficiency: %s");
         entries.put("item.arsenalcrafting.repairability", "Repairability: %s");
         entries.put("item.arsenalcrafting.augment_slots", "Augment Slots: %s");
+        entries.put("item.arsenalcrafting.alloy_color", "Alloy Color: %s");
 
         entries.put("screen.arsenalcrafting.toolkit_title", "Tool Kit");
         entries.put("gui.arsenalcrafting.toolkit.title", "Tool Kit");
         entries.put("gui.arsenalcrafting.augment.title", "Augment Configuration");
         entries.put("tooltip.arsenalcrafting.click_to_configure", "§7§oShift-click to configure§r");
 
-        // 5. Messages & Instructions
+        // 6. Messages & Instructions
         entries.put("message.arsenalcrafting.augment_installed", "§a%s augment installed!");
         entries.put("message.arsenalcrafting.augment_removed", "§7%s augment removed.");
         entries.put("message.arsenalcrafting.incompatible_augment", "§cCannot install %s with %s already installed!");
         entries.put("message.arsenalcrafting.no_augment_slots", "§cNo augment slots available!");
+        entries.put("message.arsenalcrafting.alloy_created", "§aCreated %s Alloy!");
 
-        // 6. AUGMENTS - Generated from AugmentManager
+        // 7. AUGMENTS - Generated from AugmentManager
         System.out.println("[LangGenerator] Adding augment entries...");
         for (var def : AugmentManager.getAll()) {
             String augmentName = def.name();
@@ -103,13 +128,24 @@ public class LangGenerator implements DataProvider {
                 String augmentKey = "augment.arsenalcrafting." + def.id();
                 entries.put(augmentKey, augmentName);
             }
+
+            // Augment descriptions
+            entries.put("augment.arsenalcrafting." + def.id() + ".description", def.description());
         }
 
-        // 7. Add placeholder for future augments (optional)
+        // 8. Alloy properties for tooltips (optional)
+        for (AlloyMaterial material : AlloyMaterial.values()) {
+            String materialId = material.name().toLowerCase();
+            entries.put("tooltip.arsenalcrafting." + materialId + "_durability", "Base Durability: " + material.getDurability());
+            entries.put("tooltip.arsenalcrafting." + materialId + "_efficiency", "Mining Speed: " + material.getEfficiency());
+            entries.put("tooltip.arsenalcrafting." + materialId + "_damage", "Attack Damage: " + material.getDamage());
+        }
 
         // ============ END OF ENTRIES ============
 
         System.out.println("[LangGenerator] Total entries: " + entries.size());
+        System.out.println("[LangGenerator] Alloys processed: " + AlloyMaterial.values().length);
+        System.out.println("[LangGenerator] Augments processed: " + AugmentManager.getAll().size());
 
         // Create JSON object
         JsonObject langJson = new JsonObject();
