@@ -154,18 +154,32 @@ public class ArsenalPickaxeItem extends PickaxeItem {
     @OnlyIn(Dist.CLIENT)
     public void appendHoverText(ItemStack stack, @Nullable Item.TooltipContext context,
                                 List<Component> tooltip, TooltipFlag flag) {
-        AlloyMaterial currentMaterial = baseMaterial; // Start with base material
+
+        AlloyMaterial currentMaterial = baseMaterial; // default
 
         // =======================
         // TOOL ASSEMBLY DATA (if any)
         // =======================
-        ToolAssemblyData assemblyData = stack.getOrDefault(com.arsenalcrafting.mod.registry.ModComponents.TOOL_ASSEMBLY_DATA.get(), ToolAssemblyData.EMPTY);
+        ToolAssemblyData assemblyData = stack.getOrDefault(
+                com.arsenalcrafting.mod.registry.ModComponents.TOOL_ASSEMBLY_DATA.get(),
+                ToolAssemblyData.EMPTY
+        );
+
         if (!assemblyData.isEmpty()) {
             tooltip.add(Component.literal("")); // Separator
             tooltip.add(Component.translatable("item.arsenalcrafting.tool_parts").withStyle(ChatFormatting.DARK_AQUA));
             tooltip.add(Component.translatable("item.arsenalcrafting.head_material", assemblyData.headMaterial()).withStyle(ChatFormatting.WHITE));
             tooltip.add(Component.translatable("item.arsenalcrafting.rod_material", assemblyData.rodMaterial()).withStyle(ChatFormatting.WHITE));
             tooltip.add(Component.literal("")); // Separator
+
+            // Try to map head/rod strings back to AlloyMaterial
+            AlloyMaterial headMat = AlloyMaterial.fromName(assemblyData.headMaterial());
+            AlloyMaterial rodMat  = AlloyMaterial.fromName(assemblyData.rodMaterial());
+
+            AlloyMaterial best = AlloyMaterial.highestOf(currentMaterial, headMat, rodMat);
+            if (best != null) {
+                currentMaterial = best;
+            }
         }
 
         // =======================
@@ -175,25 +189,21 @@ public class ArsenalPickaxeItem extends PickaxeItem {
         for (AugmentManager.AugmentDefinition def : AugmentManager.getAll()) {
             if (AugmentManager.isInstalled(def.id(), stack)) {
                 if (!hasAnyAugments) {
-                    tooltip.add(Component.literal("")); // Separator before first augment
                     hasAnyAugments = true;
                 }
 
                 Component augmentName = Component.translatable(AugmentManager.getTranslationKey(def.id()))
                         .withStyle(ChatFormatting.GOLD);
 
-                // Add tier if applicable
                 if (def.hasTiers()) {
                     int tier = AugmentManager.getTier(def.id(), stack);
-                    augmentName = Component.translatable("augment.arsenalcrafting.with_tier",
-                            Component.translatable(AugmentManager.getTranslationKey(def.id())),
-                            Component.literal(String.valueOf(tier))
-                    ).withStyle(ChatFormatting.GOLD);
+                    augmentName = Component.translatable(
+                            "augment.arsenalcrafting." + def.id() +".tier" + String.valueOf(tier))
+                    .withStyle(ChatFormatting.GOLD);
                 }
 
                 tooltip.add(augmentName);
 
-                // TEST MODE line
                 if (TestModeConfig.isAugmentEnabled(def.id())) {
                     tooltip.add(Component.literal("TEST MODE: " + def.name())
                             .withStyle(ChatFormatting.RED));
@@ -202,7 +212,7 @@ public class ArsenalPickaxeItem extends PickaxeItem {
         }
 
         // =======================
-        // MATERIAL BASE STATS
+        // MATERIAL BASE STATS (using highest material)
         // =======================
         tooltip.add(Component.literal("")); // Separator
         tooltip.add(Component.translatable("item.arsenalcrafting.tool_material", currentMaterial.getName())

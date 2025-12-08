@@ -25,6 +25,13 @@ public class ToolkitMenu extends AbstractContainerMenu {
     private final ToolkitBlockEntity blockEntity;
     private final Level level;
 
+    // --- slot counts ---
+    private static final int TOOLKIT_SLOTS = ToolkitBlockEntity.SLOTS; // 8
+    private static final int PLAYER_INV_ROWS = 3;
+    private static final int PLAYER_INV_COLUMNS = 9;
+    private static final int PLAYER_INV_SIZE = PLAYER_INV_ROWS * PLAYER_INV_COLUMNS; // 27
+    private static final int HOTBAR_SIZE = 9;
+
     // Server-side constructor
     public ToolkitMenu(int id, Inventory inv, ToolkitBlockEntity entity) {
         super(ModMenus.TOOLKIT.get(), id);
@@ -121,96 +128,48 @@ public class ToolkitMenu extends AbstractContainerMenu {
     /**
      * Handles shift-click behavior (quick transfer).
      */
+    // --- THIS is what makes shift-click work ---
     @Override
-    @NotNull
-    public ItemStack quickMoveStack(@NotNull Player player, int index) {
-        ItemStack itemstack = ItemStack.EMPTY;
+    public ItemStack quickMoveStack(Player player, int index) {
+        ItemStack originalStack = ItemStack.EMPTY;
         Slot slot = this.slots.get(index);
 
-        if (slot == null || !slot.hasItem()) {
-            return ItemStack.EMPTY;
-        }
+        if (slot != null && slot.hasItem()) {
+            ItemStack stackInSlot = slot.getItem();
+            originalStack = stackInSlot.copy();
 
-        ItemStack slotStack = slot.getItem();
-        itemstack = slotStack.copy();
+            // Index layout:
+            // 0 .. 7   -> Toolkit BE slots
+            // 8 .. 34  -> Player inv
+            // 35 .. 43 -> Hotbar
 
-        final int toolkitSlots = ToolkitBlockEntity.SLOTS; // 9
-        final int outputSlot = 3; // Output slot index
-        final int augmentSlotsStart = 4; // First augment slot index
+            int beStart = 0;
+            int beEnd = TOOLKIT_SLOTS; // 8 (exclusive)
+            int playerInvStart = beEnd; // 8
+            int playerInvEnd = playerInvStart + PLAYER_INV_SIZE; // 8 + 27 = 35
+            int hotbarStart = playerInvEnd; // 35
+            int hotbarEnd = hotbarStart + HOTBAR_SIZE; // 44
 
-        // Player Inventory and Hotbar ranges
-        final int playerInvStart = toolkitSlots; // 9
-        final int playerInvEnd = playerInvStart + 27; // 36
-        final int hotbarStart = playerInvEnd; // 36
-        final int hotbarEnd = hotbarStart + 9; // 45 (Total slots)
-
-        if (index < toolkitSlots) {
-            // Moving from Toolkit to Player Inventory/Hotbar
-
-            // Do not allow moving the tool from the Output slot (index 3) to prevent duplication issues
-            if (index == outputSlot) {
-                // Move item from output slot 3 to the player inventory (9-45)
-                if (!moveItemStackTo(slotStack, playerInvStart, hotbarEnd, true)) {
+            if (index < beEnd) {
+                // Moving FROM toolkit → TO player
+                if (!this.moveItemStackTo(stackInSlot, playerInvStart, hotbarEnd, true)) {
                     return ItemStack.EMPTY;
                 }
             } else {
-                // Move item from any other toolkit slot (0, 1, 2, 4-8) to the player inventory (9-45)
-                if (!moveItemStackTo(slotStack, playerInvStart, hotbarEnd, true)) {
-                    return ItemStack.EMPTY;
-                }
-            }
-        } else if (index >= playerInvStart) {
-            // Moving from Player Inventory/Hotbar to Toolkit Slots
-
-            // 1. Try moving ToolHeadItem to Slot 0
-            if (slotStack.getItem() instanceof ToolHeadItem) {
-                if (!moveItemStackTo(slotStack, 0, 1, false)) { return ItemStack.EMPTY; }
-            }
-            // 2. Try moving ToolRodItem to Slot 2
-            else if (slotStack.getItem() instanceof ToolRodItem) {
-                if (!moveItemStackTo(slotStack, 2, 3, false)) { return ItemStack.EMPTY; }
-            }
-            else if (slotStack.getItem() instanceof ArsenalPickaxeItem) {
-                // Allow moving assembled tools to the output slot (slot 2)
-                if (!moveItemStackTo(slotStack, 2, 3, false)) {
+                // Moving FROM player/hotbar → TO toolkit
+                // We let IItemHandler.isItemValid decide which slots accept the item.
+                if (!this.moveItemStackTo(stackInSlot, beStart, beEnd, false)) {
                     return ItemStack.EMPTY;
                 }
             }
 
-            // 3. Try moving any other item to the Augment slots (4 through 8, range is [4, 9))
-            else if (moveItemStackTo(slotStack, augmentSlotsStart, toolkitSlots, false)) {
-                // Success moving to an augment slot
-            }
-            // 4. Default: Move between player inventory and hotbar
-            else if (index < playerInvEnd) {
-                // Moving from Main Inventory to Hotbar
-                if (!moveItemStackTo(slotStack, hotbarStart, hotbarEnd, false)) {
-                    return ItemStack.EMPTY;
-                }
-            } else if (index < hotbarEnd) {
-                // Moving from Hotbar to Main Inventory
-                if (!moveItemStackTo(slotStack, playerInvStart, playerInvEnd, false)) {
-                    return ItemStack.EMPTY;
-                }
+            if (stackInSlot.isEmpty()) {
+                slot.set(ItemStack.EMPTY);
             } else {
-                // Should not happen
-                return ItemStack.EMPTY;
+                slot.setChanged();
             }
-        } else {
-            return ItemStack.EMPTY;
         }
 
-        if (slotStack.isEmpty()) {
-            slot.set(ItemStack.EMPTY);
-        } else {
-            slot.setChanged();
-        }
-
-        if (slotStack.getCount() == itemstack.getCount()) {
-            return ItemStack.EMPTY;
-        }
-
-        slot.onTake(player, slotStack);
-        return itemstack;
+        return originalStack;
     }
 }

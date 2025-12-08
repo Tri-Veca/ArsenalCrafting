@@ -62,7 +62,7 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
                 case 3 -> isToolRod(stack.getItem());  // Slot 3: Rod (supports both old and new)
                 case 2 -> stack.getItem() instanceof ArsenalPickaxeItem; // ALLOW putting assembled tools back!
                 case 4, 6, 5, 7 -> stack.getItem() instanceof Augment; // Only let augments in augments slots!
-                default -> true; // Allow other items in unused slots for now
+                default -> false; // Dont allow other items in unused slots for now
             }) return true;
             else return false;
         }
