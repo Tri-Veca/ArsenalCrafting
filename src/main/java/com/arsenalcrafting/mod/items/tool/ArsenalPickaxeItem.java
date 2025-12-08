@@ -65,6 +65,38 @@ public class ArsenalPickaxeItem extends PickaxeItem {
         return stack;
     }
 
+    @Override
+    public int getMaxDamage(ItemStack stack) {
+        ToolAssemblyData assemblyData = stack.getOrDefault(
+                com.arsenalcrafting.mod.registry.ModComponents.TOOL_ASSEMBLY_DATA.get(),
+                ToolAssemblyData.EMPTY
+        );
+
+        if (!assemblyData.isEmpty()) {
+            AlloyMaterial rodMat  = AlloyMaterial.fromName(assemblyData.rodMaterial());
+
+            return rodMat.getDurability();
+        }
+        return baseMaterial.getDurability();
+    }
+
+    @Override
+    public float getDestroySpeed(ItemStack stack, BlockState state) {
+
+        ToolAssemblyData assemblyData = stack.getOrDefault(
+                com.arsenalcrafting.mod.registry.ModComponents.TOOL_ASSEMBLY_DATA.get(),
+                ToolAssemblyData.EMPTY
+        );
+
+        if (!assemblyData.isEmpty()) {
+            AlloyMaterial headMat  = AlloyMaterial.fromName(assemblyData.headMaterial());
+
+            return headMat.getEfficiency();
+        }
+
+        return 0;
+    }
+
     // Custom Tier implementation to read stats from AlloyMaterial
     private static class DummyToolTier implements Tier {
         private final AlloyMaterial material;
@@ -82,6 +114,7 @@ public class ArsenalPickaxeItem extends PickaxeItem {
         public float getSpeed() {
             return material.getEfficiency();
         }
+
 
         @Override
         public float getAttackDamageBonus() {
@@ -251,6 +284,8 @@ public class ArsenalPickaxeItem extends PickaxeItem {
         );
     }
 
+
+
     // Add this helper method to count used augment slots
     private int countUsedAugmentSlots(ItemStack stack) {
         int usedSlots = 0;
@@ -270,4 +305,5 @@ public class ArsenalPickaxeItem extends PickaxeItem {
     public boolean isEnchantable(ItemStack stack) {
         return false;
     }
+
 }
