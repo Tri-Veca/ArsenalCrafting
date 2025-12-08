@@ -4,11 +4,10 @@ import com.arsenalcrafting.mod.ArsenalCrafting;
 import com.arsenalcrafting.mod.core.alloy.AlloyItem;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
-import com.arsenalcrafting.mod.items.augments.AutoSmeltAugmentItem;
-import com.arsenalcrafting.mod.items.augments.FortuneAugmentItem;
-import com.arsenalcrafting.mod.items.augments.OreMinerAugmentItem;
 import com.arsenalcrafting.mod.items.augments.UniversalAugmentItem;
 import com.arsenalcrafting.mod.items.tool.ArsenalPickaxeItem;
+import com.arsenalcrafting.mod.component.ToolComponentType;
+import com.arsenalcrafting.mod.items.tool.toolparts.ToolComponentItem;
 import com.arsenalcrafting.mod.items.tool.toolparts.ToolHeadItem;
 import com.arsenalcrafting.mod.items.tool.toolparts.ToolRodItem;
 import net.minecraft.core.registries.Registries;
@@ -29,6 +28,7 @@ public class ModItems {
     // Keep track of all universal augment items for reference
     public static final List<DeferredHolder<Item, UniversalAugmentItem>> UNIVERSAL_AUGMENTS = new ArrayList<>();
     public static final Map<AlloyMaterial, DeferredHolder<Item, Item>> ALLOY_ITEMS = new HashMap<>();
+    public static final Map<String, DeferredHolder<Item, Item>> TOOL_COMPONENTS = new HashMap<>();
 
     // --- Core Alloy Parts (Phase 1: Copper/Bronze for MVP) ---
     /*public static final DeferredHolder<Item, Item> BRONZE_ALLOY = ITEMS.register("bronze_alloy",
@@ -40,6 +40,7 @@ public class ModItems {
             () -> new Item(new Item.Properties()));
 
     // --- Modular Tool Parts (Bronze Alloy) ---
+    /*
     public static final DeferredHolder<Item, ToolHeadItem> BRONZE_PICKAXE_HEAD = ITEMS.register("bronze_pickaxe_head",
             () -> new ToolHeadItem(AlloyMaterial.BRONZE, new Item.Properties()));
     public static final DeferredHolder<Item, ToolRodItem> BRONZE_TOOL_ROD = ITEMS.register("bronze_tool_rod",
@@ -48,6 +49,8 @@ public class ModItems {
     public static final DeferredHolder<Item, ToolHeadItem> TITANIUM_PICKAXE_HEAD = ITEMS.register("titanium_pickaxe_head",
             () -> new ToolHeadItem(AlloyMaterial.TITANIUM, new Item.Properties()));
     // Add Bronze Binding, Axe Head, Shovel Head, etc. later
+
+     */
 
     // --- Tools & Weapons (Base items use the lightest alloy by default) ---
     public static final DeferredHolder<Item, ArsenalPickaxeItem> ARSENAL_PICKAXE = ITEMS.register("arsenal_pickaxe",
@@ -79,6 +82,25 @@ public class ModItems {
 
             ALLOY_ITEMS.put(material, holder);
             System.out.println("[ModItems] Registered alloy item: " + itemId);
+        }
+    }
+
+    public static void registerToolComponents() {
+        System.out.println("[ModItems] Registering tool components...");
+
+        for (AlloyMaterial material : AlloyMaterial.values()) {
+            String materialId = material.name().toLowerCase();
+
+            for (ToolComponentType componentType : ToolComponentType.values()) {
+                String itemId = materialId + "_" + componentType.getId();
+
+                DeferredHolder<Item, Item> holder = ITEMS.register(itemId,
+                        () -> new ToolComponentItem(material, componentType, new Item.Properties())
+                );
+
+                TOOL_COMPONENTS.put(itemId, holder);
+                System.out.println("[ModItems] Registered: " + itemId);
+            }
         }
     }
 
@@ -132,6 +154,7 @@ public class ModItems {
         // Register universal augment items
         registerUniversalAugments();
         registerAlloys();
+        registerToolComponents();
 
         // Register all items with NeoForge
         ITEMS.register(eventBus);

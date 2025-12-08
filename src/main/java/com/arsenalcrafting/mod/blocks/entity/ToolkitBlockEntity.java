@@ -2,12 +2,13 @@ package com.arsenalcrafting.mod.blocks.entity;
 
 import com.arsenalcrafting.mod.client.menu.ToolkitMenu;
 import com.arsenalcrafting.mod.component.ToolAssemblyData;
+import com.arsenalcrafting.mod.component.ToolComponentType;
 import com.arsenalcrafting.mod.config.TestModeConfig;
 import com.arsenalcrafting.mod.core.augments.Augment;
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
 import com.arsenalcrafting.mod.core.augments.InstallableAugmentItem;
 import com.arsenalcrafting.mod.items.tool.ArsenalPickaxeItem;
-import com.arsenalcrafting.mod.items.tool.ArsenalToolType;
+import com.arsenalcrafting.mod.items.tool.toolparts.ToolComponentItem;
 import com.arsenalcrafting.mod.items.tool.toolparts.ToolHeadItem;
 import com.arsenalcrafting.mod.items.tool.toolparts.ToolRodItem;
 import com.arsenalcrafting.mod.registry.ModBlockEntities;
@@ -21,6 +22,7 @@ import net.minecraft.world.*;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -56,8 +58,8 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
                 return stack.getItem() instanceof InstallableAugmentItem;
             }
             if (switch (slot) {
-                case 0 -> stack.getItem() instanceof ToolHeadItem; // Slot 0: Head
-                case 3 -> stack.getItem() instanceof ToolRodItem;  // Slot 3: Rod (FIXED: was checking slot 1)
+                case 0 -> isToolHead(stack.getItem()); // Slot 0: Head (supports both old and new)
+                case 3 -> isToolRod(stack.getItem());  // Slot 3: Rod (supports both old and new)
                 case 2 -> stack.getItem() instanceof ArsenalPickaxeItem; // ALLOW putting assembled tools back!
                 case 4, 6, 5, 7 -> stack.getItem() instanceof Augment; // Only let augments in augments slots!
                 default -> true; // Allow other items in unused slots for now
@@ -65,6 +67,54 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
             else return false;
         }
     };
+
+    // Helper method to check if item is a tool head (old or new system)
+    private boolean isToolHead(Item item) {
+        // Old system: ToolHeadItem
+        if (item instanceof ToolHeadItem) return true;
+
+        // New system: ToolComponentItem with appropriate component type
+        if (item instanceof ToolComponentItem toolComponent) {
+            ToolComponentType type = toolComponent.getComponentType();
+            return type == ToolComponentType.PICKAXE_HEAD;
+                    /*type == ToolComponentType.AXE_HEAD ||
+                    type == ToolComponentType.SHOVEL_HEAD ||
+                    type == ToolComponentType.SWORD_BLADE ||
+                    type == ToolComponentType.HOE_HEAD ||
+                    type == ToolComponentType.HAMMER_HEAD ||
+                    type == ToolComponentType.EXCAVATOR_HEAD ||
+                    type == ToolComponentType.SAW_BLADE;
+
+                     */
+        }
+        return false;
+    }
+
+    // Helper method to check if item is a tool rod (old or new system)
+    private boolean isToolRod(Item item) {
+        // Old system: ToolRodItem
+        if (item instanceof ToolRodItem) return true;
+
+        // New system: ToolComponentItem with TOOL_ROD type
+        if (item instanceof ToolComponentItem toolComponent) {
+            return toolComponent.getComponentType() == ToolComponentType.TOOL_ROD;
+        }
+        return false;
+    }
+
+    // Helper method to get material from any tool component (old or new system)
+    private com.arsenalcrafting.mod.core.alloy.AlloyMaterial getMaterialFromComponent(Item item) {
+        if (item instanceof ToolHeadItem headItem) {
+            return headItem.getMaterial();
+        }
+        if (item instanceof ToolRodItem rodItem) {
+            return rodItem.getMaterial();
+        }
+        if (item instanceof ToolComponentItem toolComponent) {
+            return toolComponent.getMaterial();
+        }
+        return null;
+    }
 
     public void installAugments() {
         ItemStack outputTool = itemHandler.getStackInSlot(2);
@@ -112,15 +162,23 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
         }
 
         // Parts must be the correct item types
-        if (!(headStack.getItem() instanceof ToolHeadItem headItem)) {
+        if (!isToolHead(headStack.getItem())) {
             return;
         }
-        if (!(rodStack.getItem() instanceof ToolRodItem rodItem)) {
+        if (!isToolRod(rodStack.getItem())) {
             return;
         }
 
         // Output must be empty OR already an Arsenal Pickaxe
         if (!outputStack.isEmpty() && !(outputStack.getItem() instanceof ArsenalPickaxeItem)) {
+            return;
+        }
+
+        // Get materials from components (works with both old and new system)
+        com.arsenalcrafting.mod.core.alloy.AlloyMaterial headMaterial = getMaterialFromComponent(headStack.getItem());
+        com.arsenalcrafting.mod.core.alloy.AlloyMaterial rodMaterial = getMaterialFromComponent(rodStack.getItem());
+
+        if (headMaterial == null || rodMaterial == null) {
             return;
         }
 
@@ -135,12 +193,10 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
             assembledTool = outputStack.copy();
         }
 
-        // --- IMPORTANT PART: build ToolAssemblyData using *Strings* ---
-        // Your ToolAssemblyData currently expects (String, String),
-        // so we pass the alloy material names.
+        // Build ToolAssemblyData using material names
         ToolAssemblyData assemblyData = new ToolAssemblyData(
-                headItem.getMaterial().getName(),  // String
-                rodItem.getMaterial().getName()    // String
+                headMaterial.getName(),  // String
+                rodMaterial.getName()    // String
         );
 
         // Store it on the item via your component system

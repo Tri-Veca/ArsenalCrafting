@@ -51,8 +51,8 @@ public class LangGenerator implements DataProvider {
             System.out.println("[LangGenerator] Added: " + materialId + "_alloy");
 
             // Tool parts (optional - you can auto-generate these too if needed)
-            // entries.put("item.arsenalcrafting." + materialId + "_pickaxe_head", materialName + " Pickaxe Head");
-            // entries.put("item.arsenalcrafting." + materialId + "_tool_rod", materialName + " Tool Rod");
+            entries.put("item.arsenalcrafting." + materialId + "_pickaxe_head", materialName + " Pickaxe Head");
+            entries.put("item.arsenalcrafting." + materialId + "_tool_rod", materialName + " Tool Rod");
         }
 
         // Manual tool parts (for now, you could auto-generate these too)

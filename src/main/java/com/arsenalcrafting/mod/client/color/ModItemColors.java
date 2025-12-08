@@ -5,8 +5,7 @@ import com.arsenalcrafting.mod.component.ToolAssemblyData;
 import com.arsenalcrafting.mod.core.alloy.AlloyItem;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.items.tool.ArsenalPickaxeItem;
-import com.arsenalcrafting.mod.items.tool.toolparts.ToolHeadItem;
-import com.arsenalcrafting.mod.items.tool.toolparts.ToolRodItem;
+import com.arsenalcrafting.mod.items.tool.toolparts.ToolComponentItem; // CHANGED
 import com.arsenalcrafting.mod.registry.ModComponents;
 import com.arsenalcrafting.mod.registry.ModItems;
 import net.minecraft.world.item.Item;
@@ -16,7 +15,6 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
-import net.neoforged.neoforge.registries.DeferredHolder;
 
 @OnlyIn(Dist.CLIENT)
 @EventBusSubscriber(
@@ -28,31 +26,36 @@ public class ModItemColors {
 
     @SubscribeEvent
     public static void registerItemColorHandlers(RegisterColorHandlersEvent.Item event) {
+        System.out.println("[ModItemColors] Starting color registration...");
+
         // 1) Arsenal Pickaxe (combo tint: head + rod)
         event.register(ModItemColors::colorArsenalPickaxe, ModItems.ARSENAL_PICKAXE.get());
+        System.out.println("[ModItemColors] Registered: Arsenal Pickaxe");
 
-        // 2) All tool part items (single-layer tint)
-        event.register(
-                ModItemColors::colorToolPart,
-                // TODO: put ALL your head/rod items here:
-                ModItems.BRONZE_PICKAXE_HEAD.get(),
-                //ModItems.STEEL_PICKAXE_HEAD.get(),
-                ModItems.TITANIUM_PICKAXE_HEAD.get(),
-                ModItems.BRONZE_TOOL_ROD.get()
-               // ModItems.STEEL_TOOL_ROD.get(),
-                //ModItems.TITANIUM_TOOL_ROD.get()
-                // ...add more as you create them
-        );
-
-        for (DeferredHolder<Item, Item> alloyHolder : ModItems.ALLOY_ITEMS.values()) {
-            Item alloyItem = alloyHolder.get();
-            if (alloyItem != null) {
-                event.register(ModItemColors::colorAlloyItem, alloyItem);
-                System.out.println("[ModItemColors] Registered color for alloy: " + alloyHolder.getId());
+        // 2) All auto-generated tool components
+        int toolComponentCount = 0;
+        for (var holder : ModItems.TOOL_COMPONENTS.values()) {
+            Item item = holder.get();
+            if (item != null) {
+                event.register(ModItemColors::colorToolComponent, item);
+                toolComponentCount++;
+                System.out.println("[ModItemColors] Registered tool component: " + holder.getId());
             }
         }
-    }
+        System.out.println("[ModItemColors] Registered " + toolComponentCount + " tool components");
 
+        // 3) All auto-generated alloy items
+        int alloyCount = 0;
+        for (var holder : ModItems.ALLOY_ITEMS.values()) {
+            Item item = holder.get();
+            if (item != null) {
+                event.register(ModItemColors::colorAlloyItem, item);
+                alloyCount++;
+                System.out.println("[ModItemColors] Registered alloy: " + holder.getId());
+            }
+        }
+        System.out.println("[ModItemColors] Registered " + alloyCount + " alloy items");
+    }
 
     // --------- PICKAXE (2-layer tint: head + rod) ---------
 
@@ -87,27 +90,25 @@ public class ModItemColors {
         return ensureOpaque(target != null ? target.getItemColor() : 0xFFFFFFFF);
     }
 
-    // --------- TOOL PARTS (1-layer tint) ---------
+    // --------- TOOL COMPONENTS (1-layer tint) ---------
+    // UPDATED: Now handles ToolComponentItem instead of ToolHeadItem/ToolRodItem
 
-    private static int colorToolPart(ItemStack stack, int tintIndex) {
-        // only layer0 is tinted on part items
+    private static int colorToolComponent(ItemStack stack, int tintIndex) {
+        // only layer0 is tinted on component items
         if (tintIndex != 0) {
             return 0xFFFFFFFF;
         }
 
         Item item = stack.getItem();
 
-        if (item instanceof ToolHeadItem head) {
-            return ensureOpaque(head.getMaterial().getItemColor());
-        }
-
-        if (item instanceof ToolRodItem rod) {
-            return ensureOpaque(rod.getMaterial().getItemColor());
+        // CHANGED: Check for ToolComponentItem
+        if (item instanceof ToolComponentItem toolComponent) {
+            AlloyMaterial material = toolComponent.getMaterial();
+            return ensureOpaque(material.getItemColor());
         }
 
         return 0xFFFFFFFF;
     }
-
 
     // --------- ALLOYS (1-layer tint) ---------
 
@@ -116,15 +117,12 @@ public class ModItemColors {
 
         Item item = stack.getItem();
 
-        // however you store the material for alloys
         if (item instanceof AlloyItem alloy) {
             return ensureOpaque(alloy.getMaterial().getItemColor());
         }
 
         return 0xFFFFFFFF;
     }
-
-
 
     // --------- helpers ---------
 
