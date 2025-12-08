@@ -88,7 +88,6 @@ public class ArsenalItemModelProvider extends ItemModelProvider {
             getBuilder(key + "_core")
                     .parent(new ModelFile.UncheckedModelFile(mcLoc("item/generated")))
                     .texture("layer0", modLoc("item/core_base"));
-            //TODO add base core image
         }
     }
 

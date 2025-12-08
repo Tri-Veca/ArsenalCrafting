@@ -215,19 +215,26 @@ public class ArsenalPickaxeItem extends PickaxeItem {
         // MATERIAL BASE STATS (using highest material)
         // =======================
         tooltip.add(Component.literal("")); // Separator
-        tooltip.add(Component.translatable("item.arsenalcrafting.tool_material", currentMaterial.getName())
-                .withStyle(currentMaterial.getColor()));
 
-        tooltip.add(Component.translatable("item.arsenalcrafting.durability", currentMaterial.getDurability())
-                .withStyle(currentMaterial.getColor()));
 
-        tooltip.add(Component.translatable("item.arsenalcrafting.efficiency",
-                        String.format("%.1f", currentMaterial.getEfficiency()))
-                .withStyle(ChatFormatting.BLUE));
+        if(!assemblyData.isEmpty()){
+            AlloyMaterial headMat = AlloyMaterial.fromName(assemblyData.headMaterial());
+            AlloyMaterial rodMat  = AlloyMaterial.fromName(assemblyData.rodMaterial());
 
-        tooltip.add(Component.translatable("item.arsenalcrafting.repairability",
-                        String.format("%.2f", currentMaterial.getModifier()))
-                .withStyle(ChatFormatting.DARK_GREEN));
+            tooltip.add(Component.translatable("item.arsenalcrafting.repairability", headMat.getName())
+                    .withStyle(headMat.getColor()));
+
+            tooltip.add(Component.translatable("item.arsenalcrafting.durability", rodMat.getDurability())
+                    .withStyle(rodMat.getColor()));
+
+            tooltip.add(Component.translatable("item.arsenalcrafting.efficiency",
+                            String.format("%.1f", headMat.getEfficiency()))
+                    .withStyle(ChatFormatting.BLUE));
+
+        }
+
+
+
 
         // =======================
         // AUGMENT SLOTS
