@@ -28,7 +28,7 @@ public class ModItems {
     // Keep track of all universal augment items for reference
     public static final List<DeferredHolder<Item, UniversalAugmentItem>> UNIVERSAL_AUGMENTS = new ArrayList<>();
     public static final Map<AlloyMaterial, DeferredHolder<Item, Item>> ALLOY_ITEMS = new HashMap<>();
-    public static final Map<String, DeferredHolder<Item, Item>> TOOL_COMPONENTS = new HashMap<>();
+    public static final Map<AlloyMaterial, Map<ToolComponentType, DeferredHolder<Item, ToolComponentItem>>> TOOL_COMPONENTS = new HashMap<>();
 
     // --- Core Alloy Parts (Phase 1: Copper/Bronze for MVP) ---
     /*public static final DeferredHolder<Item, Item> BRONZE_ALLOY = ITEMS.register("bronze_alloy",
@@ -85,20 +85,30 @@ public class ModItems {
         }
     }
 
+    // In ModItems.java - corrected
+
     public static void registerToolComponents() {
         System.out.println("[ModItems] Registering tool components...");
 
+        // Initialize maps for each material
         for (AlloyMaterial material : AlloyMaterial.values()) {
-            String materialId = material.name().toLowerCase();
+            TOOL_COMPONENTS.put(material, new HashMap<>());
+        }
 
+        // Register components for each material and type
+        for (AlloyMaterial material : AlloyMaterial.values()) {
             for (ToolComponentType componentType : ToolComponentType.values()) {
-                String itemId = materialId + "_" + componentType.getId();
+                String materialName = material.name().toLowerCase();
+                String componentId = componentType.getId();
 
-                DeferredHolder<Item, Item> holder = ITEMS.register(itemId,
+                String itemId = materialName + "_" + componentId;
+
+                DeferredHolder<Item, ToolComponentItem> holder = ITEMS.register(
+                        itemId,
                         () -> new ToolComponentItem(material, componentType, new Item.Properties())
                 );
 
-                TOOL_COMPONENTS.put(itemId, holder);
+                TOOL_COMPONENTS.get(material).put(componentType, holder);
                 System.out.println("[ModItems] Registered: " + itemId);
             }
         }

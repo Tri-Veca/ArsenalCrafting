@@ -1,6 +1,8 @@
 package com.arsenalcrafting.mod.registry;
 
 import com.arsenalcrafting.mod.ArsenalCrafting;
+import com.arsenalcrafting.mod.core.ItemStackHelper;
+import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
@@ -16,7 +18,7 @@ public class ModCreativeTabs {
 
     // Main Arsenal Crafting Tab
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> ARSENAL_TAB = CREATIVE_MODE_TABS.register("arsenal_tab", () -> CreativeModeTab.builder()
-            .icon(() -> new ItemStack(Items.COPPER_INGOT)) // Placeholder icon
+            .icon(() -> new ItemStack(ItemStackHelper.getAlloyStack(AlloyMaterial.BRONZE).getItem())) // Placeholder icon
             .title(Component.translatable("itemGroup." + ArsenalCrafting.MOD_ID + ".arsenal_tab"))
             .displayItems((parameters, output) -> {
                 // Add all registered items to the tab

@@ -15,6 +15,7 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 @OnlyIn(Dist.CLIENT)
 @EventBusSubscriber(
@@ -34,12 +35,14 @@ public class ModItemColors {
 
         // 2) All auto-generated tool components
         int toolComponentCount = 0;
-        for (var holder : ModItems.TOOL_COMPONENTS.values()) {
-            Item item = holder.get();
-            if (item != null) {
-                event.register(ModItemColors::colorToolComponent, item);
-                toolComponentCount++;
-                System.out.println("[ModItemColors] Registered tool component: " + holder.getId());
+        for (var materialMap : ModItems.TOOL_COMPONENTS.values()) {
+            for (var holder : materialMap.values()) {
+                Item item = holder.get(); // Get the actual Item from DeferredHolder
+                if (item != null) {
+                    event.register(ModItemColors::colorToolComponent, item);
+                    toolComponentCount++;
+                    System.out.println("[ModItemColors] Registered tool component: " + holder.getId().getPath());
+                }
             }
         }
         System.out.println("[ModItemColors] Registered " + toolComponentCount + " tool components");
