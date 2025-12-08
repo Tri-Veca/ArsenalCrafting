@@ -13,6 +13,7 @@ public class ArsenalCrafting {
     public static final String MOD_ID = "arsenalcrafting";
     public ArsenalCrafting(IEventBus modEventBus) {
         modEventBus.addListener(this::commonSetup);
+        modEventBus.addListener(ArsenalCraftingClient::onClientSetup);
 
         // Register all deferred registries
         ModItems.register(modEventBus);

@@ -2,6 +2,7 @@ package com.arsenalcrafting.mod.registry;
 
 import com.arsenalcrafting.mod.ArsenalCrafting;
 import com.arsenalcrafting.mod.blocks.entity.AlloySmelterBlockEntity;
+import com.arsenalcrafting.mod.blocks.entity.LavaTankBlockEntity;
 import com.arsenalcrafting.mod.blocks.entity.ToolkitBlockEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -24,6 +25,14 @@ public class ModBlockEntities {
             BLOCK_ENTITIES.register("toolkit", () ->
                     BlockEntityType.Builder.of(ToolkitBlockEntity::new,
                             ModBlocks.TOOLKIT.get()).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<LavaTankBlockEntity>> LAVA_TANK =
+            BLOCK_ENTITIES.register("lava_tank",
+                    () -> BlockEntityType.Builder.of(
+                            LavaTankBlockEntity::new,
+                            ModBlocks.LAVA_TANK.get()
+                    ).build(null)
+            );
 
     public static void register(IEventBus eventBus) {
         BLOCK_ENTITIES.register(eventBus);

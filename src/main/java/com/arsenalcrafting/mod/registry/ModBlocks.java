@@ -1,6 +1,7 @@
 package com.arsenalcrafting.mod.registry;
 
 import com.arsenalcrafting.mod.ArsenalCrafting;
+import com.arsenalcrafting.mod.blocks.LavaTankBlock;
 import com.arsenalcrafting.mod.blocks.ToolkitBlock;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.BlockItem;
@@ -9,6 +10,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.material.MapColor;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -18,6 +20,17 @@ import java.util.function.Supplier;
 public class ModBlocks {
     public static final DeferredRegister<Block> BLOCKS =
             DeferredRegister.create(Registries.BLOCK, ArsenalCrafting.MOD_ID);
+
+
+    public static final DeferredHolder<Block, Block> LAVA_TANK = registerBlock(
+            "lava_tank",
+            () -> new LavaTankBlock(
+                    BlockBehaviour.Properties.of()
+                            .mapColor(MapColor.COLOR_RED)
+                            .strength(3.0F, 6.0F)
+                            .noOcclusion() // render as non-full cube if you want transparent sides
+            )
+    );
 
     // --- Functional Blocks ---
     public static final DeferredHolder<Block, Block> ALLOY_SMELTER_CORE = registerBlock("alloy_smelter_core",
