@@ -51,7 +51,8 @@ public class ArsenalItemModelProvider extends ItemModelProvider {
         getBuilder("arsenal_pickaxe")
                 .parent(new ModelFile.UncheckedModelFile(mcLoc("item/handheld")))
                 .texture("layer0", modLoc("item/pickaxe_head_base"))
-                .texture("layer1", modLoc("item/tool_rod_base"));
+                .texture("layer1", modLoc("item/tool_rod_base"))
+                .texture("layer2", modLoc("item/core_base"));
     }
 
     /**
@@ -87,7 +88,7 @@ public class ArsenalItemModelProvider extends ItemModelProvider {
 
             getBuilder(key + "_core")
                     .parent(new ModelFile.UncheckedModelFile(mcLoc("item/generated")))
-                    .texture("layer0", modLoc("item/core_base"));
+                    .texture("layer0", modLoc("item/core_item_base"));
         }
     }
 

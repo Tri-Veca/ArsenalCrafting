@@ -59,6 +59,7 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
             }
             if (switch (slot) {
                 case 0 -> isToolHead(stack.getItem()); // Slot 0: Head (supports both old and new)
+                case 1 -> isCore(stack.getItem()); // Slot 0: Head (supports both old and new)
                 case 3 -> isToolRod(stack.getItem());  // Slot 3: Rod (supports both old and new)
                 case 2 -> stack.getItem() instanceof ArsenalPickaxeItem; // ALLOW putting assembled tools back!
                 case 4, 6, 5, 7 -> stack.getItem() instanceof Augment; // Only let augments in augments slots!
@@ -86,6 +87,19 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
                     type == ToolComponentType.SAW_BLADE;
 
                      */
+        }
+        return false;
+    }
+
+
+    private boolean isCore(Item item) {
+        // Old system: ToolHeadItem
+        if (item instanceof ToolHeadItem) return true;
+
+        // New system: ToolComponentItem with appropriate component type
+        if (item instanceof ToolComponentItem toolComponent) {
+            ToolComponentType type = toolComponent.getComponentType();
+            return type == ToolComponentType.CORE;
         }
         return false;
     }
@@ -150,9 +164,11 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
     private void assembleTool() {
         // Input slots:
         // 0 = head
-        // 3 = rod
+        // 1 = core
         // 2 = output
+        // 3 = rod
         ItemStack headStack   = itemHandler.getStackInSlot(0);
+        ItemStack coreStack   = itemHandler.getStackInSlot(1);
         ItemStack rodStack    = itemHandler.getStackInSlot(3);
         ItemStack outputStack = itemHandler.getStackInSlot(2);
 
@@ -177,8 +193,9 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
         // Get materials from components (works with both old and new system)
         com.arsenalcrafting.mod.core.alloy.AlloyMaterial headMaterial = getMaterialFromComponent(headStack.getItem());
         com.arsenalcrafting.mod.core.alloy.AlloyMaterial rodMaterial = getMaterialFromComponent(rodStack.getItem());
+        com.arsenalcrafting.mod.core.alloy.AlloyMaterial coreMaterial = getMaterialFromComponent(coreStack.getItem());
 
-        if (headMaterial == null || rodMaterial == null) {
+        if (headMaterial == null || rodMaterial == null || coreMaterial == null) {
             return;
         }
 
@@ -196,7 +213,8 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
         // Build ToolAssemblyData using material names
         ToolAssemblyData assemblyData = new ToolAssemblyData(
                 headMaterial.getName(),  // String
-                rodMaterial.getName()    // String
+                rodMaterial.getName(),    // String
+                coreMaterial.getName()
         );
 
         // Store it on the item via your component system
@@ -207,6 +225,7 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
 
         // Consume the input parts
         itemHandler.setStackInSlot(0, ItemStack.EMPTY);
+        itemHandler.setStackInSlot(1, ItemStack.EMPTY);
         itemHandler.setStackInSlot(3, ItemStack.EMPTY);
 
         // Place the assembled tool in the output slot

@@ -75,18 +75,22 @@ public class ModItemColors {
 
         AlloyMaterial headMat;
         AlloyMaterial rodMat;
+        AlloyMaterial coreMat;
 
         if (!data.isEmpty()) {
             headMat = fromStoredName(data.headMaterial());
             rodMat  = fromStoredName(data.rodMaterial());
+            coreMat  = fromStoredName(data.coreMaterial());
         } else {
             headMat = pickaxe.getBaseMaterial();
             rodMat  = pickaxe.getBaseMaterial();
+            coreMat  = pickaxe.getBaseMaterial();
         }
 
         AlloyMaterial target = switch (tintIndex) {
             case 0 -> headMat; // layer0 = head
             case 1 -> rodMat;  // layer1 = rod
+            case 2 -> coreMat;  // layer2 = rod
             default -> null;
         };
 

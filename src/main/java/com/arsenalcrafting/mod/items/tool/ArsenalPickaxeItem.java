@@ -203,11 +203,13 @@ public class ArsenalPickaxeItem extends PickaxeItem {
             tooltip.add(Component.translatable("item.arsenalcrafting.tool_parts").withStyle(ChatFormatting.DARK_AQUA));
             tooltip.add(Component.translatable("item.arsenalcrafting.head_material", assemblyData.headMaterial()).withStyle(ChatFormatting.WHITE));
             tooltip.add(Component.translatable("item.arsenalcrafting.rod_material", assemblyData.rodMaterial()).withStyle(ChatFormatting.WHITE));
+            tooltip.add(Component.translatable("item.arsenalcrafting.core_material", assemblyData.coreMaterial()).withStyle(ChatFormatting.WHITE));
             tooltip.add(Component.literal("")); // Separator
 
             // Try to map head/rod strings back to AlloyMaterial
             AlloyMaterial headMat = AlloyMaterial.fromName(assemblyData.headMaterial());
             AlloyMaterial rodMat  = AlloyMaterial.fromName(assemblyData.rodMaterial());
+            AlloyMaterial coreMat  = AlloyMaterial.fromName(assemblyData.coreMaterial());
 
             AlloyMaterial best = AlloyMaterial.highestOf(currentMaterial, headMat, rodMat);
             if (best != null) {
@@ -253,6 +255,8 @@ public class ArsenalPickaxeItem extends PickaxeItem {
         if(!assemblyData.isEmpty()){
             AlloyMaterial headMat = AlloyMaterial.fromName(assemblyData.headMaterial());
             AlloyMaterial rodMat  = AlloyMaterial.fromName(assemblyData.rodMaterial());
+            AlloyMaterial coreMat  = AlloyMaterial.fromName(assemblyData.coreMaterial());
+
 
             tooltip.add(Component.translatable("item.arsenalcrafting.repairability", headMat.getName())
                     .withStyle(headMat.getColor()));
