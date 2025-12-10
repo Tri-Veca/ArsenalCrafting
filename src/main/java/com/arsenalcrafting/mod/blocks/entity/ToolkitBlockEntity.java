@@ -4,6 +4,7 @@ import com.arsenalcrafting.mod.client.menu.ToolkitMenu;
 import com.arsenalcrafting.mod.component.ToolAssemblyData;
 import com.arsenalcrafting.mod.component.ToolComponentType;
 import com.arsenalcrafting.mod.config.TestModeConfig;
+import com.arsenalcrafting.mod.core.ItemStackHelper;
 import com.arsenalcrafting.mod.core.augments.Augment;
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
 import com.arsenalcrafting.mod.core.augments.InstallableAugmentItem;
@@ -38,18 +39,26 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
     public static final int SLOTS = 8;
     private static final int AUGMENT_SLOT_START = 4; // BE Index 4 (AugSlot1)
     private static final int AUGMENT_SLOT_END = 8;   // BE Index 7 (AugSlot4)
+
+    private boolean isAssembling = false;
+
     private final ItemStackHandler itemHandler = new ItemStackHandler(SLOTS) {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
-            // Trigger assembly when ANY input slot changes (0=head, 3=rod)
-            if (slot == 0 || slot == 3) {
+
+            // Only trigger assembly if we are NOT already assembling,
+            // and only for the component/output slots.
+            if (!isAssembling && (slot == 0 || slot == 1 || slot == 2 || slot == 3)) {
                 assembleTool();
             }
+
+            // Augment slots still behave like before
             if (slot >= AUGMENT_SLOT_START && slot < AUGMENT_SLOT_END) {
                 installAugments();
             }
         }
+
 
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
@@ -162,81 +171,225 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
 
     // --- Tool Assembly Logic (MVP) ---
     private void assembleTool() {
-        // Input slots:
-        // 0 = head
-        // 1 = core
-        // 2 = output
-        // 3 = rod
-        ItemStack headStack   = itemHandler.getStackInSlot(0);
-        ItemStack coreStack   = itemHandler.getStackInSlot(1);
-        ItemStack rodStack    = itemHandler.getStackInSlot(3);
-        ItemStack outputStack = itemHandler.getStackInSlot(2);
-
-        // Need both parts present
-        if (headStack.isEmpty() || rodStack.isEmpty()) {
+        // Prevent recursive calls from onContentsChanged
+        if (isAssembling) {
             return;
         }
+        isAssembling = true;
 
-        // Parts must be the correct item types
-        if (!isToolHead(headStack.getItem())) {
-            return;
-        }
-        if (!isToolRod(rodStack.getItem())) {
-            return;
-        }
+        try {
+            // Slots:
+            // 0 = head
+            // 1 = core
+            // 2 = output (Arsenal Pickaxe)
+            // 3 = rod
+            ItemStack headStack   = itemHandler.getStackInSlot(0);
+            ItemStack coreStack   = itemHandler.getStackInSlot(1);
+            ItemStack outputStack = itemHandler.getStackInSlot(2);
+            ItemStack rodStack    = itemHandler.getStackInSlot(3);
 
-        // Output must be empty OR already an Arsenal Pickaxe
-        if (!outputStack.isEmpty() && !(outputStack.getItem() instanceof ArsenalPickaxeItem)) {
-            return;
-        }
+            boolean hasHeadInput = !headStack.isEmpty();
+            boolean hasCoreInput = !coreStack.isEmpty();
+            boolean hasRodInput  = !rodStack.isEmpty();
 
-        // Get materials from components (works with both old and new system)
-        com.arsenalcrafting.mod.core.alloy.AlloyMaterial headMaterial = getMaterialFromComponent(headStack.getItem());
-        com.arsenalcrafting.mod.core.alloy.AlloyMaterial rodMaterial = getMaterialFromComponent(rodStack.getItem());
-        com.arsenalcrafting.mod.core.alloy.AlloyMaterial coreMaterial = getMaterialFromComponent(coreStack.getItem());
+            // Nothing to do if no input and no tool
+            if (!hasHeadInput && !hasCoreInput && !hasRodInput && outputStack.isEmpty()) {
+                return;
+            }
 
-        if (headMaterial == null || rodMaterial == null || coreMaterial == null) {
-            return;
-        }
+            // Output must be empty or an Arsenal Pickaxe
+            if (!outputStack.isEmpty() && !(outputStack.getItem() instanceof ArsenalPickaxeItem)) {
+                return;
+            }
 
-        // Create or copy the pickaxe stack
-        ItemStack assembledTool;
-        boolean isNewTool = false;
+            boolean isNewTool = outputStack.isEmpty();
 
-        if (outputStack.isEmpty()) {
-            assembledTool = new ItemStack(ModItems.ARSENAL_PICKAXE.get());
-            isNewTool = true;
-        } else {
-            assembledTool = outputStack.copy();
-        }
+            // For a brand-new tool we require all 3 parts present
+            if (isNewTool) {
+                if (!hasHeadInput || !hasCoreInput || !hasRodInput) {
+                    return;
+                }
+            }
 
-        // Build ToolAssemblyData using material names
-        ToolAssemblyData assemblyData = new ToolAssemblyData(
-                headMaterial.getName(),  // String
-                rodMaterial.getName(),    // String
-                coreMaterial.getName()
-        );
+            // Validate types (only for slots that have items)
+            if (hasHeadInput && !isToolHead(headStack.getItem())) {
+                return;
+            }
+            if (hasCoreInput && !isCore(coreStack.getItem())) {
+                return;
+            }
+            if (hasRodInput && !isToolRod(rodStack.getItem())) {
+                return;
+            }
 
-        // Store it on the item via your component system
-        assembledTool.set(ModComponents.TOOL_ASSEMBLY_DATA.get(), assemblyData);
+            // --- Read existing assembly data from the pickaxe (if any) ---
 
-        // TODO: if you had any "test mode" / debug behavior before,
-        // reinsert it here, after setting assemblyData.
+            String headMatName = null;
+            String rodMatName  = null;
+            String coreMatName = null;
 
-        // Consume the input parts
-        itemHandler.setStackInSlot(0, ItemStack.EMPTY);
-        itemHandler.setStackInSlot(1, ItemStack.EMPTY);
-        itemHandler.setStackInSlot(3, ItemStack.EMPTY);
+            ToolAssemblyData existingData = null;
+            if (!outputStack.isEmpty()) {
+                existingData = outputStack.get(ModComponents.TOOL_ASSEMBLY_DATA.get());
+            }
 
-        // Place the assembled tool in the output slot
-        itemHandler.setStackInSlot(2, assembledTool);
+            if (existingData != null) {
+                headMatName = existingData.headMaterial();
+                rodMatName  = existingData.rodMaterial();
+                coreMatName = existingData.coreMaterial();
+            }
 
-        // Mark BE changed & sync to client
-        setChanged();
-        if (level != null && !level.isClientSide) {
-            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
+            // --- Prepare variables for "swap out" items ---
+
+            ItemStack swapHead = ItemStack.EMPTY;
+            ItemStack swapCore = ItemStack.EMPTY;
+            ItemStack swapRod  = ItemStack.EMPTY;
+
+            // --- Handle HEAD replacement ---
+
+            if (hasHeadInput) {
+                com.arsenalcrafting.mod.core.alloy.AlloyMaterial newHeadMat =
+                        getMaterialFromComponent(headStack.getItem());
+                if (newHeadMat == null) {
+                    return;
+                }
+
+                // If there was an old head, create the old head item to give back
+                if (headMatName != null && !headMatName.isEmpty()) {
+                    swapHead = findComponentStack(ToolComponentType.PICKAXE_HEAD, headMatName);
+                }
+
+                headMatName = newHeadMat.getName();
+            } else if (isNewTool) {
+                // For a brand new tool, all parts must come from inputs
+                return;
+            }
+
+            // --- Handle CORE replacement ---
+
+            if (hasCoreInput) {
+                com.arsenalcrafting.mod.core.alloy.AlloyMaterial newCoreMat =
+                        getMaterialFromComponent(coreStack.getItem());
+                if (newCoreMat == null) {
+                    return;
+                }
+
+                if (coreMatName != null && !coreMatName.isEmpty()) {
+                    swapCore = findComponentStack(ToolComponentType.CORE, coreMatName);
+                }
+
+                coreMatName = newCoreMat.getName();
+            } else if (isNewTool) {
+                return;
+            }
+
+            // --- Handle ROD replacement ---
+
+            if (hasRodInput) {
+                com.arsenalcrafting.mod.core.alloy.AlloyMaterial newRodMat =
+                        getMaterialFromComponent(rodStack.getItem());
+                if (newRodMat == null) {
+                    return;
+                }
+
+                if (rodMatName != null && !rodMatName.isEmpty()) {
+                    swapRod = findComponentStack(ToolComponentType.TOOL_ROD, rodMatName);
+                }
+
+                rodMatName = newRodMat.getName();
+            } else if (isNewTool) {
+                return;
+            }
+
+            // At this point we must have material names for all 3 parts
+            if (headMatName == null || rodMatName == null || coreMatName == null) {
+                return;
+            }
+
+            // --- Build or copy the pickaxe ---
+
+            ItemStack assembledTool;
+            if (outputStack.isEmpty()) {
+                assembledTool = new ItemStack(ModItems.ARSENAL_PICKAXE.get());
+            } else {
+                assembledTool = outputStack.copy();
+            }
+
+            ToolAssemblyData newData = new ToolAssemblyData(
+                    headMatName,
+                    rodMatName,
+                    coreMatName
+            );
+            assembledTool.set(ModComponents.TOOL_ASSEMBLY_DATA.get(), newData);
+
+            // --- Consume inputs & put swapped-out parts back ---
+
+            // HEAD slot (0)
+            if (hasHeadInput) {
+                if (!swapHead.isEmpty()) {
+                    // Give old head back
+                    itemHandler.setStackInSlot(0, swapHead);
+                } else {
+                    // No old head -> consume input
+                    itemHandler.setStackInSlot(0, ItemStack.EMPTY);
+                }
+            }
+
+            // CORE slot (1)
+            if (hasCoreInput) {
+                if (!swapCore.isEmpty()) {
+                    itemHandler.setStackInSlot(1, swapCore);
+                } else {
+                    itemHandler.setStackInSlot(1, ItemStack.EMPTY);
+                }
+            }
+
+            // ROD slot (3)
+            if (hasRodInput) {
+                if (!swapRod.isEmpty()) {
+                    itemHandler.setStackInSlot(3, swapRod);
+                } else {
+                    itemHandler.setStackInSlot(3, ItemStack.EMPTY);
+                }
+            }
+
+            // Put the final tool in the output slot
+            itemHandler.setStackInSlot(2, assembledTool);
+
+            // Sync
+            setChanged();
+            if (level != null && !level.isClientSide) {
+                level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
+            }
+
+        } finally {
+            isAssembling = false;
         }
     }
+
+    private ItemStack findComponentStack(ToolComponentType type, String materialName) {
+        if (materialName == null || materialName.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+
+        // Search all mod items for a matching ToolComponentItem
+        for (var entry : ModItems.ITEMS.getEntries()) {
+            Item item = entry.get();
+            if (item instanceof ToolComponentItem comp) {
+                if (comp.getComponentType() == type &&
+                        comp.getMaterial().getName().equals(materialName)) {
+
+                    return new ItemStack(item);
+                }
+            }
+        }
+
+        // Fallback: nothing found
+        return ItemStack.EMPTY;
+    }
+
+
+
 
 
 

@@ -73,6 +73,10 @@ public class ItemStackHelper {
     public static ItemStack getToolRod(AlloyMaterial material) {
         return getComponent(material, ToolComponentType.TOOL_ROD);
     }
+    // Get tool core for material
+    public static ItemStack getCore(AlloyMaterial material) {
+        return getComponent(material, ToolComponentType.CORE);
+    }
 
     // Get material from a component item stack
     public static Optional<AlloyMaterial> getMaterialFromComponent(ItemStack stack) {
@@ -127,4 +131,20 @@ public class ItemStackHelper {
 
         return components;
     }
+
+    public static ItemStack createHeadStackFromMaterialName(String materialName) {
+        if (materialName == null || materialName.isEmpty()) return ItemStack.EMPTY;
+        return new ItemStack(getPickaxeHead(AlloyMaterial.fromName(materialName)).getItem());
+    }
+
+    public static ItemStack createCoreStackFromMaterialName(String materialName) {
+        if (materialName == null || materialName.isEmpty()) return ItemStack.EMPTY;
+        return new ItemStack(getCore(AlloyMaterial.fromName(materialName)).getItem());
+    }
+
+    public static ItemStack createRodStackFromMaterialName(String materialName) {
+        if (materialName == null || materialName.isEmpty()) return ItemStack.EMPTY;
+        return new ItemStack(getToolRod(AlloyMaterial.fromName(materialName)).getItem());
+    }
+
 }
