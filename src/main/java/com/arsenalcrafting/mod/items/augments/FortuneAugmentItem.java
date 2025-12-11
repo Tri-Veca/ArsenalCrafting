@@ -6,6 +6,7 @@ import com.arsenalcrafting.mod.core.augments.InstallableAugmentItem;
 import com.arsenalcrafting.mod.registry.ModComponents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
@@ -36,6 +37,20 @@ public class FortuneAugmentItem extends Item implements Augment, InstallableAugm
         System.out.println("[Toolkit] Fortune tier " + tier + " installed!");
     }
 
+    public static boolean isOre(BlockState state){
+        if (!(state.is(BlockTags.COAL_ORES) ||
+                state.is(BlockTags.COPPER_ORES) ||
+                state.is(BlockTags.DIAMOND_ORES) ||
+                state.is(BlockTags.GOLD_ORES) ||
+                state.is(BlockTags.EMERALD_ORES) ||
+                state.is(BlockTags.IRON_ORES) ||
+                state.is(BlockTags.LAPIS_ORES) ||
+                state.is(BlockTags.REDSTONE_ORES))) {
+            return false;
+        }
+        return true;
+    }
+
     /**
      * Called from the Fortune augment handler when a block is mined.
      * Returns true if this augment handled drops (so vanilla should be skipped).
@@ -49,6 +64,10 @@ public class FortuneAugmentItem extends Item implements Augment, InstallableAugm
         }
 
         if (state.isAir()) {
+            return false;
+        }
+
+        if (!isOre(state)){
             return false;
         }
 
