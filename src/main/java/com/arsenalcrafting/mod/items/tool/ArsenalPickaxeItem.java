@@ -11,13 +11,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.PickaxeItem;
-import net.minecraft.world.item.Tier;
-import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.*;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -29,7 +28,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class ArsenalPickaxeItem extends PickaxeItem {
+import static com.arsenalcrafting.mod.registry.ModComponents.TOOL_ASSEMBLY_DATA;
+
+public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
+    private final ArsenalToolType toolType = ArsenalToolType.PICKAXE;
     private final AlloyMaterial baseMaterial;
 
     public ArsenalPickaxeItem(AlloyMaterial material, Properties properties) {
@@ -37,10 +39,29 @@ public class ArsenalPickaxeItem extends PickaxeItem {
         this.baseMaterial = material;
     }
 
+    @Override
+    public ArsenalToolType getToolType() {
+        return toolType;
+    }
+
+    @Override
     public AlloyMaterial getBaseMaterial() {
         return baseMaterial;
     }
 
+    // Override use method to handle shift-right click for GUI
+    @Override
+    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+        ItemStack stack = player.getItemInHand(hand);
+
+        // Handle shift-right click for GUI
+        InteractionResultHolder<ItemStack> arsenalResult = onToolUse(level, player, hand);
+        if (arsenalResult.getResult().consumesAction()) {
+            return arsenalResult;
+        }
+
+        return super.use(level, player, hand);
+    }
 
     @Override
     public ItemStack getDefaultInstance() {
@@ -55,8 +76,14 @@ public class ArsenalPickaxeItem extends PickaxeItem {
                 if (handler != null && handler.supportsToolType(ArsenalToolType.PICKAXE)) {
                     // Check if this specific augment is enabled in test mode
                     if (TestModeConfig.isAugmentEnabled(def.id())) {
-                        AugmentManager.install(def.id(), stack, def.hasTiers() ? def.maxTier() : 1);
-                        System.out.println("[TestMode] Installed: " + def.name());
+                        // Install to first available slot
+                        int freeSlot = getFirstFreeSlot(stack);
+                        if (freeSlot >= 0) {
+                            // Use the immutable method from ArsenalTool interface
+                            setAugmentInSlot(stack, freeSlot, def.id());
+                            AugmentManager.install(def.id(), stack, def.hasTiers() ? def.maxTier() : 1);
+                            System.out.println("[TestMode] Installed: " + def.name() + " in slot " + freeSlot);
+                        }
                     }
                 }
             }
@@ -67,33 +94,27 @@ public class ArsenalPickaxeItem extends PickaxeItem {
 
     @Override
     public int getMaxDamage(ItemStack stack) {
-        ToolAssemblyData assemblyData = stack.getOrDefault(
-                com.arsenalcrafting.mod.registry.ModComponents.TOOL_ASSEMBLY_DATA.get(),
-                ToolAssemblyData.EMPTY
-        );
+        ToolAssemblyData assemblyData = stack.get(TOOL_ASSEMBLY_DATA.get());
 
-        if (!assemblyData.isEmpty()) {
-            AlloyMaterial rodMat  = AlloyMaterial.fromName(assemblyData.rodMaterial());
-
-            return rodMat.getDurability();
+        if (assemblyData != null && !assemblyData.isEmpty()) {
+            AlloyMaterial rodMat = AlloyMaterial.fromName(assemblyData.rodMaterial());
+            if (rodMat != null) {
+                return rodMat.getDurability();
+            }
         }
         return baseMaterial.getDurability();
     }
 
     @Override
     public float getDestroySpeed(ItemStack stack, BlockState state) {
+        ToolAssemblyData assemblyData = stack.get(TOOL_ASSEMBLY_DATA.get());
 
-        ToolAssemblyData assemblyData = stack.getOrDefault(
-                com.arsenalcrafting.mod.registry.ModComponents.TOOL_ASSEMBLY_DATA.get(),
-                ToolAssemblyData.EMPTY
-        );
-
-        if (!assemblyData.isEmpty()) {
-            AlloyMaterial headMat  = AlloyMaterial.fromName(assemblyData.headMaterial());
-
-            return headMat.getEfficiency();
+        if (assemblyData != null && !assemblyData.isEmpty()) {
+            AlloyMaterial headMat = AlloyMaterial.fromName(assemblyData.headMaterial());
+            if (headMat != null) {
+                return headMat.getEfficiency();
+            }
         }
-
         return 0;
     }
 
@@ -115,7 +136,6 @@ public class ArsenalPickaxeItem extends PickaxeItem {
             return material.getEfficiency();
         }
 
-
         @Override
         public float getAttackDamageBonus() {
             return material.getDamage();
@@ -128,12 +148,12 @@ public class ArsenalPickaxeItem extends PickaxeItem {
 
         @Override
         public int getEnchantmentValue() {
-            return 15;
+            return 0; // Arsenal tools cannot be enchanted
         }
 
         @Override
         public Ingredient getRepairIngredient() {
-            return Ingredient.EMPTY;
+            return Ingredient.EMPTY; // Arsenal tools use repair kits
         }
     }
 
@@ -148,37 +168,51 @@ public class ArsenalPickaxeItem extends PickaxeItem {
             System.out.println("[ArsenalPickaxe] Processing augments for block: " +
                     state.getBlock().getName().getString());
 
-            // Process through AugmentProcessor with PICKAXE tool type
-            AugmentProcessor.ProcessResult result = AugmentProcessor.processBlockBreak(
-                    stack,
-                    ArsenalToolType.PICKAXE,
-                    level,
-                    state,
-                    pos,
-                    entity
-            );
+            // Only process augments that are enabled
+            ToolAugmentSlots slots = getAugmentSlots(stack);
+            boolean hasEnabledAugments = false;
 
-            if (result.handled) {
-                System.out.println("[ArsenalPickaxe] Augments handled drops - SKIPPING super.mineBlock()");
-                EquipmentSlot slot = entity.getMainHandItem() == stack
-                        ? EquipmentSlot.MAINHAND
-                        : EquipmentSlot.OFFHAND;
-
-                stack.hurtAndBreak(1, entity, slot);
-
-                // Apply combo effects if any
-                if (result.specialCombo != null) {
-                    System.out.println("[ArsenalPickaxe] Special combo: " + result.specialCombo);
-                    // Add any combo-specific effects here
+            for (int i = 0; i < 4; i++) {
+                String augmentId = slots.getAugmentInSlot(i);
+                if (augmentId != null && isAugmentEnabled(stack, augmentId)) {
+                    hasEnabledAugments = true;
+                    break;
                 }
+            }
 
-                return true; // This should prevent vanilla drops!
-            } else {
-                System.out.println("[ArsenalPickaxe] No augment handled this block, using vanilla");
+            if (hasEnabledAugments) {
+                // Process through AugmentProcessor with PICKAXE tool type
+                AugmentProcessor.ProcessResult result = AugmentProcessor.processBlockBreak(
+                        stack,
+                        ArsenalToolType.PICKAXE,
+                        level,
+                        state,
+                        pos,
+                        entity
+                );
+
+                if (result.handled) {
+                    System.out.println("[ArsenalPickaxe] Augments handled drops - SKIPPING super.mineBlock()");
+                    EquipmentSlot slot = entity.getMainHandItem() == stack
+                            ? EquipmentSlot.MAINHAND
+                            : EquipmentSlot.OFFHAND;
+
+                    stack.hurtAndBreak(1, entity, slot);
+
+                    // Apply combo effects if any
+                    if (result.specialCombo != null) {
+                        System.out.println("[ArsenalPickaxe] Special combo: " + result.specialCombo);
+                        // Add any combo-specific effects here
+                    }
+
+                    return true; // This should prevent vanilla drops!
+                } else {
+                    System.out.println("[ArsenalPickaxe] No augment handled this block, using vanilla");
+                }
             }
         }
 
-        // No augment handled it, use vanilla behavior
+        // No enabled augment handled it, use vanilla behavior
         return super.mineBlock(stack, level, state, pos, entity);
     }
 
@@ -187,121 +221,34 @@ public class ArsenalPickaxeItem extends PickaxeItem {
     @OnlyIn(Dist.CLIENT)
     public void appendHoverText(ItemStack stack, @Nullable Item.TooltipContext context,
                                 List<Component> tooltip, TooltipFlag flag) {
+        // Call ArsenalTool tooltip logic
+        appendArsenalTooltip(stack, context, tooltip, flag);
 
-        AlloyMaterial currentMaterial = baseMaterial; // default
+        // Add material stats
+        ToolAssemblyData assemblyData = stack.get(TOOL_ASSEMBLY_DATA.get());
 
-        // =======================
-        // TOOL ASSEMBLY DATA (if any)
-        // =======================
-        ToolAssemblyData assemblyData = stack.getOrDefault(
-                com.arsenalcrafting.mod.registry.ModComponents.TOOL_ASSEMBLY_DATA.get(),
-                ToolAssemblyData.EMPTY
-        );
-
-        if (!assemblyData.isEmpty()) {
-            tooltip.add(Component.literal("")); // Separator
+        if (assemblyData != null && !assemblyData.isEmpty()) {
+            tooltip.add(Component.literal(""));
             tooltip.add(Component.translatable("item.arsenalcrafting.tool_parts").withStyle(ChatFormatting.DARK_AQUA));
             tooltip.add(Component.translatable("item.arsenalcrafting.head_material", assemblyData.headMaterial()).withStyle(ChatFormatting.WHITE));
             tooltip.add(Component.translatable("item.arsenalcrafting.rod_material", assemblyData.rodMaterial()).withStyle(ChatFormatting.WHITE));
             tooltip.add(Component.translatable("item.arsenalcrafting.core_material", assemblyData.coreMaterial()).withStyle(ChatFormatting.WHITE));
-            tooltip.add(Component.literal("")); // Separator
 
-            // Try to map head/rod strings back to AlloyMaterial
             AlloyMaterial headMat = AlloyMaterial.fromName(assemblyData.headMaterial());
-            AlloyMaterial rodMat  = AlloyMaterial.fromName(assemblyData.rodMaterial());
-            AlloyMaterial coreMat  = AlloyMaterial.fromName(assemblyData.coreMaterial());
+            AlloyMaterial rodMat = AlloyMaterial.fromName(assemblyData.rodMaterial());
+            AlloyMaterial coreMat = AlloyMaterial.fromName(assemblyData.coreMaterial());
 
-            AlloyMaterial best = AlloyMaterial.highestOf(currentMaterial, headMat, rodMat);
-            if (best != null) {
-                currentMaterial = best;
+            if (headMat != null && rodMat != null && coreMat != null) {
+                tooltip.add(Component.literal(""));
+                tooltip.add(Component.translatable("item.arsenalcrafting.repairability", headMat.getName())
+                        .withStyle(headMat.getColor()));
+                tooltip.add(Component.translatable("item.arsenalcrafting.durability", rodMat.getDurability())
+                        .withStyle(rodMat.getColor()));
+                tooltip.add(Component.translatable("item.arsenalcrafting.efficiency",
+                                String.format("%.1f", headMat.getEfficiency()))
+                        .withStyle(ChatFormatting.BLUE));
             }
         }
-
-        // =======================
-        // ACTIVE AUGMENTS
-        // =======================
-        boolean hasAnyAugments = false;
-        for (AugmentManager.AugmentDefinition def : AugmentManager.getAll()) {
-            if (AugmentManager.isInstalled(def.id(), stack)) {
-                if (!hasAnyAugments) {
-                    hasAnyAugments = true;
-                }
-
-                Component augmentName = Component.translatable(AugmentManager.getTranslationKey(def.id()))
-                        .withStyle(ChatFormatting.GOLD);
-
-                if (def.hasTiers()) {
-                    int tier = AugmentManager.getTier(def.id(), stack);
-                    augmentName = Component.translatable(
-                            "augment.arsenalcrafting." + def.id() +".tier" + String.valueOf(tier))
-                    .withStyle(ChatFormatting.GOLD);
-                }
-
-                tooltip.add(augmentName);
-
-                if (TestModeConfig.isAugmentEnabled(def.id())) {
-                    tooltip.add(Component.literal("TEST MODE: " + def.name())
-                            .withStyle(ChatFormatting.RED));
-                }
-            }
-        }
-
-        // =======================
-        // MATERIAL BASE STATS (using highest material)
-        // =======================
-        tooltip.add(Component.literal("")); // Separator
-
-
-        if(!assemblyData.isEmpty()){
-            AlloyMaterial headMat = AlloyMaterial.fromName(assemblyData.headMaterial());
-            AlloyMaterial rodMat  = AlloyMaterial.fromName(assemblyData.rodMaterial());
-            AlloyMaterial coreMat  = AlloyMaterial.fromName(assemblyData.coreMaterial());
-
-
-            tooltip.add(Component.translatable("item.arsenalcrafting.repairability", headMat.getName())
-                    .withStyle(headMat.getColor()));
-
-            tooltip.add(Component.translatable("item.arsenalcrafting.durability", rodMat.getDurability())
-                    .withStyle(rodMat.getColor()));
-
-            tooltip.add(Component.translatable("item.arsenalcrafting.efficiency",
-                            String.format("%.1f", headMat.getEfficiency()))
-                    .withStyle(ChatFormatting.BLUE));
-
-        }
-
-
-
-
-        // =======================
-        // AUGMENT SLOTS
-        // =======================
-        int totalSlots = currentMaterial.getToolAugmentSlots();
-        int usedSlots = countUsedAugmentSlots(stack);
-
-        tooltip.add(Component.literal("")); // Separator
-        tooltip.add(
-                Component.translatable(
-                        "item.arsenalcrafting.augment_slots",
-                        usedSlots + "/" + totalSlots
-                ).withStyle(ChatFormatting.LIGHT_PURPLE)
-        );
-    }
-
-
-
-    // Add this helper method to count used augment slots
-    private int countUsedAugmentSlots(ItemStack stack) {
-        int usedSlots = 0;
-
-        // Loop ALL augments from the registry
-        for (AugmentManager.AugmentDefinition def : AugmentManager.getAll()) {
-            if (AugmentManager.isInstalled(def.id(), stack)) {
-                usedSlots++;
-            }
-        }
-
-        return usedSlots;
     }
 
     // Prevent Enchantments on Arsenal Tools
@@ -309,5 +256,4 @@ public class ArsenalPickaxeItem extends PickaxeItem {
     public boolean isEnchantable(ItemStack stack) {
         return false;
     }
-
 }

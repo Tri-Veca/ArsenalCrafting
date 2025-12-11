@@ -166,6 +166,9 @@ public enum AlloyMaterial {
 
     @Nullable
     public static AlloyMaterial fromName(String name) {
+        if (name == null || name.isEmpty()) {
+            return null;
+        }
         for (AlloyMaterial m : values()) {
             if (m.name.equalsIgnoreCase(name)) {
                 return m;
@@ -173,6 +176,7 @@ public enum AlloyMaterial {
         }
         return null;
     }
+
 
     /** Returns the highest-tier material from the given list (ignores nulls). */
     @Nullable

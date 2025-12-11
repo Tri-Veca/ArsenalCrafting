@@ -68,16 +68,13 @@ public class ModItemColors {
             return 0xFFFFFFFF;
         }
 
-        ToolAssemblyData data = stack.getOrDefault(
-                ModComponents.TOOL_ASSEMBLY_DATA.get(),
-                ToolAssemblyData.EMPTY
-        );
+        ToolAssemblyData data = stack.get(ModComponents.TOOL_ASSEMBLY_DATA.get());
 
         AlloyMaterial headMat;
         AlloyMaterial rodMat;
         AlloyMaterial coreMat;
 
-        if (!data.isEmpty()) {
+        if (data != null && !data.isEmpty()) {
             headMat = fromStoredName(data.headMaterial());
             rodMat  = fromStoredName(data.rodMaterial());
             coreMat  = fromStoredName(data.coreMaterial());
@@ -90,7 +87,7 @@ public class ModItemColors {
         AlloyMaterial target = switch (tintIndex) {
             case 0 -> headMat; // layer0 = head
             case 1 -> rodMat;  // layer1 = rod
-            case 2 -> coreMat;  // layer2 = rod
+            case 2 -> coreMat; // layer2 = core
             default -> null;
         };
 

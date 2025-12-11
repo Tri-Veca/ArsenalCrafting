@@ -77,6 +77,7 @@ public class LangGenerator implements DataProvider {
         entries.put("item.arsenalcrafting.head_material", "Head: %s");
         entries.put("item.arsenalcrafting.rod_material", "Rod: %s");
         entries.put("item.arsenalcrafting.tool_material", "Material: %s");
+        entries.put("item.arsenalcrafting.core_material", "Core: %s");
         entries.put("item.arsenalcrafting.durability", "Durability: %s");
         entries.put("item.arsenalcrafting.efficiency", "Efficiency: %s");
         entries.put("item.arsenalcrafting.repairability", "Repairability: %s");
@@ -87,6 +88,12 @@ public class LangGenerator implements DataProvider {
         entries.put("gui.arsenalcrafting.toolkit.title", "Tool Kit");
         entries.put("gui.arsenalcrafting.augment.title", "Augment Configuration");
         entries.put("tooltip.arsenalcrafting.click_to_configure", "§7§oShift-click to configure§r");
+        entries.put( "gui.arsenalcrafting.tool.instructions", "Enable / Disable Augments Here");
+        entries.put("gui.arsenalcrafting.status.enabled", "Enabled");
+        entries.put("gui.arsenalcrafting.status.disabled", "Disabled");
+        entries.put( "gui.arsenalcrafting.click_to_toggle", "Click to Toggle");
+        entries.put( "gui.arsenalcrafting.tool", "Augment Menu");
+        entries.put("tooltip.arsenalcrafting.installed_augments", "Installed Augments");
 
         // 6. Messages & Instructions
         entries.put("message.arsenalcrafting.augment_installed", "§a%s augment installed!");

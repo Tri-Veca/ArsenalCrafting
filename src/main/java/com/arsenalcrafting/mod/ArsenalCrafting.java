@@ -2,6 +2,7 @@ package com.arsenalcrafting.mod;
 
 import com.arsenalcrafting.mod.config.TestModeConfig;
 import com.arsenalcrafting.mod.generator.LangGenerator;
+import com.arsenalcrafting.mod.network.PacketHandler;
 import com.arsenalcrafting.mod.registry.*;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;

@@ -3,6 +3,7 @@ package com.arsenalcrafting.mod.registry;
 import com.arsenalcrafting.mod.ArsenalCrafting;
 import com.arsenalcrafting.mod.component.DynamicComponents;
 import com.arsenalcrafting.mod.component.ToolAssemblyData;
+import com.arsenalcrafting.mod.items.tool.ToolAugmentSlots;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
@@ -20,6 +21,13 @@ public class ModComponents {
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<ToolAssemblyData>> TOOL_ASSEMBLY_DATA = COMPONENTS.register("tool_assembly_data",
             () -> DataComponentType.<ToolAssemblyData>builder()
                     .persistent(ToolAssemblyData.CODEC)
+                    .build());
+
+    // Add to ModComponents.java
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ToolAugmentSlots>> TOOL_AUGMENT_SLOTS = COMPONENTS.register("tool_augment_slots",
+            () -> DataComponentType.<ToolAugmentSlots>builder()
+                    .persistent(ToolAugmentSlots.CODEC)
+                    .networkSynchronized(ToolAugmentSlots.STREAM_CODEC)
                     .build());
 
     /**
