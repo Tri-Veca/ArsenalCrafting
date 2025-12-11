@@ -39,7 +39,8 @@ public class LangGenerator implements DataProvider {
         entries.put("block.arsenalcrafting.void_casing", "Void Casing");
         entries.put("block.arsenalcrafting.iron_casing", "Iron Casing");
         entries.put("block.arsenalcrafting.alloy_smelter", "Alloy Smelter");
-
+        entries.put("block.arsenalcrafting.lava_tank", "Lava Tank");
+        
         // 3. Basic Items & Parts (Auto-generated Alloys)
         System.out.println("[LangGenerator] Adding alloy entries...");
         for (AlloyMaterial material : AlloyMaterial.values()) {
@@ -55,11 +56,6 @@ public class LangGenerator implements DataProvider {
             entries.put("item.arsenalcrafting." + materialId + "_tool_rod", materialName + " Tool Rod");
             entries.put("item.arsenalcrafting." + materialId + "_core", materialName + " Core");
         }
-
-        // Manual tool parts (for now, you could auto-generate these too)
-        entries.put("item.arsenalcrafting.bronze_pickaxe_head", "Bronze Pickaxe Head");
-        entries.put("item.arsenalcrafting.bronze_tool_rod", "Bronze Tool Rod");
-        entries.put("item.arsenalcrafting.titanium_pickaxe_head", "Titanium Pickaxe Head");
 
         // Other items
         entries.put("item.arsenalcrafting.arsenal_pickaxe", "Arsenal Pickaxe");
