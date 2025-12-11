@@ -17,6 +17,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,10 +29,10 @@ public class ToolScreen extends AbstractContainerScreen<ToolMenu> {
     private static final int GUI_WIDTH = 176;
     private static final int GUI_HEIGHT = 166;
 
-    // Slot positions (using your coordinates)
+    // Slot positions
     private static final int SLOT_SIZE = 18;
     private static final int SLOT_Y = 36; // Vertical position for all slots
-    private static final int[] SLOT_X = {46, 69, 91, 114}; // Your horizontal positions
+    private static final int[] SLOT_X = {46, 69, 91, 114}; // Horizontal positions
     private static final int SLOT_LABEL_Y = SLOT_Y + SLOT_SIZE + 5; // For labels below slots
 
     private final List<AugmentSlotButton> slotButtons = new ArrayList<>();
@@ -53,6 +54,16 @@ public class ToolScreen extends AbstractContainerScreen<ToolMenu> {
         // Create buttons for each augment slot
         ToolAugmentSlots slots = menu.getAugmentSlots();
 
+        // Try to obtain the tool ItemStack from the menu (replace method name if needed)
+        ItemStack toolStack = null;
+        try {
+            toolStack = menu.getToolStack(); // <-- change this if your ToolMenu has a different getter
+        } catch (Throwable ignored) {
+            // Try common alternative names (defensive)
+            try { toolStack = menu.getToolStack(); } catch (Throwable ignored2) {}
+            try { if (toolStack == null) toolStack = menu.getToolStack(); } catch (Throwable ignored3) {}
+        }
+
         for (int i = 0; i < 4; i++) {
             String augmentId = slots.getAugmentInSlot(i);
 
@@ -66,7 +77,8 @@ public class ToolScreen extends AbstractContainerScreen<ToolMenu> {
                         topPos + SLOT_Y,
                         slotIndex,
                         augmentId,
-                        enabled
+                        enabled,
+                        toolStack // pass the stack here (may be null if not available)
                 );
 
                 slotButtons.add(button);
@@ -147,8 +159,9 @@ public class ToolScreen extends AbstractContainerScreen<ToolMenu> {
         private final int slotIndex;
         private final String augmentId;
         private boolean enabled;
+        private final ItemStack toolStack; // store the tool stack for tier lookup
 
-        public AugmentSlotButton(int x, int y, int slotIndex, String augmentId, boolean enabled) {
+        public AugmentSlotButton(int x, int y, int slotIndex, String augmentId, boolean enabled, ItemStack toolStack) {
             super(
                     x, y,
                     SLOT_SIZE, SLOT_SIZE,
@@ -162,17 +175,19 @@ public class ToolScreen extends AbstractContainerScreen<ToolMenu> {
                         }
 
                         // Toggle locally for immediate feedback
-                        ((AugmentSlotButton) button).enabled = !((AugmentSlotButton) button).enabled;
+                        AugmentSlotButton self = (AugmentSlotButton) button;
+                        self.enabled = !self.enabled;
 
                         // Update tooltip with new state
-                        ((AugmentSlotButton) button).updateTooltip();
+                        self.updateTooltip();
                     },
                     DEFAULT_NARRATION
             );
 
             this.slotIndex = slotIndex;
-            this.augmentId = augmentId; // This is guaranteed to be non-null and non-empty
+            this.augmentId = augmentId;
             this.enabled = enabled;
+            this.toolStack = toolStack;
 
             // Set initial tooltip
             Component tooltipText = buildAugmentTooltip(augmentId, enabled);
@@ -187,36 +202,79 @@ public class ToolScreen extends AbstractContainerScreen<ToolMenu> {
         private Component buildAugmentTooltip(String augmentId, boolean enabled) {
             MutableComponent tooltip = Component.empty();
 
-            // Augment name with status color
-            tooltip.append(Component.translatable(AugmentManager.getTranslationKey(augmentId))
-                    .withStyle(enabled ? ChatFormatting.GREEN : ChatFormatting.RED));
+            // ---------- GET AUGMENT DEFINITION ----------
+            AugmentManager.AugmentDefinition def = AugmentManager.get(augmentId);
 
-            // Status indicator
-            tooltip.append(Component.literal(" ("));
-            if (enabled) {
-                tooltip.append(Component.translatable("gui.arsenalcrafting.status.enabled")
-                        .withStyle(ChatFormatting.GREEN));
+            // ---------- TRANSLATION KEY (TIERED OR NOT) ----------
+            String translationKey;
+            String descriptionKey = null;
+
+            if (def != null && def.hasTiers()) {
+                int tier = 1;
+                try {
+                    // Prefer the stored toolStack; if null try to get it from the menu as a fallback.
+                    if (this.toolStack != null) {
+                        tier = AugmentManager.getTier(augmentId, this.toolStack);
+                    } else {
+                        try {
+                            ItemStack fallback = ToolScreen.this.menu.getToolStack(); // replace if your menu getter has a different name
+                            if (fallback != null) tier = AugmentManager.getTier(augmentId, fallback);
+                        } catch (Throwable ignored) { }
+                    }
+                } catch (Throwable t) {
+                    tier = 1;
+                }
+                if (tier <= 0) tier = 1;
+
+                translationKey = "augment.arsenalcrafting." + def.id() + "_augment.tier" + tier;
+                descriptionKey = "augment.arsenalcrafting." + def.id() + "_augment.tier" + tier + ".description";
+
             } else {
-                tooltip.append(Component.translatable("gui.arsenalcrafting.status.disabled")
-                        .withStyle(ChatFormatting.RED));
+                translationKey = AugmentManager.getTranslationKey(augmentId);
+
+                if (def != null)
+                    descriptionKey = "augment.arsenalcrafting." + def.id() + ".description";
             }
+
+            // ---------- TITLE ----------
+            tooltip.append(
+                    Component.translatable(translationKey)
+                            .withStyle(enabled ? ChatFormatting.GREEN : ChatFormatting.RED)
+            );
+
+            // ---------- STATUS ----------
+            tooltip.append(Component.literal(" ("));
+            tooltip.append(
+                    Component.translatable(
+                            enabled
+                                    ? "gui.arsenalcrafting.status.enabled"
+                                    : "gui.arsenalcrafting.status.disabled"
+                    ).withStyle(enabled ? ChatFormatting.GREEN : ChatFormatting.RED)
+            );
             tooltip.append(Component.literal(")"));
 
-            // Add description if available
-            AugmentManager.AugmentDefinition def = AugmentManager.get(augmentId);
-            if (def != null) {
-                String description = def.description();
-                if (description != null && !description.isEmpty()) {
+            // ---------- DESCRIPTION ----------
+            if (descriptionKey != null) {
+                tooltip.append(Component.literal("\n"));
+                tooltip.append(
+                        Component.translatable(descriptionKey)
+                                .withStyle(ChatFormatting.GRAY)
+                );
+            } else if (def != null) {
+                // Fallback to the raw description text from the definition if a translation key is missing
+                String rawDesc = def.description();
+                if (rawDesc != null && !rawDesc.isEmpty()) {
                     tooltip.append(Component.literal("\n"));
-                    tooltip.append(Component.translatable(description)
-                            .withStyle(ChatFormatting.GRAY));
+                    tooltip.append(Component.literal(rawDesc).withStyle(ChatFormatting.GRAY));
                 }
             }
 
-            // Click instruction
+            // ---------- CLICK INSTRUCTION ----------
             tooltip.append(Component.literal("\n"));
-            tooltip.append(Component.translatable("gui.arsenalcrafting.click_to_toggle")
-                    .withStyle(ChatFormatting.ITALIC, ChatFormatting.YELLOW));
+            tooltip.append(
+                    Component.translatable("gui.arsenalcrafting.click_to_toggle")
+                            .withStyle(ChatFormatting.ITALIC, ChatFormatting.YELLOW)
+            );
 
             return tooltip;
         }

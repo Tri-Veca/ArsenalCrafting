@@ -40,7 +40,7 @@ public class LangGenerator implements DataProvider {
         entries.put("block.arsenalcrafting.iron_casing", "Iron Casing");
         entries.put("block.arsenalcrafting.alloy_smelter", "Alloy Smelter");
         entries.put("block.arsenalcrafting.lava_tank", "Lava Tank");
-        
+
         // 3. Basic Items & Parts (Auto-generated Alloys)
         System.out.println("[LangGenerator] Adding alloy entries...");
         for (AlloyMaterial material : AlloyMaterial.values()) {
