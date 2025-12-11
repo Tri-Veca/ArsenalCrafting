@@ -135,7 +135,7 @@ public class ModItems {
                 // Register multiple tiers
                 for (int tier = 1; tier <= def.maxTier(); tier++) {
                     final int finalTier = tier;
-                    String itemId = def.id() + "_universal_augment_tier" + tier;
+                    String itemId = def.id() + "_augment.tier" + tier;
 
                     DeferredHolder<Item, UniversalAugmentItem> holder = ITEMS.register(
                             itemId,
@@ -148,7 +148,7 @@ public class ModItems {
                 }
             } else {
                 // Register single tier (tier = 0)
-                String itemId = def.id() + "_universal_augment";
+                String itemId = def.id() + "_augment";
 
                 DeferredHolder<Item, UniversalAugmentItem> holder = ITEMS.register(
                         itemId,

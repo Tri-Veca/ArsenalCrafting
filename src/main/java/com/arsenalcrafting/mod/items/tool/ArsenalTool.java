@@ -127,7 +127,19 @@ public interface ArsenalTool {
                 boolean enabled = isAugmentEnabled(stack, augmentId);
                 net.minecraft.ChatFormatting color = enabled ? net.minecraft.ChatFormatting.GREEN : net.minecraft.ChatFormatting.RED;
 
-                Component augmentName = Component.translatable(AugmentManager.getTranslationKey(augmentId))
+                // Determine the correct translation key. If the augment has tiers, the key includes the tier.
+                String translationKey;
+                var def = AugmentManager.get(augmentId); // assumes AugmentManager.get(id) returns the augment definition used in LangGenerator
+                if (def != null && def.hasTiers()) {
+                    int tier = AugmentManager.getTier(augmentId, stack); // assumes this returns int (1..maxTier)
+                    if (tier <= 0) tier = 1; // defensive fallback
+                    translationKey = "augment.arsenalcrafting." + def.id() + "_augment.tier" + tier;
+                } else {
+                    // Fallback to whatever translation key AugmentManager already provides for non-tiered augments
+                    translationKey = AugmentManager.getTranslationKey(augmentId);
+                }
+
+                Component augmentName = Component.translatable(translationKey)
                         .withStyle(color);
 
                 if (enabled) {
@@ -148,6 +160,7 @@ public interface ArsenalTool {
                         usedSlots + "/" + getTotalAugmentSlots())
                 .withStyle(net.minecraft.ChatFormatting.LIGHT_PURPLE));
     }
+
 
     // ---- VALIDATION / INSTALLATION ----
     default boolean isValidAugmentForTool(String augmentId) {

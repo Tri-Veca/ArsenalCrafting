@@ -110,13 +110,13 @@ public class LangGenerator implements DataProvider {
             // Augment item names
             if (def.hasTiers()) {
                 for (int tier = 1; tier <= def.maxTier(); tier++) {
-                    String itemKey = "item.arsenalcrafting." + def.id() + "_universal_augment_tier" + tier;
+                    String itemKey = "item.arsenalcrafting." + def.id() + "_augment.tier" + tier;
                     String displayName = String.format("Tier %d %s Augment", tier, augmentName);
                     entries.put(itemKey, displayName);
                     System.out.println("[LangGenerator] Added: " + itemKey);
 
                     // Augment name for tooltips
-                    String augmentKey = "augment.arsenalcrafting." + def.id() + ".tier" + tier;
+                    String augmentKey = "augment.arsenalcrafting." + def.id() + "_augment.tier" + tier;
                     String tierRoman = switch(tier) {
                         case 1 -> "I";
                         case 2 -> "II";
@@ -127,7 +127,7 @@ public class LangGenerator implements DataProvider {
                     entries.put(augmentKey, augmentName + " " + tierRoman);
                 }
             } else {
-                String itemKey = "item.arsenalcrafting." + def.id() + "_universal_augment";
+                String itemKey = "item.arsenalcrafting." + def.id() + "_augment";
                 String displayName = augmentName + " Augment";
                 entries.put(itemKey, displayName);
                 System.out.println("[LangGenerator] Added: " + itemKey);
