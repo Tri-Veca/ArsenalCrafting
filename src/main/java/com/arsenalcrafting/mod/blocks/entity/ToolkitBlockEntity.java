@@ -247,6 +247,9 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
                 level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
             }
         }
+
+
+
     }
 
     /**
@@ -498,6 +501,10 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
 
             // Put the final tool in the output slot
             itemHandler.setStackInSlot(OUTPUT_SLOT, assembledTool);
+
+            if (level != null && !level.isClientSide)
+                level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
+
 
             // Sync augments from the new tool
             syncAugmentsFromTool();

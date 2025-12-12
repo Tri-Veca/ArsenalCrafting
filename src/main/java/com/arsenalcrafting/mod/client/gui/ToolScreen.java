@@ -111,7 +111,7 @@ public class ToolScreen extends AbstractContainerScreen<ToolMenu> {
                 // Draw augment icon
                 ResourceLocation icon = ResourceLocation.fromNamespaceAndPath(
                         ArsenalCrafting.MOD_ID,
-                        "textures/item/augments/" + augmentId + ".png"
+                        "textures/item/" + augmentId  + ".png"
                 );
 
                 try {
