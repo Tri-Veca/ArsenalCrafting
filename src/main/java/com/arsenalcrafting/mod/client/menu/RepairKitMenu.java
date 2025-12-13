@@ -39,6 +39,14 @@ public class RepairKitMenu extends AbstractContainerMenu {
     // CLIENT ctor
     public RepairKitMenu(int id, Inventory playerInventory, FriendlyByteBuf extraData) {
         this(id, playerInventory, playerInventory.player.getMainHandItem());
+
+        // Initialize client preview with actual kit data when menu opens
+        if (playerInventory.player.level().isClientSide()) {
+            RepairKitData data = RepairKitItem.getData(kitStack);
+            this.clientPreviewValue = data.storedValue();
+            this.clientPreviewMaterial = data.material();
+            System.out.println("DEBUG: Client initialized preview - Value: " + clientPreviewValue + ", Material: " + clientPreviewMaterial);
+        }
     }
 
     // SERVER ctor
@@ -55,6 +63,11 @@ public class RepairKitMenu extends AbstractContainerMenu {
         this.lastIngotStack = container.getItem(1).copy();
         this.lastIngotMaterial = getMaterialFromStack(container.getItem(1));
         this.lastToolStack = container.getItem(0).copy();
+
+        // Sync initial data to client immediately when menu opens
+        if (!player.level().isClientSide()) {
+            syncInitialDataToClient();
+        }
 
         // Tool slot
         addSlot(new Slot(container, 0, 80, 53) {
@@ -82,6 +95,16 @@ public class RepairKitMenu extends AbstractContainerMenu {
         });
 
         addPlayerInventory(inv);
+    }
+
+    private void syncInitialDataToClient() {
+        if (player instanceof ServerPlayer serverPlayer) {
+            // Send initial sync packet to client with current stored values
+            PacketHandler.sendToPlayer(serverPlayer,
+                    new SyncRepairKitPreviewPacket(lastStoredValue, lastMaterial));
+
+            System.out.println("DEBUG: Initial sync sent - Value: " + lastStoredValue + ", Material: " + lastMaterial);
+        }
     }
 
     private void addPlayerInventory(Inventory inv) {
@@ -140,9 +163,6 @@ public class RepairKitMenu extends AbstractContainerMenu {
                     // Send sync packet to client
                     PacketHandler.sendToPlayer(serverPlayer,
                             new SyncRepairKitPreviewPacket(lastStoredValue, lastMaterial));
-
-                    clientPreviewValue = lastStoredValue;
-                    clientPreviewMaterial = lastMaterial;
 
                     System.out.println("DEBUG: Syncing preview - Value: " + lastStoredValue + ", Material: " + lastMaterial);
                 }
@@ -395,6 +415,7 @@ public class RepairKitMenu extends AbstractContainerMenu {
     public void setClientPreview(int value, String material) {
         this.clientPreviewValue = value;
         this.clientPreviewMaterial = material;
+        System.out.println("DEBUG: Client preview updated - Value: " + value + ", Material: " + material);
     }
 
     // Getters for the screen

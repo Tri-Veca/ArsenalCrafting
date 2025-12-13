@@ -35,6 +35,7 @@
   "item.arsenalcrafting.copper_pickaxe_head": "Copper Pickaxe Head",
   "item.arsenalcrafting.copper_tool_rod": "Copper Tool Rod",
   "item.arsenalcrafting.core_material": "Core: %s",
+  "item.arsenalcrafting.current_durability": "Remaining: %s Max: %s",
   "item.arsenalcrafting.diamond_alloy": "Diamond Alloy",
   "item.arsenalcrafting.diamond_core": "Diamond Core",
   "item.arsenalcrafting.diamond_pickaxe_head": "Diamond Pickaxe Head",
