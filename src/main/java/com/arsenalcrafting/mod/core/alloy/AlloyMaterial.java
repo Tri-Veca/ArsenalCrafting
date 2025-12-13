@@ -22,6 +22,20 @@ public enum AlloyMaterial {
             0xFFe77c56,
             false
     ),
+    TIN(
+            "Tin",
+            1,
+            235,
+            5.0f,
+            0.8f,
+            1.2f,
+            0f,
+            1.0f,
+            4,
+            ChatFormatting.GRAY,
+            0xFFeddfdb,
+            true
+    ),
     IRON(
             "Iron",
             2,
@@ -76,7 +90,7 @@ public enum AlloyMaterial {
             1.0f,
             4,
             ChatFormatting.GOLD,
-            0xFFE5A01D,
+            0xFFcb9580,
             true
     ),
     STEEL(
@@ -190,7 +204,8 @@ public enum AlloyMaterial {
         // If you have modded ingots later:
         if (item == ItemStackHelper.getAlloyStack(AlloyMaterial.BRONZE).getItem()) return BRONZE;
         if (item == ItemStackHelper.getAlloyStack(AlloyMaterial.STEEL).getItem()) return STEEL;
-         if (item == ItemStackHelper.getAlloyStack(AlloyMaterial.TITANIUM).getItem()) return TITANIUM;
+        if (item == ItemStackHelper.getAlloyStack(AlloyMaterial.TITANIUM).getItem()) return TITANIUM;
+        if (item == ItemStackHelper.getAlloyStack(AlloyMaterial.TIN).getItem()) return TIN;
 
 
         return null;
