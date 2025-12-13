@@ -79,6 +79,7 @@ public class LangGenerator implements DataProvider {
         entries.put("item.arsenalcrafting.repairability", "Repairability: %s");
         entries.put("item.arsenalcrafting.augment_slots", "Augment Slots: %s");
         entries.put("item.arsenalcrafting.alloy_color", "Alloy Color: %s");
+        entries.put("item.arsenalcrafting.tin_alloy", "Tin");
 
         entries.put("screen.arsenalcrafting.toolkit_title", "Tool Kit");
         entries.put("gui.arsenalcrafting.toolkit.title", "Tool Kit");
