@@ -2,6 +2,7 @@ package com.arsenalcrafting.mod.registry;
 
 import com.arsenalcrafting.mod.ArsenalCrafting;
 import com.arsenalcrafting.mod.component.DynamicComponents;
+import com.arsenalcrafting.mod.component.RepairKitData;
 import com.arsenalcrafting.mod.component.ToolAssemblyData;
 import com.arsenalcrafting.mod.items.tool.ToolAugmentSlots;
 import com.mojang.serialization.Codec;
@@ -29,6 +30,11 @@ public class ModComponents {
                     .persistent(ToolAugmentSlots.CODEC)
                     .networkSynchronized(ToolAugmentSlots.STREAM_CODEC)
                     .build());
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<RepairKitData>>  REPAIR_KIT_DATA =  COMPONENTS.register("repair_kit_data",
+                    () -> DataComponentType.<RepairKitData>builder()
+                            .persistent(RepairKitData.CODEC)
+                            .build());
 
     /**
      * Data component for storing the ON/OFF state of the Auto Smelt augment.

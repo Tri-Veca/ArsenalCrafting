@@ -1,5 +1,6 @@
 package com.arsenalcrafting.mod.items.tool;
 
+import com.arsenalcrafting.mod.component.ToolAssemblyData;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
 import com.arsenalcrafting.mod.registry.ModComponents;
@@ -106,6 +107,30 @@ public interface ArsenalTool {
                 (id, inventory, p) -> new com.arsenalcrafting.mod.client.menu.ToolMenu(id, inventory, stack),
                 Component.translatable("gui.arsenalcrafting.tool")
         ));
+    }
+
+    /**
+     * Primary material used for repair cost.
+     * Head material takes priority, fallback to base material.
+     */
+    default AlloyMaterial getRepairMaterial(ItemStack stack) {
+        ToolAssemblyData data = stack.get(ModComponents.TOOL_ASSEMBLY_DATA.get());
+        if (data != null && !data.isEmpty()) {
+            AlloyMaterial head = AlloyMaterial.fromName(data.headMaterial());
+            if (head != null) return head;
+        }
+        return getBaseMaterial();
+    }
+
+    /**
+     * Value cost per 1 durability point.
+     */
+    default int getRepairValuePerDurability(ItemStack stack) {
+        AlloyMaterial mat = getRepairMaterial(stack);
+        if (mat == null) return 1;
+
+        float mod = mat.getModifier();
+        return mod <= 1.0f ? 1 : Math.round(mod);
     }
 
     // ---- TOOLTIP ----

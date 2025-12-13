@@ -1,5 +1,6 @@
 package com.arsenalcrafting.mod.registry;
 
+import com.arsenalcrafting.mod.client.gui.RepairKitScreen;
 import com.arsenalcrafting.mod.client.gui.ToolScreen;
 import com.arsenalcrafting.mod.client.gui.ToolkitScreen;
 import com.arsenalcrafting.mod.registry.ModMenus;
@@ -25,5 +26,6 @@ public class ModScreens {
         // Link the server-side menu type to the client-side screen factory.
         event.register(ModMenus.TOOLKIT.get(), ToolkitScreen::new);
         event.register(ModMenus.TOOL.get(), ToolScreen::new);
+        event.register(ModMenus.REPAIRKIT.get(), RepairKitScreen::new);
     }
 }

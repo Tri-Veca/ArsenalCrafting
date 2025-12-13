@@ -4,6 +4,7 @@ import com.arsenalcrafting.mod.ArsenalCrafting;
 import com.arsenalcrafting.mod.core.alloy.AlloyItem;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
+import com.arsenalcrafting.mod.items.RepairKitItem;
 import com.arsenalcrafting.mod.items.augments.UniversalAugmentItem;
 import com.arsenalcrafting.mod.items.tool.ArsenalPickaxeItem;
 import com.arsenalcrafting.mod.component.ToolComponentType;
@@ -40,6 +41,10 @@ public class ModItems {
             () -> new Item(new Item.Properties()));
     public static final DeferredHolder<Item, Item> SAW = ITEMS.register("saw",
             () -> new Item(new Item.Properties()));
+
+    public static final DeferredHolder<Item, RepairKitItem> REPAIR_KIT = ITEMS.register("repair_kit",
+            () -> new RepairKitItem(new Item.Properties()));
+
 
     // --- Modular Tool Parts (Bronze Alloy) ---
     /*
@@ -166,9 +171,7 @@ public class ModItems {
 
 
 
-    // --- Other Key Items ---
-    public static final DeferredHolder<Item, Item> REPAIR_KIT = ITEMS.register("repair_kit",
-            () -> new Item(new Item.Properties()));
+
 
     public static void register(IEventBus eventBus) {
         // Register universal augment items

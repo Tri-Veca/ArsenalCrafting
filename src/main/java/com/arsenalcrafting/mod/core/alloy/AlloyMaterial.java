@@ -1,6 +1,9 @@
 package com.arsenalcrafting.mod.core.alloy;
 
+import com.arsenalcrafting.mod.core.ItemStackHelper;
 import net.minecraft.ChatFormatting;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.Nullable;
 
 public enum AlloyMaterial {
@@ -174,6 +177,22 @@ public enum AlloyMaterial {
                 return m;
             }
         }
+        return null;
+    }
+
+    @Nullable
+    public static AlloyMaterial fromItem(Item item) {
+        if (item == Items.COPPER_INGOT) return COPPER;
+        if (item == Items.IRON_INGOT) return IRON;
+        if (item == Items.GOLD_INGOT) return GOLD;
+        if (item == Items.DIAMOND) return DIAMOND;
+
+        // If you have modded ingots later:
+        if (item == ItemStackHelper.getAlloyStack(AlloyMaterial.BRONZE).getItem()) return BRONZE;
+        if (item == ItemStackHelper.getAlloyStack(AlloyMaterial.STEEL).getItem()) return STEEL;
+         if (item == ItemStackHelper.getAlloyStack(AlloyMaterial.TITANIUM).getItem()) return TITANIUM;
+
+
         return null;
     }
 
