@@ -25,7 +25,7 @@ public class RepairKitScreen extends AbstractContainerScreen<RepairKitMenu> {
             );
 
     // Bar dimensions - Screen positions (where to draw on screen)
-    private static final int BAR_X = 64;      // Screen X position
+    private static final int BAR_X = 63;      // Screen X position
     private static final int BAR_Y = 39;      // Screen Y position (moved up 1 pixel)
     private static final int BAR_WIDTH = 51;  // Width of the bar
     private static final int BAR_HEIGHT = 6;  // Height of the bar
