@@ -25,7 +25,7 @@ public class RepairKitScreen extends AbstractContainerScreen<RepairKitMenu> {
             );
 
     // Bar dimensions
-    private static final int BAR_X = 64;
+    private static final int BAR_X = 63;
     private static final int BAR_Y = 39;
     private static final int BAR_WIDTH = 51;
     private static final int BAR_HEIGHT = 6;
@@ -154,7 +154,7 @@ public class RepairKitScreen extends AbstractContainerScreen<RepairKitMenu> {
 
             // Show if we're previewing or showing actual value
             if (!ingot.isEmpty()) {
-                tooltip.add(Component.literal("Preview: " + displayValue + "/" + MAX_VALUE)
+                tooltip.add(Component.literal("Value: " + displayValue + "/" + MAX_VALUE)
                         .withStyle(ChatFormatting.YELLOW));
             } else {
                 tooltip.add(Component.literal("Stored Value: " + displayValue + "/" + MAX_VALUE)
@@ -175,46 +175,52 @@ public class RepairKitScreen extends AbstractContainerScreen<RepairKitMenu> {
             }
 
             if (tool.getItem() instanceof ArsenalTool arsenalTool) {
-                // Get the scaled cost (cost for 10 durability × 10)
-                int scaledCost = arsenalTool.getRepairValuePerDurability(tool);
+                // Get repair efficiency (material modifier)
+                float efficiency = arsenalTool.getRepairEfficiency(tool);
 
-                // Convert back to actual cost per 10 durability
-                float actualCostPer10Durability = scaledCost / 10.0f;
+                // Calculate repair percentage per value: 15% / efficiency
+                float repairPercentPerValue = 15.0f / efficiency;
 
-                // Show cost
-                tooltip.add(Component.literal("Cost: " + String.format("%.1f", actualCostPer10Durability) +
-                                " value per 10 durability")
-                        .withStyle(ChatFormatting.GOLD));
+                // Show efficiency info - COMMENTED OUT
+                // tooltip.add(Component.literal("Efficiency: " + String.format("%.1f", efficiency) +
+                //                   " (lower = better)")
+                //     .withStyle(ChatFormatting.GOLD));
 
-                if (scaledCost > 0) {
-                    // Calculate how much durability 1 value repairs
-                    float durabilityPerValue = 10.0f / actualCostPer10Durability;
+                // Show repair per value
+                tooltip.add(Component.literal("1 Value = " + String.format("%.1f", repairPercentPerValue) +
+                                "% of max durability")
+                        .withStyle(ChatFormatting.AQUA));
 
-                    // Calculate total durability that can be repaired
-                    float totalDurability = displayValue * durabilityPerValue;
+                // Calculate total repair potential
+                float totalRepairPercent = displayValue * repairPercentPerValue;
 
-                    // Show repair potential
-                    tooltip.add(Component.literal("Can repair: " + String.format("%.1f", totalDurability) +
-                                    " durability")
-                            .withStyle(ChatFormatting.AQUA));
+                // Show total repair potential - COMMENTED OUT
+                // tooltip.add(Component.literal("Can repair: " + String.format("%.1f", totalRepairPercent) +
+                //                   "% of max durability")
+                //     .withStyle(ChatFormatting.GREEN));
 
-                    // Show efficiency info
-                    tooltip.add(Component.literal("1 Value = " + String.format("%.1f", durabilityPerValue) +
-                                    " durability")
-                            .withStyle(ChatFormatting.LIGHT_PURPLE));
+                // If tool is in slot, show actual durability numbers - COMMENTED OUT
+                // if (!tool.isEmpty()) {
+                //     int maxDurability = tool.getMaxDamage();
+                //     float totalDurabilityRepair = maxDurability * (totalRepairPercent / 100.0f);
+                //
+                //     tooltip.add(Component.literal("≈ " + String.format("%.0f", totalDurabilityRepair) +
+                //                           " durability points")
+                //         .withStyle(ChatFormatting.LIGHT_PURPLE));
+                // }
 
-                    if (displayValue * 100 >= scaledCost) { // Check if can repair at least 10 durability
-                        tooltip.add(Component.literal("Ready to repair!")
-                                .withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD));
-                    }
-                }
+                // if (displayValue > 0) {
+                //     tooltip.add(Component.literal("Ready to repair!")
+                //         .withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD));
+                // }
             } else {
                 tooltip.add(Component.literal("Insert a tool to see repair cost")
                         .withStyle(ChatFormatting.DARK_GRAY));
             }
 
-            tooltip.add(Component.literal("1 Ingot = 2 Value")
-                    .withStyle(ChatFormatting.LIGHT_PURPLE));
+            // 1 Ingot = 2 Value - COMMENTED OUT
+            // tooltip.add(Component.literal("1 Ingot = 2 Value")
+            //         .withStyle(ChatFormatting.LIGHT_PURPLE));
 
             gfx.renderComponentTooltip(this.font, tooltip, mouseX, mouseY);
         }

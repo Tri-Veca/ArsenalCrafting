@@ -128,16 +128,6 @@ public class RepairKitItem extends Item {
 
         RepairKitData data = getData(stack);
 
-        if (!data.material().isEmpty()) {
-            tooltip.add(Component.literal("Material: " + data.material())
-                    .withStyle(ChatFormatting.GRAY));
-        }
-
-        if (data.storedValue() > 0) {
-            tooltip.add(Component.literal("Stored Value: " + data.storedValue())
-                    .withStyle(ChatFormatting.GREEN));
-        }
-
         if (data.materialLocked()) {
             tooltip.add(Component.literal("Material Locked")
                     .withStyle(ChatFormatting.RED));

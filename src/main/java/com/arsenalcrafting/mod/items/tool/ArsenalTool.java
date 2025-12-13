@@ -128,27 +128,11 @@ public interface ArsenalTool {
     }
 
     /**
-     * Value cost per 10 durability point.
-     * Returns the cost SCALED UP by 10x for integer math.
-     * Actual formula: (modifier × 10) = scaled cost for 10 durability.
+     1 value 15% of durability
      */
-    default int getRepairValuePerDurability(ItemStack stack) {
+    default float getRepairEfficiency(ItemStack stack) {
         AlloyMaterial mat = getRepairMaterial(stack);
-        if (mat == null) return 10; // Default: 10 scaled cost for 10 durability
-
-        float modifier = mat.getModifier();
-
-        // Scale up: Iron 0.9 → 9, Titanium 3.0 → 30
-        int scaledCost = Math.round(modifier * 10.0f);
-
-        // Ensure minimum
-        int finalCost = Math.max(1, scaledCost);
-
-        System.out.println("Material " + mat.getName() +
-                ": " + finalCost + " scaled cost for 10 durability" +
-                " (" + modifier + " actual value per 10 durability)");
-
-        return finalCost;
+        return mat != null ? mat.getModifier() : 1.0f;
     }
 
     // ---- TOOLTIP ----
