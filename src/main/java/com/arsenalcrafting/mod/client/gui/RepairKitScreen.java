@@ -24,16 +24,15 @@ public class RepairKitScreen extends AbstractContainerScreen<RepairKitMenu> {
                     "textures/gui/container/repair_kit_gui.png"
             );
 
-    // Bar dimensions - Screen positions (where to draw on screen)
-    private static final int BAR_X = 63;      // Screen X position
-    private static final int BAR_Y = 39;      // Screen Y position (moved up 1 pixel)
-    private static final int BAR_WIDTH = 51;  // Width of the bar
-    private static final int BAR_HEIGHT = 6;  // Height of the bar
+    // Bar dimensions
+    private static final int BAR_X = 64;
+    private static final int BAR_Y = 39;
+    private static final int BAR_WIDTH = 51;
+    private static final int BAR_HEIGHT = 6;
 
-    // Filled bar texture coordinates - ADJUST THESE based on your texture!
-    // These are coordinates within your texture file where the filled bar graphic is
-    private static final int FILLED_BAR_U = 176;  // Texture X coordinate of filled bar
-    private static final int FILLED_BAR_V = 0;    // Texture Y coordinate of filled bar
+    // Filled bar texture coordinates
+    private static final int FILLED_BAR_U = 176;
+    private static final int FILLED_BAR_V = 0;
 
     // Maximum stored value
     private static final int MAX_VALUE = 128;
@@ -64,7 +63,7 @@ public class RepairKitScreen extends AbstractContainerScreen<RepairKitMenu> {
                 fillWidth = 1;
             }
 
-            // Get material color for tinting
+            // Get material color
             AlloyMaterial mat = AlloyMaterial.fromName(displayMaterial);
 
             // Calculate screen positions
@@ -86,7 +85,7 @@ public class RepairKitScreen extends AbstractContainerScreen<RepairKitMenu> {
                 // Draw the filled bar texture (tinted with material color)
                 gfx.blit(TEXTURE,
                         barLeft, barTop,
-                        FILLED_BAR_U, FILLED_BAR_V,  // Draw from filled bar texture area
+                        FILLED_BAR_U, FILLED_BAR_V,
                         fillWidth, BAR_HEIGHT
                 );
 
@@ -122,13 +121,38 @@ public class RepairKitScreen extends AbstractContainerScreen<RepairKitMenu> {
         if (isHovering(BAR_X, BAR_Y, BAR_WIDTH, BAR_HEIGHT, mouseX, mouseY)) {
             int displayValue = menu.getCalculatedValue();
             ItemStack tool = menu.getSlot(0).getItem();
+            ItemStack ingot = menu.getSlot(1).getItem();
             String material = menu.getCalculatedMaterial();
             boolean locked = RepairKitItem.isMaterialLocked(menu.kitStack);
 
             List<Component> tooltip = new ArrayList<>();
 
-            // Check if we're showing preview or actual value
-            ItemStack ingot = menu.getSlot(1).getItem();
+            // Check for material mismatch
+            if (!tool.isEmpty() && !ingot.isEmpty() &&
+                    tool.getItem() instanceof ArsenalTool arsenalTool) {
+
+                String toolMaterial = arsenalTool.getMaterialName(tool);
+                AlloyMaterial ingotMat = AlloyMaterial.fromItem(ingot.getItem());
+                String ingotMaterial = ingotMat != null ? ingotMat.getName() : "";
+
+                if (!toolMaterial.isEmpty() && !ingotMaterial.isEmpty() &&
+                        !toolMaterial.equals(ingotMaterial)) {
+
+                    tooltip.add(Component.literal("⚠ Material Mismatch!")
+                            .withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
+                    tooltip.add(Component.literal("Tool: " + toolMaterial)
+                            .withStyle(ChatFormatting.RED));
+                    tooltip.add(Component.literal("Ingot: " + ingotMaterial)
+                            .withStyle(ChatFormatting.RED));
+                    tooltip.add(Component.literal("Cannot repair with different material")
+                            .withStyle(ChatFormatting.DARK_RED));
+
+                    gfx.renderComponentTooltip(this.font, tooltip, mouseX, mouseY);
+                    return; // Don't show normal tooltip
+                }
+            }
+
+            // Show if we're previewing or showing actual value
             if (!ingot.isEmpty()) {
                 tooltip.add(Component.literal("Preview: " + displayValue + "/" + MAX_VALUE)
                         .withStyle(ChatFormatting.YELLOW));
@@ -142,7 +166,7 @@ public class RepairKitScreen extends AbstractContainerScreen<RepairKitMenu> {
                         .withStyle(locked ? ChatFormatting.RED : ChatFormatting.GREEN));
 
                 if (locked) {
-                    tooltip.add(Component.literal("Material is locked")
+                    tooltip.add(Component.literal("Material is locked - empty kit to change")
                             .withStyle(ChatFormatting.DARK_RED));
                 }
             } else {
@@ -151,17 +175,42 @@ public class RepairKitScreen extends AbstractContainerScreen<RepairKitMenu> {
             }
 
             if (tool.getItem() instanceof ArsenalTool arsenalTool) {
-                int cost = arsenalTool.getRepairValuePerDurability(tool);
-                if (cost > 0) {
-                    tooltip.add(Component.literal("Cost: " + cost + " value per durability")
-                            .withStyle(ChatFormatting.GOLD));
+                // Get the scaled cost (cost for 10 durability × 10)
+                int scaledCost = arsenalTool.getRepairValuePerDurability(tool);
 
-                    int possibleRepairs = displayValue / cost;
-                    if (possibleRepairs > 0) {
-                        tooltip.add(Component.literal("Can repair: " + possibleRepairs + " durability")
-                                .withStyle(ChatFormatting.AQUA));
+                // Convert back to actual cost per 10 durability
+                float actualCostPer10Durability = scaledCost / 10.0f;
+
+                // Show cost
+                tooltip.add(Component.literal("Cost: " + String.format("%.1f", actualCostPer10Durability) +
+                                " value per 10 durability")
+                        .withStyle(ChatFormatting.GOLD));
+
+                if (scaledCost > 0) {
+                    // Calculate how much durability 1 value repairs
+                    float durabilityPerValue = 10.0f / actualCostPer10Durability;
+
+                    // Calculate total durability that can be repaired
+                    float totalDurability = displayValue * durabilityPerValue;
+
+                    // Show repair potential
+                    tooltip.add(Component.literal("Can repair: " + String.format("%.1f", totalDurability) +
+                                    " durability")
+                            .withStyle(ChatFormatting.AQUA));
+
+                    // Show efficiency info
+                    tooltip.add(Component.literal("1 Value = " + String.format("%.1f", durabilityPerValue) +
+                                    " durability")
+                            .withStyle(ChatFormatting.LIGHT_PURPLE));
+
+                    if (displayValue * 100 >= scaledCost) { // Check if can repair at least 10 durability
+                        tooltip.add(Component.literal("Ready to repair!")
+                                .withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD));
                     }
                 }
+            } else {
+                tooltip.add(Component.literal("Insert a tool to see repair cost")
+                        .withStyle(ChatFormatting.DARK_GRAY));
             }
 
             tooltip.add(Component.literal("1 Ingot = 2 Value")
