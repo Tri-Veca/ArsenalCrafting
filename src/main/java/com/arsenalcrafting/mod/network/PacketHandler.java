@@ -1,5 +1,7 @@
 package com.arsenalcrafting.mod.network;
 
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -17,7 +19,15 @@ public class PacketHandler {
                 ToggleAugmentPacket.STREAM_CODEC,
                 ToggleAugmentPacket::handle
         );
+        registrar.playToClient(
+                SyncRepairKitPreviewPacket.TYPE,
+                SyncRepairKitPreviewPacket.STREAM_CODEC,
+                SyncRepairKitPreviewPacket::handle
+        );
+    }
+    public static void sendToPlayer(ServerPlayer player, CustomPacketPayload packet) {
+        player.connection.send(packet);
+    }
 
         // You can register more packets here as needed
     }
-}

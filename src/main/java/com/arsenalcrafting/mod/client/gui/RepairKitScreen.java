@@ -5,6 +5,7 @@ import com.arsenalcrafting.mod.client.menu.RepairKitMenu;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.items.RepairKitItem;
 import com.arsenalcrafting.mod.items.tool.ArsenalTool;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
@@ -23,11 +24,19 @@ public class RepairKitScreen extends AbstractContainerScreen<RepairKitMenu> {
                     "textures/gui/container/repair_kit_gui.png"
             );
 
-    // Bar dimensions
-    private static final int BAR_X = 7;
-    private static final int BAR_Y = 40;
-    private static final int BAR_WIDTH = 51;
-    private static final int BAR_HEIGHT = 6;
+    // Bar dimensions - Screen positions (where to draw on screen)
+    private static final int BAR_X = 64;      // Screen X position
+    private static final int BAR_Y = 39;      // Screen Y position (moved up 1 pixel)
+    private static final int BAR_WIDTH = 51;  // Width of the bar
+    private static final int BAR_HEIGHT = 6;  // Height of the bar
+
+    // Filled bar texture coordinates - ADJUST THESE based on your texture!
+    // These are coordinates within your texture file where the filled bar graphic is
+    private static final int FILLED_BAR_U = 176;  // Texture X coordinate of filled bar
+    private static final int FILLED_BAR_V = 0;    // Texture Y coordinate of filled bar
+
+    // Maximum stored value
+    private static final int MAX_VALUE = 128;
 
     public RepairKitScreen(RepairKitMenu menu, Inventory inv, Component title) {
         super(menu, inv, title);
@@ -40,50 +49,69 @@ public class RepairKitScreen extends AbstractContainerScreen<RepairKitMenu> {
         // Draw background texture
         gfx.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
 
-        // Get stored value
-        int stored = RepairKitItem.getStoredValue(menu.kitStack);
+        // Get display value and material from menu
+        int displayValue = menu.getCalculatedValue();
+        String displayMaterial = menu.getCalculatedMaterial();
 
-        // Get tool to calculate cost per durability
-        ItemStack tool = menu.getSlot(0).getItem();
-        int costPerDurability = 0;
+        // Draw filled portion of the bar
+        if (displayValue > 0) {
+            // Calculate progress
+            float progress = Math.min(1.0f, (float) displayValue / (float) MAX_VALUE);
+            int fillWidth = (int) (progress * BAR_WIDTH);
 
-        if (tool.getItem() instanceof ArsenalTool arsenalTool) {
-            costPerDurability = arsenalTool.getRepairValuePerDurability(tool);
-        }
+            // Ensure at least 1 pixel if we have any value
+            if (fillWidth == 0 && displayValue > 0) {
+                fillWidth = 1;
+            }
 
-        // Calculate progress
-        float progress = 0.0f;
-        if (costPerDurability > 0) {
-            progress = Math.min(1.0f, (float) stored / (float) costPerDurability);
-        }
+            // Get material color for tinting
+            AlloyMaterial mat = AlloyMaterial.fromName(displayMaterial);
 
-        // Calculate fill width
-        int fillWidth = (int) (progress * BAR_WIDTH);
-
-        // Get material color
-        String matName = RepairKitItem.getMaterial(menu.kitStack);
-        AlloyMaterial mat = AlloyMaterial.fromName(matName);
-        int color = mat != null ? mat.getItemColor() : 0xFF888888; // Default gray
-
-        // Draw filled portion of the bar (if any)
-        if (fillWidth > 0) {
+            // Calculate screen positions
             int barLeft = leftPos + BAR_X;
             int barTop = topPos + BAR_Y;
 
-            // Fill with material color
-            gfx.fill(
-                    barLeft,
-                    barTop,
-                    barLeft + fillWidth,
-                    barTop + BAR_HEIGHT,
-                    color | 0xFF000000
-            );
+            if (mat != null) {
+                // Get material color
+                int color = mat.getItemColor();
+
+                // Extract RGB components for tinting
+                float r = ((color >> 16) & 0xFF) / 255.0f;
+                float g = ((color >> 8) & 0xFF) / 255.0f;
+                float b = (color & 0xFF) / 255.0f;
+
+                // Set tint color
+                gfx.setColor(r, g, b, 1.0f);
+
+                // Draw the filled bar texture (tinted with material color)
+                gfx.blit(TEXTURE,
+                        barLeft, barTop,
+                        FILLED_BAR_U, FILLED_BAR_V,  // Draw from filled bar texture area
+                        fillWidth, BAR_HEIGHT
+                );
+
+                // Reset color
+                gfx.setColor(1.0f, 1.0f, 1.0f, 1.0f);
+            } else {
+                // Default gray if no material
+                gfx.setColor(0.75f, 0.75f, 0.75f, 1.0f); // Light gray
+
+                // Draw the filled bar texture
+                gfx.blit(TEXTURE,
+                        barLeft, barTop,
+                        FILLED_BAR_U, FILLED_BAR_V,
+                        fillWidth, BAR_HEIGHT
+                );
+
+                // Reset color
+                gfx.setColor(1.0f, 1.0f, 1.0f, 1.0f);
+            }
         }
     }
 
     @Override
     protected void renderLabels(GuiGraphics gfx, int mouseX, int mouseY) {
-        // Hide vanilla labels
+        // No labels needed
     }
 
     @Override
@@ -92,31 +120,54 @@ public class RepairKitScreen extends AbstractContainerScreen<RepairKitMenu> {
 
         // Check if mouse is over the progress bar
         if (isHovering(BAR_X, BAR_Y, BAR_WIDTH, BAR_HEIGHT, mouseX, mouseY)) {
-            int stored = RepairKitItem.getStoredValue(menu.kitStack);
+            int displayValue = menu.getCalculatedValue();
             ItemStack tool = menu.getSlot(0).getItem();
-            int costPerDurability = 0;
-
-            if (tool.getItem() instanceof ArsenalTool arsenalTool) {
-                costPerDurability = arsenalTool.getRepairValuePerDurability(tool);
-            }
-
-            String material = RepairKitItem.getMaterial(menu.kitStack);
-            if (material.isEmpty()) {
-                material = "None";
-            }
+            String material = menu.getCalculatedMaterial();
+            boolean locked = RepairKitItem.isMaterialLocked(menu.kitStack);
 
             List<Component> tooltip = new ArrayList<>();
-            tooltip.add(Component.literal("Material: " + material));
-            tooltip.add(Component.literal("Stored Value: " + stored));
 
-            if (costPerDurability > 0) {
-                tooltip.add(Component.literal("Cost per Durability: " + costPerDurability));
-                tooltip.add(Component.literal("Progress: " + stored + "/" + costPerDurability));
+            // Check if we're showing preview or actual value
+            ItemStack ingot = menu.getSlot(1).getItem();
+            if (!ingot.isEmpty()) {
+                tooltip.add(Component.literal("Preview: " + displayValue + "/" + MAX_VALUE)
+                        .withStyle(ChatFormatting.YELLOW));
             } else {
-                tooltip.add(Component.literal("Insert a tool to see repair cost"));
+                tooltip.add(Component.literal("Stored Value: " + displayValue + "/" + MAX_VALUE)
+                        .withStyle(ChatFormatting.YELLOW));
             }
 
-            gfx.renderTooltip(this.font, (Component) tooltip, mouseX, mouseY);
+            if (!material.isEmpty()) {
+                tooltip.add(Component.literal("Material: " + material)
+                        .withStyle(locked ? ChatFormatting.RED : ChatFormatting.GREEN));
+
+                if (locked) {
+                    tooltip.add(Component.literal("Material is locked")
+                            .withStyle(ChatFormatting.DARK_RED));
+                }
+            } else {
+                tooltip.add(Component.literal("No Material Set")
+                        .withStyle(ChatFormatting.GRAY));
+            }
+
+            if (tool.getItem() instanceof ArsenalTool arsenalTool) {
+                int cost = arsenalTool.getRepairValuePerDurability(tool);
+                if (cost > 0) {
+                    tooltip.add(Component.literal("Cost: " + cost + " value per durability")
+                            .withStyle(ChatFormatting.GOLD));
+
+                    int possibleRepairs = displayValue / cost;
+                    if (possibleRepairs > 0) {
+                        tooltip.add(Component.literal("Can repair: " + possibleRepairs + " durability")
+                                .withStyle(ChatFormatting.AQUA));
+                    }
+                }
+            }
+
+            tooltip.add(Component.literal("1 Ingot = 2 Value")
+                    .withStyle(ChatFormatting.LIGHT_PURPLE));
+
+            gfx.renderComponentTooltip(this.font, tooltip, mouseX, mouseY);
         }
     }
 
