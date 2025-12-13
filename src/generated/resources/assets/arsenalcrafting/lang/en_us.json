@@ -1,10 +1,12 @@
 {
   "augment.arsenalcrafting.auto_smelt": "Auto Smelt",
   "augment.arsenalcrafting.auto_smelt.description": "Smelts ores automatically",
-  "augment.arsenalcrafting.fortune.description": "Multiplies ore drops",
   "augment.arsenalcrafting.fortune_augment.tier1": "Fortune I",
+  "augment.arsenalcrafting.fortune_augment.tier1.description": "Multiplies ore drops",
   "augment.arsenalcrafting.fortune_augment.tier2": "Fortune II",
+  "augment.arsenalcrafting.fortune_augment.tier2.description": "Multiplies ore drops",
   "augment.arsenalcrafting.fortune_augment.tier3": "Fortune III",
+  "augment.arsenalcrafting.fortune_augment.tier3.description": "Multiplies ore drops",
   "augment.arsenalcrafting.ore_miner": "Ore Miner",
   "augment.arsenalcrafting.ore_miner.description": "Vein mines ores",
   "augment.arsenalcrafting.silk_touch": "Silk Touch",

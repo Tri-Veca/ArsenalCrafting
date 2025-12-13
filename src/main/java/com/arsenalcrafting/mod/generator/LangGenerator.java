@@ -123,6 +123,9 @@ public class LangGenerator implements DataProvider {
                         default -> String.valueOf(tier);
                     };
                     entries.put(augmentKey, augmentName + " " + tierRoman);
+
+                    // Augment descriptions
+                    entries.put("augment.arsenalcrafting." + def.id() + "_augment.tier" + tier + ".description",  def.description());
                 }
             } else {
                 String itemKey = "item.arsenalcrafting." + def.id() + "_augment";
@@ -133,10 +136,12 @@ public class LangGenerator implements DataProvider {
                 // Augment name for tooltips
                 String augmentKey = "augment.arsenalcrafting." + def.id();
                 entries.put(augmentKey, augmentName);
+
+                // Augment descriptions
+                entries.put("augment.arsenalcrafting." + def.id() + ".description", def.description());
             }
 
-            // Augment descriptions
-            entries.put("augment.arsenalcrafting." + def.id() + ".description", def.description());
+
         }
 
         // 8. Alloy properties for tooltips (optional)
