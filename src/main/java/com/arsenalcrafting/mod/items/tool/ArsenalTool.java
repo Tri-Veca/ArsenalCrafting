@@ -122,6 +122,11 @@ public interface ArsenalTool {
         return getBaseMaterial();
     }
 
+    default String getMaterialName(ItemStack stack) {
+        AlloyMaterial mat = getRepairMaterial(stack);
+        return mat != null ? mat.getName() : "";
+    }
+
     /**
      * Value cost per 1 durability point.
      */

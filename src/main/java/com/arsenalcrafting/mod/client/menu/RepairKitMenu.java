@@ -113,11 +113,12 @@ public class RepairKitMenu extends AbstractContainerMenu {
     }
 
     private void updateStoredValueCalculation() {
+        ItemStack tool = container.getItem(0);
         ItemStack ingot = container.getItem(1);
 
         if (ingot.isEmpty()) {
-            lastStoredValue = 0;
-            lastMaterial = "";
+            lastStoredValue = RepairKitItem.getStoredValue(kitStack);
+            lastMaterial = RepairKitItem.getMaterial(kitStack);
             return;
         }
 
@@ -128,71 +129,123 @@ public class RepairKitMenu extends AbstractContainerMenu {
             return;
         }
 
-        String materialName = mat.getName();
-        String currentMaterial = RepairKitItem.getMaterial(kitStack);
+        String ingotMaterial = mat.getName();
+        String currentKitMaterial = RepairKitItem.getMaterial(kitStack);
         boolean materialLocked = RepairKitItem.isMaterialLocked(kitStack);
 
-        // Check material compatibility
-        if (!currentMaterial.isEmpty()) {
-            if (materialLocked && !currentMaterial.equals(materialName)) {
-                // Different material and locked - cannot use
+        // Check if there's a tool and if materials match
+        if (!tool.isEmpty() && tool.getItem() instanceof ArsenalTool arsenalTool) {
+            String toolMaterial = arsenalTool.getMaterialName(tool);
+
+            // If tool has a material and it doesn't match ingot, show 0 preview
+            if (!toolMaterial.isEmpty() && !toolMaterial.equals(ingotMaterial)) {
                 lastStoredValue = 0;
-                lastMaterial = currentMaterial;
+                lastMaterial = currentKitMaterial;
                 return;
             }
         }
 
-        // Calculate potential value from ingots in slot
-        // 1 ingot = 2 value, up to 128
-        int potentialValue = Math.min(ingot.getCount() * 2, 128);
+        // Check material compatibility for preview
+        if (!currentKitMaterial.isEmpty() && materialLocked && !currentKitMaterial.equals(ingotMaterial)) {
+            // Different material and locked - cannot use
+            lastStoredValue = 0;
+            lastMaterial = currentKitMaterial;
+            return;
+        }
 
-        // Update the display values
-        lastStoredValue = potentialValue;
-        lastMaterial = materialName;
+        // Calculate potential value from ingots in slot
+        int potentialValue = Math.min(ingot.getCount() * 2, 128);
+        int existingValue = RepairKitItem.getStoredValue(kitStack);
+
+        // For preview, show total potential (existing + new)
+        lastStoredValue = Math.min(existingValue + potentialValue, 128);
+        lastMaterial = currentKitMaterial.isEmpty() ? ingotMaterial : currentKitMaterial;
     }
 
     private void attemptRepair() {
         ItemStack tool = container.getItem(0);
         ItemStack ingot = container.getItem(1);
 
+        // If no tool, no ingot, or tool is undamaged, do nothing
         if (tool.isEmpty() || tool.getDamageValue() <= 0 || ingot.isEmpty()) {
             return;
         }
 
+        // Check if the ingot is a valid material
         AlloyMaterial mat = AlloyMaterial.fromItem(ingot.getItem());
         if (mat == null) return;
 
-        String materialName = mat.getName();
-        String currentMaterial = RepairKitItem.getMaterial(kitStack);
-        boolean materialLocked = RepairKitItem.isMaterialLocked(kitStack);
+        String ingotMaterial = mat.getName();
 
-        // Material check
-        if (!currentMaterial.isEmpty()) {
-            if (!materialLocked && !currentMaterial.equals(materialName)) {
-                RepairKitItem.setMaterial(kitStack, materialName);
-                RepairKitItem.setStoredValue(kitStack, 0);
-            } else if (materialLocked && !currentMaterial.equals(materialName)) {
-                return;
-            }
-        } else {
-            RepairKitItem.setMaterial(kitStack, materialName);
+        // Get the tool's material
+        if (!(tool.getItem() instanceof ArsenalTool arsenalTool)) return;
+        String toolMaterial = arsenalTool.getMaterialName(tool);
+
+        // CRITICAL: Check if ingot material matches tool material
+        if (!toolMaterial.isEmpty() && !toolMaterial.equals(ingotMaterial)) {
+            // Tool material doesn't match ingot material - CANNOT REPAIR
+            return;
         }
 
-        int storedValue = RepairKitItem.getStoredValue(kitStack);
-        if (!(tool.getItem() instanceof ArsenalTool arsenalTool)) return;
+        String currentKitMaterial = RepairKitItem.getMaterial(kitStack);
+        boolean materialLocked = RepairKitItem.isMaterialLocked(kitStack);
+
+        // KIT MATERIAL COMPATIBILITY CHECK
+        if (!currentKitMaterial.isEmpty()) {
+            if (materialLocked) {
+                // Material is locked - must match exactly
+                if (!currentKitMaterial.equals(ingotMaterial)) {
+                    return; // Different material and locked - CANNOT USE
+                }
+            } else {
+                // Material not locked - can change if different
+                if (!currentKitMaterial.equals(ingotMaterial)) {
+                    // Different material - change material and reset stored value
+                    RepairKitItem.setMaterial(kitStack, ingotMaterial);
+                    RepairKitItem.setStoredValue(kitStack, 0);
+                    currentKitMaterial = ingotMaterial; // Update for later use
+                }
+            }
+        } else {
+            // No material set yet - set it to ingot material
+            RepairKitItem.setMaterial(kitStack, ingotMaterial);
+            currentKitMaterial = ingotMaterial;
+        }
+
+        // Now we know materials are compatible, proceed with repair
         int costPerDurability = arsenalTool.getRepairValuePerDurability(tool);
 
         if (costPerDurability <= 0) return;
 
-        // Calculate how much value we can add from ingots
-        int valueToAdd = Math.min(ingot.getCount() * 2, 128 - storedValue);
-        if (valueToAdd <= 0) return;
+        // Get current stored value
+        int storedValue = RepairKitItem.getStoredValue(kitStack);
+
+        // Calculate how much value we can add from ingots (but don't exceed what we need)
+        int maxNeededForOneRepair = Math.max(0, costPerDurability - storedValue);
+        if (maxNeededForOneRepair <= 0) {
+            // We already have enough stored value for at least one repair
+            repairWithStoredValue(tool, arsenalTool, costPerDurability, storedValue);
+            return;
+        }
+
+        // Calculate how many ingots we need for one repair
+        int valuePerIngot = 2;
+        int valueNeeded = Math.min(maxNeededForOneRepair, 128 - storedValue);
+        int ingotsNeeded = (valueNeeded + valuePerIngot - 1) / valuePerIngot; // Round up
+
+        if (ingotsNeeded <= 0) return;
+
+        // Make sure we don't consume more ingots than available
+        int ingotsToConsume = Math.min(ingotsNeeded, ingot.getCount());
+        if (ingotsToConsume <= 0) return;
+
+        // Calculate actual value added
+        int valueAdded = ingotsToConsume * valuePerIngot;
 
         // Add value to stored pool
-        RepairKitItem.setStoredValue(kitStack, storedValue + valueToAdd);
+        RepairKitItem.setStoredValue(kitStack, storedValue + valueAdded);
 
         // Consume ingots
-        int ingotsToConsume = (valueToAdd + 1) / 2;
         ingot.shrink(ingotsToConsume);
 
         // Lock material once we add value
@@ -200,23 +253,37 @@ public class RepairKitMenu extends AbstractContainerMenu {
             RepairKitItem.setMaterialLocked(kitStack, true);
         }
 
-        // Now try to repair
+        // Now try to repair with the newly added value
         storedValue = RepairKitItem.getStoredValue(kitStack);
+        repairWithStoredValue(tool, arsenalTool, costPerDurability, storedValue);
+    }
 
-        if (storedValue >= costPerDurability) {
-            int durabilityToRepair = storedValue / costPerDurability;
-            int currentDamage = tool.getDamageValue();
-            int actualRepair = Math.min(durabilityToRepair, currentDamage);
+    private void repairWithStoredValue(ItemStack tool, ArsenalTool arsenalTool, int costPerDurability, int storedValue) {
+        if (storedValue < costPerDurability) {
+            return; // Not enough value to repair
+        }
 
-            if (actualRepair > 0) {
-                tool.setDamageValue(currentDamage - actualRepair);
-                int valueUsed = actualRepair * costPerDurability;
-                RepairKitItem.setStoredValue(kitStack, storedValue - valueUsed);
+        // Calculate how much durability we can repair
+        int durabilityToRepair = storedValue / costPerDurability;
+        if (durabilityToRepair <= 0) return;
 
-                if (tool.getDamageValue() <= 0 || RepairKitItem.getStoredValue(kitStack) == 0) {
-                    RepairKitItem.setMaterialLocked(kitStack, false);
-                }
-            }
+        int currentDamage = tool.getDamageValue();
+        int actualRepair = Math.min(durabilityToRepair, currentDamage);
+
+        if (actualRepair <= 0) return;
+
+        // Repair the tool
+        tool.setDamageValue(currentDamage - actualRepair);
+
+        // Calculate value used
+        int valueUsed = actualRepair * costPerDurability;
+
+        // Deduct the cost
+        RepairKitItem.setStoredValue(kitStack, storedValue - valueUsed);
+
+        // If tool is fully repaired or we have no more stored value, unlock material
+        if (tool.getDamageValue() <= 0 || RepairKitItem.getStoredValue(kitStack) == 0) {
+            RepairKitItem.setMaterialLocked(kitStack, false);
         }
     }
 
