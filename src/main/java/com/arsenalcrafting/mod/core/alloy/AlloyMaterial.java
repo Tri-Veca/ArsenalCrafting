@@ -4,6 +4,8 @@ import com.arsenalcrafting.mod.core.ItemStackHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.Tier;
+import net.minecraft.world.item.Tiers;
 import org.jetbrains.annotations.Nullable;
 
 public enum AlloyMaterial {
@@ -14,7 +16,7 @@ public enum AlloyMaterial {
             190,
             5.0f,
             0.75f,
-            1.2f,
+            1.6f,
             0f,
             1.0f,
             4,
@@ -25,10 +27,10 @@ public enum AlloyMaterial {
     TIN(
             "Tin",
             1,
-            235,
+            220,
             5.0f,
-            0.8f,
-            1.2f,
+            0.9f,
+            1.6f,
             0f,
             1.0f,
             4,
@@ -42,7 +44,7 @@ public enum AlloyMaterial {
             250,
             6.0f,
             1.0f,
-            1.4f,
+            1.6f,
             2.0f,
             1.0f,
             4,
@@ -55,7 +57,7 @@ public enum AlloyMaterial {
             2,
             32,
             12.0f,
-            0.2f,
+            0.5f,
             1.6f,
             0f,
             1.0f,
@@ -82,14 +84,14 @@ public enum AlloyMaterial {
             "Netherite",
             4,
             2031,
-            8.0f,
-            1.0f,
+            9.0f,
+            1.1f,
             1.6f,
             4.0f,
             1.0f,
             4,
             ChatFormatting.DARK_GRAY,
-            0xFF31292b,
+            0xFF706770,
             false
     ),
 
@@ -99,7 +101,7 @@ public enum AlloyMaterial {
             500,
             5.0f,
             0.8f,
-            2.0f,
+            1.6f,
             1.0f,
             1.0f,
             4,
@@ -109,12 +111,12 @@ public enum AlloyMaterial {
     ),
     STEEL(
             "Steel",
-            3,
+            4,
             2500,
-            8.0f,
+            9.0f,
             1.1f,
-            1.4f,
-            4.0f,
+            1.2f,
+            5.0f,
             1.2f,
             4,
             ChatFormatting.GRAY,
@@ -127,8 +129,8 @@ public enum AlloyMaterial {
             1600,
             10.0f,
             1.2f,
-            2.6f,
-            5.0f,
+            1.9f,
+            4.0f,
             1.5f,
             4,
             ChatFormatting.AQUA,
