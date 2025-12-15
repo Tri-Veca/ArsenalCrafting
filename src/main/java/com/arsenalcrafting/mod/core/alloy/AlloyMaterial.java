@@ -34,7 +34,7 @@ public enum AlloyMaterial {
             0f,
             1.0f,
             4,
-            ChatFormatting.GRAY,
+            ChatFormatting.DARK_AQUA,
             0xFFeddfdb,
             true
     ),
