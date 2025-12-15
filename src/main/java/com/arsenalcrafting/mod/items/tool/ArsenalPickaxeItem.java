@@ -246,7 +246,7 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
                         .withStyle(rodMat.getColor()));
                 tooltip.add(Component.translatable("item.arsenalcrafting.efficiency",
                                 String.format("%.1f", headMat.getEfficiency()))
-                        .withStyle(ChatFormatting.BLUE));
+                        .withStyle(headMat.getColor()));
             }
         }
     }
