@@ -78,10 +78,24 @@ public enum AlloyMaterial {
             0xFF4aedd9,
             false
     ),
+    NETHERITE(
+            "Netherite",
+            4,
+            2031,
+            8.0f,
+            1.0f,
+            1.6f,
+            4.0f,
+            1.0f,
+            4,
+            ChatFormatting.DARK_GRAY,
+            0xFF31292b,
+            false
+    ),
 
     BRONZE(
             "Bronze",
-            0,
+            2,
             500,
             5.0f,
             0.8f,
@@ -200,6 +214,7 @@ public enum AlloyMaterial {
         if (item == Items.IRON_INGOT) return IRON;
         if (item == Items.GOLD_INGOT) return GOLD;
         if (item == Items.DIAMOND) return DIAMOND;
+        if (item == Items.NETHERITE_INGOT) return NETHERITE;
 
         // If you have modded ingots later:
         if (item == ItemStackHelper.getAlloyStack(AlloyMaterial.BRONZE).getItem()) return BRONZE;
