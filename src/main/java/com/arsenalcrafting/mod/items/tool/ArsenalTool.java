@@ -3,6 +3,8 @@ package com.arsenalcrafting.mod.items.tool;
 import com.arsenalcrafting.mod.component.ToolAssemblyData;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
+import com.arsenalcrafting.mod.items.tool.powers.CoreHandler;
+import com.arsenalcrafting.mod.items.tool.powers.CoreManager;
 import com.arsenalcrafting.mod.registry.ModComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
@@ -13,11 +15,14 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
 import java.util.List;
+
+import static com.arsenalcrafting.mod.registry.ModComponents.TOOL_ASSEMBLY_DATA;
 
 public interface ArsenalTool {
 
@@ -114,7 +119,7 @@ public interface ArsenalTool {
      * Head material takes priority, fallback to base material.
      */
     default AlloyMaterial getRepairMaterial(ItemStack stack) {
-        ToolAssemblyData data = stack.get(ModComponents.TOOL_ASSEMBLY_DATA.get());
+        ToolAssemblyData data = stack.get(TOOL_ASSEMBLY_DATA.get());
         if (data != null && !data.isEmpty()) {
             AlloyMaterial head = AlloyMaterial.fromName(data.headMaterial());
             if (head != null) return head;
@@ -134,6 +139,11 @@ public interface ArsenalTool {
         AlloyMaterial mat = getRepairMaterial(stack);
         return mat != null ? mat.getModifier() : 1.0f;
     }
+
+
+
+
+
 
     // ---- TOOLTIP ----
     @OnlyIn(Dist.CLIENT)

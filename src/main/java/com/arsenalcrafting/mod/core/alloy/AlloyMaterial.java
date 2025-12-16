@@ -126,7 +126,7 @@ public enum AlloyMaterial {
     TITANIUM(
             "Titanium",
             4,
-            1600,
+            1800,
             10.0f,
             1.1f,
             1.9f,

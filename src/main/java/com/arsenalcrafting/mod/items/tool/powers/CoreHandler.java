@@ -30,6 +30,10 @@ public interface CoreHandler {
                                      Player player) {
         return false;
     }
+    default float modifyMiningSpeed(ItemStack tool, float baseSpeed) {
+        return baseSpeed;
+    }
+
 
     // ============= ENTITY INTERACTIONS =============
     default boolean canHandleEntity(Entity target, ItemStack tool) {
@@ -49,6 +53,8 @@ public interface CoreHandler {
     // ============= TOOL USAGE =============
     default void onToolUpdate(ItemStack tool, Player player) {
         // Called each tick while holding the tool
+
+
     }
 
     default void onToolEquip(ItemStack tool, Player player) {
@@ -63,4 +69,5 @@ public interface CoreHandler {
     default void postProcess(ItemStack tool, Level level, BlockPos pos) {
         // After block break/place
     }
+
 }

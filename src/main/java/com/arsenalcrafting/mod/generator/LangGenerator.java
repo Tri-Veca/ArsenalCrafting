@@ -80,6 +80,9 @@ public class LangGenerator implements DataProvider {
         entries.put("item.arsenalcrafting.augment_slots", "Augment Slots: %s");
         entries.put("item.arsenalcrafting.alloy_color", "Alloy Color: %s");
         entries.put("item.arsenalcrafting.tin_alloy", "Tin");
+        //TODO Automate Core Powers In LANG
+        entries.put("core.arsenalcrafting.speed_boost", "Durability Speed");
+        entries.put( "core.arsenalcrafting.speed_boost.desc", "Mining and attack speed increase as durability decreases");
 
         entries.put("item.arsenalcrafting.current_durability", "Remaining: %s Max: %s");
         entries.put("screen.arsenalcrafting.toolkit_title", "Tool Kit");

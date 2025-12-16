@@ -1,68 +1,61 @@
 package com.arsenalcrafting.mod.items.tool.powers;
+import com.arsenalcrafting.mod.component.ToolAssemblyData;
+import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
+import com.arsenalcrafting.mod.registry.ModComponents;
+import net.minecraft.world.item.ItemStack;
 
-import com.arsenalcrafting.mod.core.augments.AugmentHandler;
-import com.arsenalcrafting.mod.core.augments.AugmentHandlers;
-import com.arsenalcrafting.mod.core.augments.AugmentManager;
-
+import javax.annotation.Nullable;
 import java.util.*;
+
+
 
 public class CoreManager {
 
-    // Registry of all augment definitions
-    private static final Map<String, CoreManager.CoreDefinition> DEFINITIONS = new LinkedHashMap<>();
+    private static final Map<AlloyMaterial, CoreDefinition> DEFINITIONS = new EnumMap<>(AlloyMaterial.class);
 
     public record CoreDefinition(
             String id,
             String name,
             String description,
-            //get core material
-            Class<? extends CoreHandler> handlerClass
+            CoreHandler handler
+    ) {}
 
-
-    ) {
-    }
 
     static {
-        // Register all augments - SINGLE SOURCE OF TRUTH
-       /* register(new CoreDefinition(
-                "low_dur_more_speed", "Speeder", "Lower Durability = faster mining speed",
-                CoreHandlers.Speeder.class, false, 1
+        register(AlloyMaterial.COPPER, new CoreDefinition(
+                "speed_boost",
+                "Durability Speed",
+                "Higher mining speed when durability is low",
+                CoreHandlers.SPEED_BOOST
         ));
 
-
-
-
-        // Future Core Powers go here ONLY
     }
 
-    private static void register(AugmentManager.AugmentDefinition def) {
-        if (def == null || def.id() == null || def.id().isEmpty()) {
-            System.err.println("[AugmentManager] Attempted to register invalid augment definition: " + def);
-            return;
-        }
-        DEFINITIONS.put(def.id(), def);
+    private static void register(AlloyMaterial material, CoreDefinition def) {
+        DEFINITIONS.put(material, def);
     }
+
+    @Nullable
+    public static CoreDefinition getForMaterial(AlloyMaterial material) {
+        return DEFINITIONS.get(material);
+    }
+
 
     // ========== PUBLIC API ==========
 
-    public static Collection<AugmentManager.AugmentDefinition> getAll() {
+    public static Collection<CoreManager.CoreDefinition> getAll() {
         return Collections.unmodifiableCollection(DEFINITIONS.values());
     }
 
-    public static Optional<AugmentManager.AugmentDefinition> getOptional(String id) {
+    public static Optional<CoreManager.CoreDefinition> getOptional(String id) {
         return Optional.ofNullable(DEFINITIONS.get(id));
     }
 
-    public static AugmentManager.AugmentDefinition get(String id) {
+    public static CoreManager.CoreDefinition get(String id) {
         return DEFINITIONS.get(id);
     }
 
     public static boolean exists(String id) {
         return id != null && !id.isEmpty() && DEFINITIONS.containsKey(id);
-    }
-
-
-
-        */
     }
 }

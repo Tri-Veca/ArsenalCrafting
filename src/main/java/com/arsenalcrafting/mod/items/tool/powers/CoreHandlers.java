@@ -1,4 +1,46 @@
 package com.arsenalcrafting.mod.items.tool.powers;
 
-public class CoreHandlers {
+import com.arsenalcrafting.mod.items.tool.ArsenalToolType;
+import net.minecraft.world.item.ItemStack;
+
+/**
+ * Central holder for built-in CoreHandler implementations.
+ *
+ * CoreHandlers are SINGLETONS and must be stateless.
+ */
+public final class CoreHandlers {
+
+    private CoreHandlers() {}
+
+
+    //Register Core Abilities here until automated
+    public static final SpeedBoostCore SPEED_BOOST = new SpeedBoostCore();
+
+    /**
+     * SpeedBoost core handler
+     *
+     * Dynamically increases mining speed as tool durability decreases.
+     * This handler:
+     * - Does NOT apply effects
+     * - Does NOT tick
+     * - Is fully reversible when repaired
+     */
+    public static final class SpeedBoostCore implements CoreHandler {
+
+        @Override
+        public boolean supportsToolType(ArsenalToolType type) {
+            // SpeedBoost applies to all mining tools
+            return type != null && type.isMiningTool();
+        }
+
+        /**
+         * Modify mining speed directly.
+         *
+         * Called from getDestroySpeed(...)
+         */
+        @Override
+        public float modifyMiningSpeed(ItemStack tool, float baseSpeed) {
+            return baseSpeed + SpeedBoost.getMiningSpeedBonus(tool);
+        }
+    }
 }

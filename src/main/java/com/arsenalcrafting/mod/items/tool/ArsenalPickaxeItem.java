@@ -6,7 +6,9 @@ import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
 import com.arsenalcrafting.mod.core.augments.AugmentProcessor;
 import com.arsenalcrafting.mod.component.DynamicComponents;
+import com.arsenalcrafting.mod.items.tool.powers.CoreManager;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.tags.BlockTags;
@@ -107,16 +109,30 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
 
     @Override
     public float getDestroySpeed(ItemStack stack, BlockState state) {
-        ToolAssemblyData assemblyData = stack.get(TOOL_ASSEMBLY_DATA.get());
+        // 1. Start with vanilla Pickaxe speed logic
+        float speed = super.getDestroySpeed(stack, state);
 
-        if (assemblyData != null && !assemblyData.isEmpty()) {
-            AlloyMaterial headMat = AlloyMaterial.fromName(assemblyData.headMaterial());
+        // 2. Apply head material efficiency
+        ToolAssemblyData data = stack.get(TOOL_ASSEMBLY_DATA.get());
+        if (data != null && !data.isEmpty()) {
+            AlloyMaterial headMat = AlloyMaterial.fromName(data.headMaterial());
             if (headMat != null) {
-                return headMat.getEfficiency();
+                speed = headMat.getEfficiency();
+            }
+
+            // 3. Apply core modifier (SpeedBoost, etc.)
+            AlloyMaterial coreMat = AlloyMaterial.fromName(data.coreMaterial());
+            if (coreMat != null) {
+                CoreManager.CoreDefinition def = CoreManager.getForMaterial(coreMat);
+                if (def != null) {
+                    speed = def.handler().modifyMiningSpeed(stack, speed);
+                }
             }
         }
-        return 0;
+
+        return speed;
     }
+
 
     // Custom Tier implementation to read stats from AlloyMaterial
     private static class DummyToolTier implements Tier {
@@ -216,6 +232,8 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
         return super.mineBlock(stack, level, state, pos, entity);
     }
 
+
+
     // Tooltip to show base stats and augment slots
     @Override
     @OnlyIn(Dist.CLIENT)
@@ -247,6 +265,28 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
                 tooltip.add(Component.translatable("item.arsenalcrafting.efficiency",
                                 String.format("%.1f", headMat.getEfficiency()))
                         .withStyle(headMat.getColor()));
+
+                CoreManager.CoreDefinition coreDef = CoreManager.getForMaterial(coreMat);
+
+
+                if (coreDef != null) {
+                    tooltip.add(Component.literal("• ")
+                            .append(Component.translatable("core.arsenalcrafting." + coreDef.id())
+                                    .withStyle(coreMat.getColor()))); //Core Tooltip
+
+                    float base = headMat.getEfficiency();
+                    float modified = coreDef.handler().modifyMiningSpeed(stack, base);
+
+                    tooltip.add(Component.literal("Core Speed Bonus: +" +
+                                    String.format("%.2f", modified - base))
+                            .withStyle(ChatFormatting.GREEN)); //Not sure if final, good for debugging
+
+                    if (Screen.hasShiftDown()) {
+                        tooltip.add(Component.translatable("core.arsenalcrafting." + coreDef.id() + ".desc")
+                                .withStyle(ChatFormatting.DARK_GRAY)); //Shift for description of ability
+                    }
+
+                }
             }
         }
     }
