@@ -1,11 +1,14 @@
 package com.arsenalcrafting.mod.client.menu;
 
 import com.arsenalcrafting.mod.component.RepairKitData;
+import com.arsenalcrafting.mod.component.ToolAssemblyData;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.items.RepairKitItem;
 import com.arsenalcrafting.mod.items.tool.ArsenalTool;
+import com.arsenalcrafting.mod.items.tool.powers.CoreManager;
 import com.arsenalcrafting.mod.network.PacketHandler;
 import com.arsenalcrafting.mod.network.SyncRepairKitPreviewPacket;
+import com.arsenalcrafting.mod.registry.ModComponents;
 import com.arsenalcrafting.mod.registry.ModMenus;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -372,44 +375,51 @@ public class RepairKitMenu extends AbstractContainerMenu {
         if (storedValue <= 0) return;
 
         int currentDamage = tool.getDamageValue();
-        if (currentDamage <= 0) {
-            // Tool already fully repaired, don't use any value
-            return;
-        }
+        if (currentDamage <= 0) return;
 
         float efficiency = arsenalTool.getRepairEfficiency(tool);
         int maxDurability = tool.getMaxDamage();
 
-        // Formula: 1 value repairs (15% / efficiency) of max durability
-        float repairPercentPerValue = 15.0f / efficiency;
+        // Check for repair reduction core
+        boolean hasRepairReduction = false;
+        ToolAssemblyData data = tool.get(ModComponents.TOOL_ASSEMBLY_DATA.get());
+        if (data != null && !data.isEmpty()) {
+            AlloyMaterial coreMat = AlloyMaterial.fromName(data.coreMaterial());
+            if (coreMat != null) {
+                CoreManager.CoreDefinition coreDef = CoreManager.getForMaterial(coreMat);
+                hasRepairReduction = coreDef != null && coreDef.id().equals("repair_reduction");
+            }
+        }
 
-        // Calculate maximum possible repair with all stored value
+        // SIMPLE 20% BONUS
+        float repairPercentPerValue = 15.0f / efficiency; // Base repair
+        if (hasRepairReduction) {
+            repairPercentPerValue *= 1.20f; // 20% more repair
+        }
+
         float totalRepairPercent = storedValue * repairPercentPerValue;
         int maxPossibleRepair = (int) (maxDurability * totalRepairPercent / 100.0f);
-
-        // Don't repair more than current damage
         int actualRepair = Math.min(maxPossibleRepair, currentDamage);
 
         if (actualRepair <= 0) return;
 
-        // Apply repair
         tool.setDamageValue(currentDamage - actualRepair);
 
-        // Calculate how much value was used
         float percentActuallyRepaired = (actualRepair * 100.0f) / maxDurability;
         int valueUsed = Math.max(1, (int) Math.ceil((percentActuallyRepaired * efficiency) / 15.0f));
-
-        // Don't use more value than we have
+        if (hasRepairReduction) {
+            valueUsed = (int)(valueUsed * 0.833f); // Use 16.7% less value (inverse of 1.20)
+        }
         valueUsed = Math.min(valueUsed, storedValue);
 
-        // Update kit
         RepairKitItem.setStoredValue(kitStack, storedValue - valueUsed);
 
-        // Unlock material if all value is used up
         if (RepairKitItem.getStoredValue(kitStack) == 0) {
             RepairKitItem.setMaterialLocked(kitStack, false);
         }
     }
+
+
 
     // Method to update client-side preview (called by packet handler)
     public void setClientPreview(int value, String material) {

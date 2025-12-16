@@ -28,6 +28,12 @@ public class CoreManager {
                 "Higher mining speed when durability is low",
                 CoreHandlers.SPEED_BOOST
         ));
+        register(AlloyMaterial.IRON, new CoreDefinition(
+                "repair_reduction",
+                "Repair Reduction",
+                "Decreases the repair cost slightly",
+                CoreHandlers.REPAIR_REDUCTION
+        ));
 
     }
 

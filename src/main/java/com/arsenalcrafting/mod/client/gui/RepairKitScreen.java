@@ -2,9 +2,12 @@ package com.arsenalcrafting.mod.client.gui;
 
 import com.arsenalcrafting.mod.ArsenalCrafting;
 import com.arsenalcrafting.mod.client.menu.RepairKitMenu;
+import com.arsenalcrafting.mod.component.ToolAssemblyData;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.items.RepairKitItem;
 import com.arsenalcrafting.mod.items.tool.ArsenalTool;
+import com.arsenalcrafting.mod.items.tool.powers.CoreManager;
+import com.arsenalcrafting.mod.registry.ModComponents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -117,7 +120,6 @@ public class RepairKitScreen extends AbstractContainerScreen<RepairKitMenu> {
     protected void renderTooltip(GuiGraphics gfx, int mouseX, int mouseY) {
         super.renderTooltip(gfx, mouseX, mouseY);
 
-        // Check if mouse is over the progress bar
         if (isHovering(BAR_X, BAR_Y, BAR_WIDTH, BAR_HEIGHT, mouseX, mouseY)) {
             int displayValue = menu.getCalculatedValue();
             ItemStack tool = menu.getSlot(0).getItem();
@@ -148,18 +150,13 @@ public class RepairKitScreen extends AbstractContainerScreen<RepairKitMenu> {
                             .withStyle(ChatFormatting.DARK_RED));
 
                     gfx.renderComponentTooltip(this.font, tooltip, mouseX, mouseY);
-                    return; // Don't show normal tooltip
+                    return;
                 }
             }
 
-            // Show if we're previewing or showing actual value
-            if (!ingot.isEmpty()) {
-                tooltip.add(Component.literal("Value: " + displayValue + "/" + MAX_VALUE)
-                        .withStyle(ChatFormatting.YELLOW));
-            } else {
-                tooltip.add(Component.literal("Stored Value: " + displayValue + "/" + MAX_VALUE)
-                        .withStyle(ChatFormatting.YELLOW));
-            }
+            // Show value
+            tooltip.add(Component.literal("Stored Value: " + displayValue + "/" + MAX_VALUE)
+                    .withStyle(ChatFormatting.YELLOW));
 
             if (!material.isEmpty()) {
                 tooltip.add(Component.literal("Material: " + material)
@@ -175,52 +172,35 @@ public class RepairKitScreen extends AbstractContainerScreen<RepairKitMenu> {
             }
 
             if (tool.getItem() instanceof ArsenalTool arsenalTool) {
-                // Get repair efficiency (material modifier)
                 float efficiency = arsenalTool.getRepairEfficiency(tool);
 
-                // Calculate repair percentage per value: 15% / efficiency
-                float repairPercentPerValue = 15.0f / efficiency;
+                // FIX THIS CHECK - ADD IT HERE
+                boolean hasRepairReduction = false;
+                ToolAssemblyData data = tool.get(ModComponents.TOOL_ASSEMBLY_DATA.get());
+                if (data != null && !data.isEmpty()) {
+                    AlloyMaterial coreMat = AlloyMaterial.fromName(data.coreMaterial());
+                    if (coreMat != null) {
+                        CoreManager.CoreDefinition coreDef = CoreManager.getForMaterial(coreMat);
+                        hasRepairReduction = coreDef != null && coreDef.id().equals("repair_reduction");
+                    }
+                }
 
-                // Show efficiency info - COMMENTED OUT
-                // tooltip.add(Component.literal("Efficiency: " + String.format("%.1f", efficiency) +
-                //                   " (lower = better)")
-                //     .withStyle(ChatFormatting.GOLD));
+                float repairPercentPerValue = 15.0f / efficiency; // Base repair
+                if (hasRepairReduction) {
+                    repairPercentPerValue *= 1.20f; // 20% more repair
+                    // MAKE SURE THIS LINE IS HERE:
+                    tooltip.add(Component.literal("Repair Reduction Core (+20% repair)")
+                            .withStyle(ChatFormatting.GREEN));
+                }
 
-                // Show repair per value
                 tooltip.add(Component.literal("1 Value = " + String.format("%.1f", repairPercentPerValue) +
                                 "% of max durability")
                         .withStyle(ChatFormatting.AQUA));
 
-                // Calculate total repair potential
-                float totalRepairPercent = displayValue * repairPercentPerValue;
-
-                // Show total repair potential - COMMENTED OUT
-                // tooltip.add(Component.literal("Can repair: " + String.format("%.1f", totalRepairPercent) +
-                //                   "% of max durability")
-                //     .withStyle(ChatFormatting.GREEN));
-
-                // If tool is in slot, show actual durability numbers - COMMENTED OUT
-                // if (!tool.isEmpty()) {
-                //     int maxDurability = tool.getMaxDamage();
-                //     float totalDurabilityRepair = maxDurability * (totalRepairPercent / 100.0f);
-                //
-                //     tooltip.add(Component.literal("≈ " + String.format("%.0f", totalDurabilityRepair) +
-                //                           " durability points")
-                //         .withStyle(ChatFormatting.LIGHT_PURPLE));
-                // }
-
-                // if (displayValue > 0) {
-                //     tooltip.add(Component.literal("Ready to repair!")
-                //         .withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD));
-                // }
             } else {
                 tooltip.add(Component.literal("Insert a tool to see repair cost")
                         .withStyle(ChatFormatting.DARK_GRAY));
             }
-
-            // 1 Ingot = 2 Value - COMMENTED OUT
-            // tooltip.add(Component.literal("1 Ingot = 2 Value")
-            //         .withStyle(ChatFormatting.LIGHT_PURPLE));
 
             gfx.renderComponentTooltip(this.font, tooltip, mouseX, mouseY);
         }

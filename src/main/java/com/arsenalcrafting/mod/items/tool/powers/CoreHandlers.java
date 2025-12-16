@@ -15,6 +15,7 @@ public final class CoreHandlers {
 
     //Register Core Abilities here until automated
     public static final SpeedBoostCore SPEED_BOOST = new SpeedBoostCore();
+    public static final RepairReductionCore REPAIR_REDUCTION = new RepairReductionCore();
 
     /**
      * SpeedBoost core handler
@@ -35,7 +36,7 @@ public final class CoreHandlers {
 
         /**
          * Modify mining speed directly.
-         *
+         * <p>
          * Called from getDestroySpeed(...)
          */
         @Override
@@ -43,4 +44,21 @@ public final class CoreHandlers {
             return baseSpeed + SpeedBoost.getMiningSpeedBonus(tool);
         }
     }
-}
+
+
+        /**
+         * Repair Reduction core handler
+         */
+        public static final class RepairReductionCore implements CoreHandler {
+            @Override
+            public boolean supportsToolType(ArsenalToolType type) {
+                return type != null && type.isMiningTool();
+            }
+
+            // Optional: If you want to expose the multiplier through handler
+            public float getRepairMultiplier(ItemStack tool) {
+                return RepairReduction.getRepairCostMultiplier(tool);
+            }
+        }
+    }
+

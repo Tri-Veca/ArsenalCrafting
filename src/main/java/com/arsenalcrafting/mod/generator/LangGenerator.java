@@ -83,6 +83,8 @@ public class LangGenerator implements DataProvider {
         //TODO Automate Core Powers In LANG
         entries.put("core.arsenalcrafting.speed_boost", "Durability Speed");
         entries.put( "core.arsenalcrafting.speed_boost.desc", "Mining and attack speed increase as durability decreases");
+        entries.put("core.arsenalcrafting.repair_reduction", "Repair Reduction");
+        entries.put( "core.arsenalcrafting.repair_reduction.desc", "Reduces the repair cost slightly");
 
         entries.put("item.arsenalcrafting.current_durability", "Remaining: %s Max: %s");
         entries.put("screen.arsenalcrafting.toolkit_title", "Tool Kit");

@@ -48,6 +48,7 @@ public record RepairKitData(
         return new RepairKitData(material, storedValue, tool, ingot, locked);
     }
 
+
     public boolean canAcceptMaterial(String newMaterial) {
         // Can accept if:
         // 1. No material is set yet
@@ -58,4 +59,6 @@ public record RepairKitData(
         if (materialLocked && newMaterial.isEmpty()) return true; // Allow clearing
         return false;
     }
+
+
 }

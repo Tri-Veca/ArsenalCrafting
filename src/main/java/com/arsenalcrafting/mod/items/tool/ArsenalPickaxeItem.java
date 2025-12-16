@@ -277,9 +277,11 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
                     float base = headMat.getEfficiency();
                     float modified = coreDef.handler().modifyMiningSpeed(stack, base);
 
-                    tooltip.add(Component.literal("Core Speed Bonus: +" +
+                    /*tooltip.add(Component.literal("Core Speed Bonus: +" +
                                     String.format("%.2f", modified - base))
                             .withStyle(ChatFormatting.GREEN)); //Not sure if final, good for debugging
+
+                     */
 
                     if (Screen.hasShiftDown()) {
                         tooltip.add(Component.translatable("core.arsenalcrafting." + coreDef.id() + ".desc")

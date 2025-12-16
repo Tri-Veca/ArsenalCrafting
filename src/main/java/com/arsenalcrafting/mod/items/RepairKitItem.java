@@ -1,6 +1,10 @@
 package com.arsenalcrafting.mod.items;
 
 import com.arsenalcrafting.mod.component.RepairKitData;
+import com.arsenalcrafting.mod.component.ToolAssemblyData;
+import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
+import com.arsenalcrafting.mod.items.tool.powers.CoreManager;
+import com.arsenalcrafting.mod.items.tool.powers.RepairReduction;
 import com.arsenalcrafting.mod.registry.ModComponents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -121,9 +125,12 @@ public class RepairKitItem extends Item {
         return InteractionResultHolder.success(stack);
     }
 
+
     // ---------------- TOOLTIP ----------------
+    // In RepairKitItem.java - KEEP ONLY THIS TOOLTIP CHECK
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, TooltipContext context,
+                                List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, tooltip, flag);
 
         RepairKitData data = getData(stack);
@@ -131,6 +138,22 @@ public class RepairKitItem extends Item {
         if (data.materialLocked()) {
             tooltip.add(Component.literal("Material Locked")
                     .withStyle(ChatFormatting.RED));
+        }
+
+        // Check for repair reduction in stored tool
+        ItemStack tool = getTool(stack);
+        if (!tool.isEmpty()) {
+            ToolAssemblyData toolData = tool.get(ModComponents.TOOL_ASSEMBLY_DATA.get());
+            if (toolData != null && !toolData.isEmpty()) {
+                AlloyMaterial coreMat = AlloyMaterial.fromName(toolData.coreMaterial());
+                if (coreMat != null) {
+                    CoreManager.CoreDefinition def = CoreManager.getForMaterial(coreMat);
+                    if (def != null && def.id().equals("repair_reduction")) {
+                        tooltip.add(Component.literal("Core: Repair Reduction (-20% cost)")
+                                .withStyle(ChatFormatting.GREEN));
+                    }
+                }
+            }
         }
     }
 }
