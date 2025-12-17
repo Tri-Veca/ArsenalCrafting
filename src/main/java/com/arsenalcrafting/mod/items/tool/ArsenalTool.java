@@ -119,8 +119,9 @@ public interface ArsenalTool {
         if (!(stack.getItem() instanceof ArsenalTool tool)) return;
 
         ToolAugmentSlots slots = tool.getAugmentSlots(stack);
-        if (slots == null || slots.getUsedSlotCount() == 0) return;
+        if (slots == null) return;
 
+        // Process ALL augments in slot order
         for (int i = 0; i < tool.getTotalAugmentSlots(); i++) {
             String augmentId = slots.getAugmentInSlot(i);
             if (augmentId == null || augmentId.isEmpty()) continue;
@@ -132,9 +133,10 @@ public interface ArsenalTool {
 
             if (!handler.supportsToolType(tool.getToolType())) continue;
 
+            // Just call update for EVERY augment
             handler.onToolUpdate(stack, player);
 
-            if (handler.isExclusive()) break;
+            // Since isExclusive is false for all, no break
         }
     }
 
