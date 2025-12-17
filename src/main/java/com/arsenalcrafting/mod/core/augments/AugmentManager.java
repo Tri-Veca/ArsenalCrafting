@@ -45,6 +45,11 @@ public class AugmentManager {
                 AugmentHandlers.SilkTouch.class, false, 1
         ));
 
+        register(new AugmentDefinition(
+                "light", "Light", "Your tool emits light while held, eliminating the need for torches.",
+                AugmentHandlers.Light.class, false, 1
+        ));
+
         // Future augments go here ONLY
     }
 

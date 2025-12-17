@@ -50,15 +50,18 @@ public final class CoreHandlers {
          * Repair Reduction core handler
          */
         public static final class RepairReductionCore implements CoreHandler {
-            @Override
-            public boolean supportsToolType(ArsenalToolType type) {
-                return type != null && type.isMiningTool();
+            @Override public boolean supportsToolType(ArsenalToolType type) {
+                return type != null && (type.isMiningTool() || type.isWeapon());
             }
 
-            // Optional: If you want to expose the multiplier through handler
-            public float getRepairMultiplier(ItemStack tool) {
-                return RepairReduction.getRepairCostMultiplier(tool);
+            // Helper methods for repair kit
+            public static float getRepairBonus() {
+                return RepairReduction.getBonusMultiplier();
+            }
+
+            public static String getBonusText() {
+                return String.format("+%.0f%% repair", RepairReduction.getBonusPercentage());
             }
         }
-    }
+}
 

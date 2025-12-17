@@ -3,6 +3,8 @@ package com.arsenalcrafting.mod.items.tool;
 import com.arsenalcrafting.mod.component.ToolAssemblyData;
 import com.arsenalcrafting.mod.config.TestModeConfig;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
+import com.arsenalcrafting.mod.core.augments.AugmentHandler;
+import com.arsenalcrafting.mod.core.augments.AugmentHandlers;
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
 import com.arsenalcrafting.mod.core.augments.AugmentProcessor;
 import com.arsenalcrafting.mod.component.DynamicComponents;
@@ -15,6 +17,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -174,6 +177,25 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
 
         return speed;
     }
+
+    @Override
+    public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean selected) {
+        super.inventoryTick(stack, level, entity, slot, selected);
+
+        if (!(entity instanceof Player player)) return;
+
+        if (selected) {
+            ArsenalTool.tickHeldToolAugments(player, stack);
+        } else {
+            // Tool not held → cleanup
+            AugmentHandler handler = AugmentManager.getHandler("light");
+            if (handler instanceof AugmentHandlers.Light light) {
+                light.onToolUnequip(stack, player);
+            }
+        }
+    }
+
+
 
     // Custom Tier implementation to read stats from AlloyMaterial
     private static class DummyToolTier implements Tier {

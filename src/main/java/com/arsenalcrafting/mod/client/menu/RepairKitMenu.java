@@ -6,6 +6,7 @@ import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.items.RepairKitItem;
 import com.arsenalcrafting.mod.items.tool.ArsenalTool;
 import com.arsenalcrafting.mod.items.tool.powers.CoreManager;
+import com.arsenalcrafting.mod.items.tool.powers.RepairReduction;
 import com.arsenalcrafting.mod.network.PacketHandler;
 import com.arsenalcrafting.mod.network.SyncRepairKitPreviewPacket;
 import com.arsenalcrafting.mod.registry.ModComponents;
@@ -370,6 +371,19 @@ public class RepairKitMenu extends AbstractContainerMenu {
             repairWithStoredValue(tool, arsenalTool, storedValue);
         }
     }
+    private boolean hasRepairReductionCore(ItemStack tool) {
+        if (tool.isEmpty()) return false;
+
+        ToolAssemblyData data = tool.get(ModComponents.TOOL_ASSEMBLY_DATA.get());
+        if (data == null || data.isEmpty()) return false;
+
+        AlloyMaterial coreMat = AlloyMaterial.fromName(data.coreMaterial());
+        if (coreMat == null) return false;
+
+        CoreManager.CoreDefinition coreDef = CoreManager.getForMaterial(coreMat);
+        return coreDef != null && coreDef.id().equals("repair_reduction");
+    }
+
 
     private void repairWithStoredValue(ItemStack tool, ArsenalTool arsenalTool, int storedValue) {
         if (storedValue <= 0) return;
@@ -381,20 +395,13 @@ public class RepairKitMenu extends AbstractContainerMenu {
         int maxDurability = tool.getMaxDamage();
 
         // Check for repair reduction core
-        boolean hasRepairReduction = false;
-        ToolAssemblyData data = tool.get(ModComponents.TOOL_ASSEMBLY_DATA.get());
-        if (data != null && !data.isEmpty()) {
-            AlloyMaterial coreMat = AlloyMaterial.fromName(data.coreMaterial());
-            if (coreMat != null) {
-                CoreManager.CoreDefinition coreDef = CoreManager.getForMaterial(coreMat);
-                hasRepairReduction = coreDef != null && coreDef.id().equals("repair_reduction");
-            }
-        }
+        boolean hasRepairReduction = hasRepairReductionCore(tool);
 
-        // SIMPLE 20% BONUS
         float repairPercentPerValue = 15.0f / efficiency; // Base repair
+
         if (hasRepairReduction) {
-            repairPercentPerValue *= 1.20f; // 20% more repair
+            // Use the RepairReduction class
+            repairPercentPerValue = RepairReduction.calculateRepairPercent(efficiency);
         }
 
         float totalRepairPercent = storedValue * repairPercentPerValue;
@@ -406,10 +413,15 @@ public class RepairKitMenu extends AbstractContainerMenu {
         tool.setDamageValue(currentDamage - actualRepair);
 
         float percentActuallyRepaired = (actualRepair * 100.0f) / maxDurability;
-        int valueUsed = Math.max(1, (int) Math.ceil((percentActuallyRepaired * efficiency) / 15.0f));
+        int valueUsed;
+
         if (hasRepairReduction) {
-            valueUsed = (int)(valueUsed * 0.833f); // Use 16.7% less value (inverse of 1.20)
+            // Use the RepairReduction class
+            valueUsed = RepairReduction.calculateValueUsed(percentActuallyRepaired, efficiency, storedValue);
+        } else {
+            valueUsed = Math.max(1, (int) Math.ceil((percentActuallyRepaired * efficiency) / 15.0f));
         }
+
         valueUsed = Math.min(valueUsed, storedValue);
 
         RepairKitItem.setStoredValue(kitStack, storedValue - valueUsed);

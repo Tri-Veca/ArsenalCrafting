@@ -2,6 +2,7 @@ package com.arsenalcrafting.mod.items.tool;
 
 import com.arsenalcrafting.mod.component.ToolAssemblyData;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
+import com.arsenalcrafting.mod.core.augments.AugmentHandler;
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
 import com.arsenalcrafting.mod.items.tool.powers.CoreHandler;
 import com.arsenalcrafting.mod.items.tool.powers.CoreManager;
@@ -113,6 +114,35 @@ public interface ArsenalTool {
                 Component.translatable("gui.arsenalcrafting.tool")
         ));
     }
+
+    public static void tickHeldToolAugments(Player player, ItemStack stack) {
+        if (!(stack.getItem() instanceof ArsenalTool tool)) return;
+
+        ToolAugmentSlots slots = tool.getAugmentSlots(stack);
+        if (slots == null || slots.getUsedSlotCount() == 0) return;
+
+        for (int i = 0; i < tool.getTotalAugmentSlots(); i++) {
+            String augmentId = slots.getAugmentInSlot(i);
+            if (augmentId == null || augmentId.isEmpty()) continue;
+
+            if (!AugmentManager.isInstalled(augmentId, stack)) continue;
+
+            AugmentHandler handler = AugmentManager.getHandler(augmentId);
+            if (handler == null) continue;
+
+            if (!handler.supportsToolType(tool.getToolType())) continue;
+
+            handler.onToolUpdate(stack, player);
+
+            if (handler.isExclusive()) break;
+        }
+    }
+
+
+
+
+
+
 
     /**
      * Primary material used for repair cost.

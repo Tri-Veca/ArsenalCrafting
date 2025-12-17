@@ -6,7 +6,9 @@ import com.arsenalcrafting.mod.component.ToolAssemblyData;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.items.RepairKitItem;
 import com.arsenalcrafting.mod.items.tool.ArsenalTool;
+import com.arsenalcrafting.mod.items.tool.powers.CoreHandlers;
 import com.arsenalcrafting.mod.items.tool.powers.CoreManager;
+import com.arsenalcrafting.mod.items.tool.powers.RepairReduction;
 import com.arsenalcrafting.mod.registry.ModComponents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
@@ -186,11 +188,15 @@ public class RepairKitScreen extends AbstractContainerScreen<RepairKitMenu> {
                 }
 
                 float repairPercentPerValue = 15.0f / efficiency; // Base repair
+
+
                 if (hasRepairReduction) {
-                    repairPercentPerValue *= 1.20f; // 20% more repair
-                    // MAKE SURE THIS LINE IS HERE:
-                    tooltip.add(Component.literal("Repair Reduction Core (+20% repair)")
+                    // Use the RepairReduction class
+                    repairPercentPerValue = RepairReduction.calculateRepairPercent(efficiency);
+                    tooltip.add(Component.literal("Repair Reduction Core " + CoreHandlers.RepairReductionCore.getBonusText())
                             .withStyle(ChatFormatting.GREEN));
+                } else {
+                    repairPercentPerValue = 15.0f / efficiency;
                 }
 
                 tooltip.add(Component.literal("1 Value = " + String.format("%.1f", repairPercentPerValue) +

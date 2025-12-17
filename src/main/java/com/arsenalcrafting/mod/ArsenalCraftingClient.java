@@ -7,10 +7,15 @@ import com.arsenalcrafting.mod.client.render.LavaTankRenderer;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
+import net.minecraft.world.entity.player.Player;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+
+import static com.arsenalcrafting.mod.items.tool.ArsenalTool.tickHeldToolAugments;
 
 @EventBusSubscriber(modid = ArsenalCrafting.MOD_ID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
 public class ArsenalCraftingClient {
@@ -31,7 +36,6 @@ public class ArsenalCraftingClient {
                     LavaTankRenderer::new
             );
 
-
             BlockEntityRenderers.register(
                     ModBlockEntities.TOOLKIT.get(),
                     ToolKitRenderer::new
@@ -41,4 +45,16 @@ public class ArsenalCraftingClient {
 
 
     }
+
+    public static void register() {
+        NeoForge.EVENT_BUS.addListener(PlayerTickEvent.Post.class, tickEvent -> {
+            Player player = tickEvent.getEntity();
+
+            if (!player.level().isClientSide()) return;
+
+            tickHeldToolAugments(player, player.getMainHandItem());
+            tickHeldToolAugments(player, player.getOffhandItem());
+        });
+    }
 }
+

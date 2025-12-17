@@ -1,35 +1,35 @@
 package com.arsenalcrafting.mod.items.tool.powers;
 
-import com.arsenalcrafting.mod.items.tool.ArsenalTool;
 import net.minecraft.world.item.ItemStack;
 
 public class RepairReduction {
 
-
     private RepairReduction() {} // Utility class
 
-    /**
-     * Returns the repair cost multiplier
-     *
-     * @param tool The tool ItemStack
-     * @return repair cost multiplier (0.8f for 20% reduction)
-     */
-    public static float getRepairCostMultiplier(ItemStack tool) {
-        return 0.8f; // 20% reduction (1.0 - 0.2 = 0.8)
+    // CONTROL VALUES HERE
+    private static final float BONUS_MULTIPLIER = 1.20f; // 20% bonus
+    private static final float VALUE_SAVING = 0.833f; // Inverse of 1.20
+
+    public static float getBonusMultiplier() {
+        return BONUS_MULTIPLIER;
     }
 
-    /**
-     * Calculates the reduced repair cost
-     *
-     * @param originalCost The original repair cost
-     * @param tool The tool ItemStack
-     * @return reduced repair cost (originalCost * 0.8)
-     */
-    public static float getReducedRepairCost(float originalCost, ItemStack tool) {
-        return originalCost * getRepairCostMultiplier(tool);
+    public static float getValueSaving() {
+        return VALUE_SAVING;
+    }
+
+    public static float getBonusPercentage() {
+        return (BONUS_MULTIPLIER - 1) * 100;
+    }
+
+    public static float calculateRepairPercent(float baseEfficiency) {
+        float baseRepair = 15.0f / baseEfficiency;
+        return baseRepair * BONUS_MULTIPLIER;
+    }
+
+    public static int calculateValueUsed(float percentRepaired, float efficiency, int storedValue) {
+        int baseValueUsed = Math.max(1, (int) Math.ceil((percentRepaired * efficiency) / 15.0f));
+        int bonusValueUsed = (int)(baseValueUsed * VALUE_SAVING);
+        return Math.min(bonusValueUsed, storedValue);
     }
 }
-
-
-
-
