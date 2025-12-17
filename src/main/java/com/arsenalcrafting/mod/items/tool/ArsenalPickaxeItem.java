@@ -9,6 +9,7 @@ import com.arsenalcrafting.mod.core.augments.AugmentManager;
 import com.arsenalcrafting.mod.core.augments.AugmentProcessor;
 import com.arsenalcrafting.mod.component.DynamicComponents;
 import com.arsenalcrafting.mod.items.tool.powers.CoreManager;
+import com.arsenalcrafting.mod.items.tool.powers.Greedy;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
@@ -104,11 +105,27 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
         if (assemblyData != null && !assemblyData.isEmpty()) {
             AlloyMaterial rodMat = AlloyMaterial.fromName(assemblyData.rodMaterial());
             if (rodMat != null) {
-                return rodMat.getDurability();
+                float durability = (float) rodMat.getDurability();
+
+                // DYNAMIC CHECK: Get whatever core is currently installed
+                AlloyMaterial coreMat = AlloyMaterial.fromName(assemblyData.coreMaterial());
+                if (coreMat != null) {
+                    CoreManager.CoreDefinition def = CoreManager.getForMaterial(coreMat);
+                    if (def != null) {
+                        // Ask the handler to modify the durability
+                        durability = def.handler().modifyMaxDurability(stack, durability);
+
+
+                         //System.out.println("[DEBUG] Core " + def.id() + " modified durability to: " + durability);
+                    }
+                }
+                return (int) durability;
             }
         }
         return baseMaterial.getDurability();
     }
+
+
 
     @Override
     public boolean isCorrectToolForDrops(ItemStack stack, BlockState state) {
@@ -310,15 +327,15 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
     @OnlyIn(Dist.CLIENT)
     public void appendHoverText(ItemStack stack, @Nullable Item.TooltipContext context,
                                 List<Component> tooltip, TooltipFlag flag) {
-        // Call ArsenalTool tooltip logic
+        // 1. Restore the Augment List (Magnetism, etc.)
         appendArsenalTooltip(stack, context, tooltip, flag);
 
-        // Add material stats
         ToolAssemblyData assemblyData = stack.get(TOOL_ASSEMBLY_DATA.get());
-
         if (assemblyData != null && !assemblyData.isEmpty()) {
             tooltip.add(Component.literal(""));
             tooltip.add(Component.translatable("item.arsenalcrafting.tool_parts").withStyle(ChatFormatting.DARK_AQUA));
+
+            // Material Names
             tooltip.add(Component.translatable("item.arsenalcrafting.head_material", assemblyData.headMaterial()).withStyle(ChatFormatting.WHITE));
             tooltip.add(Component.translatable("item.arsenalcrafting.rod_material", assemblyData.rodMaterial()).withStyle(ChatFormatting.WHITE));
             tooltip.add(Component.translatable("item.arsenalcrafting.core_material", assemblyData.coreMaterial()).withStyle(ChatFormatting.WHITE));
@@ -329,36 +346,43 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
 
             if (headMat != null && rodMat != null && coreMat != null) {
                 tooltip.add(Component.literal(""));
-                tooltip.add(Component.translatable("item.arsenalcrafting.repairability", headMat.getName())
-                        .withStyle(headMat.getColor()));
-                tooltip.add(Component.translatable("item.arsenalcrafting.durability", rodMat.getDurability())
-                        .withStyle(rodMat.getColor()));
-                tooltip.add(Component.translatable("item.arsenalcrafting.efficiency",
-                                String.format("%.1f", headMat.getEfficiency()))
-                        .withStyle(headMat.getColor()));
+
+
+                // --- DYNAMIC STATS ---
+                float finalDurability = (float) rodMat.getDurability();
+                float finalEfficiency = headMat.getEfficiency();
 
                 CoreManager.CoreDefinition coreDef = CoreManager.getForMaterial(coreMat);
+                if (coreDef != null) {
+                    // This ensures Gold (Greedy) modifies the numbers before they are displayed
+                    finalDurability = coreDef.handler().modifyMaxDurability(stack, finalDurability);
+                    finalEfficiency = coreDef.handler().modifyMiningSpeed(stack, finalEfficiency);
+                }
 
 
+                tooltip.add(Component.translatable("item.arsenalcrafting.repairability", headMat.getName())
+                        .withStyle(headMat.getColor()));
+
+                // --- DISPLAY DURABILITY (Flat number, no %) ---
+                tooltip.add(Component.translatable("item.arsenalcrafting.durability")
+                        .append(": " + (int) finalDurability)
+                        .withStyle(rodMat.getColor()));
+
+                // --- DISPLAY EFFICIENCY (Flat number, no %) ---
+                tooltip.add(Component.translatable("item.arsenalcrafting.efficiency")
+                        .append(": " + String.format("%.1f", finalEfficiency))
+                        .withStyle(headMat.getColor()));
+
+                // --- CORE POWER INFO ---
                 if (coreDef != null) {
                     tooltip.add(Component.literal("• ")
                             .append(Component.translatable("core.arsenalcrafting." + coreDef.id())
-                                    .withStyle(coreMat.getColor()))); //Core Tooltip
-
-                    float base = headMat.getEfficiency();
-                    float modified = coreDef.handler().modifyMiningSpeed(stack, base);
-
-                    /*tooltip.add(Component.literal("Core Speed Bonus: +" +
-                                    String.format("%.2f", modified - base))
-                            .withStyle(ChatFormatting.GREEN)); //Not sure if final, good for debugging
-
-                     */
+                                    .withStyle(coreMat.getColor())));
 
                     if (Screen.hasShiftDown()) {
                         tooltip.add(Component.translatable("core.arsenalcrafting." + coreDef.id() + ".desc")
-                                .withStyle(ChatFormatting.DARK_GRAY)); //Shift for description of ability
+                                .withStyle(ChatFormatting.DARK_GRAY));
                     }
-
                 }
             }
         }

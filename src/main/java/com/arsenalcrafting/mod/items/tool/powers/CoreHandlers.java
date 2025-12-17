@@ -16,6 +16,9 @@ public final class CoreHandlers {
     //Register Core Abilities here until automated
     public static final SpeedBoostCore SPEED_BOOST = new SpeedBoostCore();
     public static final RepairReductionCore REPAIR_REDUCTION = new RepairReductionCore();
+    public static final GreedyCore GREEDY = new GreedyCore();
+
+
 
     /**
      * SpeedBoost core handler
@@ -63,5 +66,28 @@ public final class CoreHandlers {
                 return String.format("+%.0f%% repair", RepairReduction.getBonusPercentage());
             }
         }
+
+    // Inside com.arsenalcrafting.mod.items.tool.powers.CoreHandlers
+
+
+    public static final class GreedyCore implements CoreHandler {
+        @Override
+        public boolean supportsToolType(ArsenalToolType type) {
+            return type != null && type.isMiningTool();
+        }
+
+        @Override
+        public float modifyMiningSpeed(ItemStack tool, float baseSpeed) {
+            return baseSpeed + Greedy.getMiningSpeedBonus();
+        }
+
+        @Override
+        public float modifyMaxDurability(ItemStack tool, float currentMax) {
+            // This is where we get the 0.85f from your Greedy class
+            return currentMax * Greedy.getDurabilityMultiplier();
+        }
+
+    }
+
 }
 

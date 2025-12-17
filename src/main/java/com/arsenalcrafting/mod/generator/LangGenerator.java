@@ -74,17 +74,31 @@ public class LangGenerator implements DataProvider {
         entries.put("item.arsenalcrafting.rod_material", "Rod: %s");
         entries.put("item.arsenalcrafting.tool_material", "Material: %s");
         entries.put("item.arsenalcrafting.core_material", "Core: %s");
-        entries.put("item.arsenalcrafting.durability", "Durability: %s");
-        entries.put("item.arsenalcrafting.efficiency", "Efficiency: %s");
+        entries.put("item.arsenalcrafting.durability", "Durability");
+        entries.put("item.arsenalcrafting.efficiency", "Efficiency");
         entries.put("item.arsenalcrafting.repairability", "Repairability: %s");
         entries.put("item.arsenalcrafting.augment_slots", "Augment Slots: %s");
         entries.put("item.arsenalcrafting.alloy_color", "Alloy Color: %s");
         entries.put("item.arsenalcrafting.tin_alloy", "Tin");
         //TODO Automate Core Powers In LANG
-        entries.put("core.arsenalcrafting.speed_boost", "Durability Speed");
+        /*entries.put("core.arsenalcrafting.speed_boost", "Durability Speed");
         entries.put( "core.arsenalcrafting.speed_boost.desc", "Mining and attack speed increase as durability decreases");
         entries.put("core.arsenalcrafting.repair_reduction", "Repair Reduction");
         entries.put( "core.arsenalcrafting.repair_reduction.desc", "Reduces the repair cost slightly");
+        entries.put("core.arsenalcrafting.greedy", "Greedy");
+        entries.put( "core.arsenalcrafting.greedy.desc", "+2 Efficiency, -15% Durability");
+
+         */
+        // === AUTOMATED CORE POWERS ===
+        //  Pulls directly from CoreManager so you never have to manually add IDs here again
+        System.out.println("[LangGenerator] Adding core power entries...");
+        for (var coreDef : com.arsenalcrafting.mod.items.tool.powers.CoreManager.getAll()) {
+            // core.arsenalcrafting.greedy = Greedy
+            entries.put("core.arsenalcrafting." + coreDef.id(), coreDef.name());
+
+            // core.arsenalcrafting.greedy.desc = +2 Efficiency, -15% Durability
+            entries.put("core.arsenalcrafting." + coreDef.id() + ".desc", coreDef.description());
+        }
 
         entries.put("item.arsenalcrafting.current_durability", "Remaining: %s Max: %s");
         entries.put("screen.arsenalcrafting.toolkit_title", "Tool Kit");

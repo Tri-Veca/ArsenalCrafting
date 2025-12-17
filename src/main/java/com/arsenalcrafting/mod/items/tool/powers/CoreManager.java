@@ -35,6 +35,13 @@ public class CoreManager {
                 CoreHandlers.REPAIR_REDUCTION
         ));
 
+        register(AlloyMaterial.GOLD, new CoreDefinition(
+                "greedy",
+                "Greedy",
+                "+2 Efficiency, -15% Durability",
+                CoreHandlers.GREEDY
+        ));
+
     }
 
     private static void register(AlloyMaterial material, CoreDefinition def) {

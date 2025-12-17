@@ -33,6 +33,9 @@ public interface CoreHandler {
     default float modifyMiningSpeed(ItemStack tool, float baseSpeed) {
         return baseSpeed;
     }
+    default float modifyMaxDurability(ItemStack tool, float currentMax) {
+        return currentMax; // Default: no change
+    }
 
 
     // ============= ENTITY INTERACTIONS =============
