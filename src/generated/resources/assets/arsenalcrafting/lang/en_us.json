@@ -8,7 +8,7 @@
   "augment.arsenalcrafting.fortune_augment.tier3": "Fortune III",
   "augment.arsenalcrafting.fortune_augment.tier3.description": "Multiplies ore drops",
   "augment.arsenalcrafting.light": "Light",
-  "augment.arsenalcrafting.light.description": "Your tool emits light while held, eliminating the need for torches.",
+  "augment.arsenalcrafting.light.description": "Your tool emits light while held",
   "augment.arsenalcrafting.ore_miner": "Ore Miner",
   "augment.arsenalcrafting.ore_miner.description": "Vein mines ores",
   "augment.arsenalcrafting.silk_touch": "Silk Touch",

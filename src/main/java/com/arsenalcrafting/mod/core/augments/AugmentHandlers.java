@@ -312,7 +312,7 @@ public class AugmentHandlers {
         }
     }
 
-    
+
         // ============= COMBAT AUGMENTS =============
 
     public static class FireAspect implements AugmentHandler {

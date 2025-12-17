@@ -46,7 +46,7 @@ public class AugmentManager {
         ));
 
         register(new AugmentDefinition(
-                "light", "Light", "Your tool emits light while held, eliminating the need for torches.",
+                "light", "Light", "Your tool emits light while held",
                 AugmentHandlers.Light.class, false, 1
         ));
 

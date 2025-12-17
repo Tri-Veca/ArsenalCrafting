@@ -100,7 +100,7 @@ public enum AlloyMaterial {
             "Bronze",
             2,
             500,
-            5.0f,
+            6.0f,
             0.8f,
             1.6f,
             1.0f,
