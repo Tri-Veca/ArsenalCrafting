@@ -185,15 +185,21 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
         if (!(entity instanceof Player player)) return;
 
         if (selected) {
+
             ArsenalTool.tickHeldToolAugments(player, stack);
+            AugmentProcessor.processToolUpdate(stack, player, ArsenalToolType.PICKAXE);
         } else {
             // Tool not held → cleanup
             AugmentHandler handler = AugmentManager.getHandler("light");
             if (handler instanceof AugmentHandlers.Light light) {
                 light.onToolUnequip(stack, player);
             }
+            // Only process if the tool is currently held in the main or off hand
+
         }
+
     }
+
 
 
 

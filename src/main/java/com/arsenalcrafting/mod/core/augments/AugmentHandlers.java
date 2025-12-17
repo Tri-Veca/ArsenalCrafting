@@ -312,6 +312,23 @@ public class AugmentHandlers {
         }
     }
 
+    public static class Magnetism implements AugmentHandler {
+        @Override
+        public int priority() {
+            return 100; // Utility runs after mining/combat logic
+        }
+
+        @Override
+        public boolean isExclusive() {
+            return false;
+        }
+
+        @Override
+        public void onToolUpdate(ItemStack tool, Player player) {
+            MagnetismAugmentItem.tickMagnet(tool, player);
+        }
+    }
+
 
         // ============= COMBAT AUGMENTS =============
 

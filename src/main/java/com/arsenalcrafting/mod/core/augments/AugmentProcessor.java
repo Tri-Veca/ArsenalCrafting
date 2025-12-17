@@ -120,11 +120,16 @@ public class AugmentProcessor {
     /**
      * Update tool each tick (for magnet, effects, etc.)
      */
-    public static void processToolUpdate(ItemStack tool, ArsenalToolType toolType, Player player) {
-        List<AugmentHandler> handlers = getActiveHandlers(tool, toolType);
+    public static void processToolUpdate(ItemStack tool, Player player, ArsenalToolType toolType) {
+        // 1. Get all active augments for this tool
+        List<AugmentManager.AugmentDefinition> activeAugments = getActiveAugments(tool, toolType);
 
-        for (AugmentHandler handler : handlers) {
-            handler.onToolUpdate(tool, player);
+        // 2. Loop through them and trigger their per-tick update logic
+        for (AugmentManager.AugmentDefinition def : activeAugments) {
+            AugmentHandler handler = getCachedHandler(def.id());
+            if (handler != null) {
+                handler.onToolUpdate(tool, player);
+            }
         }
     }
 

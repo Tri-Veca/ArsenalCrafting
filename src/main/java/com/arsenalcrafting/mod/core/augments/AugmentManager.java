@@ -50,6 +50,11 @@ public class AugmentManager {
                 AugmentHandlers.Light.class, false, 1
         ));
 
+        register(new AugmentDefinition(
+                "magnetism", "Magnetism", "Attracts nearby items while held",
+                AugmentHandlers.Magnetism.class, false, 1
+        ));
+
         // Future augments go here ONLY
     }
 
