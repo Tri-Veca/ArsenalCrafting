@@ -108,9 +108,49 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
     }
 
     @Override
+    public boolean isCorrectToolForDrops(ItemStack stack, BlockState state) {
+        // Get the actual head material from the tool assembly
+        ToolAssemblyData data = stack.get(TOOL_ASSEMBLY_DATA.get());
+        AlloyMaterial material = getBaseMaterial(); // Default fallback
+
+        if (data != null && !data.isEmpty()) {
+            // HEAD material determines mining capability
+            AlloyMaterial headMat = AlloyMaterial.fromName(data.headMaterial());
+            if (headMat != null) {
+                material = headMat;
+            }
+        }
+
+        System.out.println("[DEBUG] isCorrectToolForDrops: Using " + material.getName() +
+                " (tier " + material.getTier() + ") for block: " +
+                state.getBlock().getName().getString());
+
+        // First check if block is mineable with pickaxe
+        if (!state.is(BlockTags.MINEABLE_WITH_PICKAXE)) {
+            System.out.println("[DEBUG] Block is not mineable with pickaxe");
+            return false;
+        }
+
+        // Then check if this material tier can mine it
+        TagKey<Block> incorrectTag = AlloyMaterial.getToolBreakTag(material);
+        boolean isIncorrect = state.is(incorrectTag);
+
+        System.out.println("[DEBUG] Is in incorrect tag? " + isIncorrect + " (tag: " + incorrectTag.location() + ")");
+
+        return !isIncorrect;
+    }
+
+    @Override
     public float getDestroySpeed(ItemStack stack, BlockState state) {
+        // First check if we can mine this block at all
+        if (!isCorrectToolForDrops(stack, state)) {
+            System.out.println("[DEBUG] getDestroySpeed: Not correct tool, returning 1.0");
+            return 1.0f;
+        }
+
         // 1. Start with vanilla Pickaxe speed logic
         float speed = super.getDestroySpeed(stack, state);
+        System.out.println("[DEBUG] getDestroySpeed: Vanilla speed = " + speed);
 
         // 2. Apply head material efficiency
         ToolAssemblyData data = stack.get(TOOL_ASSEMBLY_DATA.get());
@@ -118,6 +158,7 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
             AlloyMaterial headMat = AlloyMaterial.fromName(data.headMaterial());
             if (headMat != null) {
                 speed = headMat.getEfficiency();
+                System.out.println("[DEBUG] getDestroySpeed: Head material efficiency = " + speed);
             }
 
             // 3. Apply core modifier (SpeedBoost, etc.)
@@ -126,13 +167,13 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
                 CoreManager.CoreDefinition def = CoreManager.getForMaterial(coreMat);
                 if (def != null) {
                     speed = def.handler().modifyMiningSpeed(stack, speed);
+                    System.out.println("[DEBUG] getDestroySpeed: After core modifier = " + speed);
                 }
             }
         }
 
         return speed;
     }
-
 
     // Custom Tier implementation to read stats from AlloyMaterial
     private static class DummyToolTier implements Tier {
@@ -159,7 +200,7 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
 
         @Override
         public TagKey<Block> getIncorrectBlocksForDrops() {
-            return BlockTags.INCORRECT_FOR_IRON_TOOL;
+            return AlloyMaterial.getToolBreakTag(material);
         }
 
         @Override
@@ -184,6 +225,7 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
             System.out.println("[ArsenalPickaxe] Processing augments for block: " +
                     state.getBlock().getName().getString());
 
+
             // Only process augments that are enabled
             ToolAugmentSlots slots = getAugmentSlots(stack);
             boolean hasEnabledAugments = false;
@@ -195,6 +237,7 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
                     break;
                 }
             }
+
 
             if (hasEnabledAugments) {
                 // Process through AugmentProcessor with PICKAXE tool type

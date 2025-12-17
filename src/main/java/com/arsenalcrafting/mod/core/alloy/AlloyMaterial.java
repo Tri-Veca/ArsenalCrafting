@@ -2,10 +2,11 @@ package com.arsenalcrafting.mod.core.alloy;
 
 import com.arsenalcrafting.mod.core.ItemStackHelper;
 import net.minecraft.ChatFormatting;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.Tier;
-import net.minecraft.world.item.Tiers;
+import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.Nullable;
 
 public enum AlloyMaterial {
@@ -242,5 +243,26 @@ public enum AlloyMaterial {
             }
         }
         return highest;
+    }
+
+    public static TagKey<Block> getToolBreakTag(AlloyMaterial material){
+        int tier = material.getTier();
+        switch (tier) {
+            case 1 -> {
+                return BlockTags.INCORRECT_FOR_STONE_TOOL;
+            }
+            case 2 -> {
+                return BlockTags.INCORRECT_FOR_IRON_TOOL;
+            }
+            case 3 -> {
+                return BlockTags.INCORRECT_FOR_DIAMOND_TOOL;
+            }
+            case 4 -> {
+                return BlockTags.INCORRECT_FOR_NETHERITE_TOOL;
+            }
+            default -> {
+                return BlockTags.INCORRECT_FOR_WOODEN_TOOL;
+            }
+        }
     }
 }
