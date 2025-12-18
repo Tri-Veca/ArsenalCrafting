@@ -2,9 +2,12 @@ package com.arsenalcrafting.mod.component;
 
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
@@ -16,47 +19,67 @@ public class DynamicComponents {
     private static final Map<String, DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>>> ENABLED_COMPONENTS = new HashMap<>();
     private static final Map<String, DeferredHolder<DataComponentType<?>, DataComponentType<Integer>>> TIER_COMPONENTS = new HashMap<>();
 
-    // DeferredHolder for LIGHT_POS
+    private static DeferredHolder<DataComponentType<?>, DataComponentType<MomentumData>> MOMENTUM_HOLDER;
     private static DeferredHolder<DataComponentType<?>, DataComponentType<BlockPos>> LIGHT_POS_HOLDER;
 
-    /**
-     * Returns the fully registered LIGHT_POS component.
-     */
+    // Getter for Momentum Component
+    public static DataComponentType<MomentumData> MOMENTUM() {
+        return MOMENTUM_HOLDER.get();
+    }
+
     public static DataComponentType<BlockPos> LIGHT_POS() {
         return LIGHT_POS_HOLDER.get();
     }
 
-    /**
-     * Registers all augment-related components plus LIGHT_POS.
-     */
+    public record MomentumData(int combo, long lastTime) {
+        public static final Codec<MomentumData> CODEC = RecordCodecBuilder.create(inst -> inst.group(
+                Codec.INT.fieldOf("combo").forGetter(MomentumData::combo),
+                Codec.LONG.fieldOf("last_time").forGetter(MomentumData::lastTime)
+        ).apply(inst, MomentumData::new));
+
+        public static final StreamCodec<ByteBuf, MomentumData> STREAM_CODEC = StreamCodec.composite(
+                ByteBufCodecs.VAR_INT, MomentumData::combo,
+                ByteBufCodecs.VAR_LONG, MomentumData::lastTime,
+                MomentumData::new
+        );
+
+        public static final MomentumData EMPTY = new MomentumData(0, 0L);
+    }
+
     public static void registerAll(DeferredRegister<DataComponentType<?>> register) {
 
-        // Register augments
+        // 1. Register standalone components OUTSIDE the loop
+        MOMENTUM_HOLDER = register.register("momentum_data",
+                () -> DataComponentType.<MomentumData>builder()
+                        .persistent(MomentumData.CODEC)
+                        .networkSynchronized(MomentumData.STREAM_CODEC)
+                        .build()
+        );
+
+        // (Make sure to initialize LIGHT_POS_HOLDER here too if it's not registered elsewhere)
+
+        // 2. Register augments inside the loop
         for (AugmentManager.AugmentDefinition def : AugmentManager.getAll()) {
             String id = def.id();
 
-            // Enabled boolean
-            DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> enabledHolder = register.register(
+            ENABLED_COMPONENTS.put(id, register.register(
                     id + "_enabled",
                     () -> DataComponentType.<Boolean>builder()
                             .persistent(Codec.BOOL)
                             .networkSynchronized(ByteBufCodecs.BOOL)
                             .cacheEncoding()
                             .build()
-            );
-            ENABLED_COMPONENTS.put(id, enabledHolder);
+            ));
 
-            // Tier integer (if augment has tiers)
             if (def.hasTiers()) {
-                DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> tierHolder = register.register(
+                TIER_COMPONENTS.put(id, register.register(
                         id + "_tier",
                         () -> DataComponentType.<Integer>builder()
                                 .persistent(Codec.INT)
                                 .networkSynchronized(ByteBufCodecs.INT)
                                 .cacheEncoding()
                                 .build()
-                );
-                TIER_COMPONENTS.put(id, tierHolder);
+                ));
             }
         }
     }

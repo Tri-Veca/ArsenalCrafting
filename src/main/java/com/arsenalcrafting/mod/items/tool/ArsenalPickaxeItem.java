@@ -266,12 +266,23 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
     public boolean mineBlock(@NotNull ItemStack stack, @NotNull Level level, @NotNull BlockState state,
                              @NotNull BlockPos pos, @NotNull LivingEntity entity) {
 
+        // Logic should only run on the server to manage data components and effects
         if (!level.isClientSide) {
-            System.out.println("[ArsenalPickaxe] Processing augments for block: " +
-                    state.getBlock().getName().getString());
 
+            // 1. DYNAMIC CORE LOGIC (Process Tin Momentum / Copper Efficiency etc.)
+            ToolAssemblyData assemblyData = stack.get(TOOL_ASSEMBLY_DATA.get());
+            if (assemblyData != null) {
+                AlloyMaterial coreMat = AlloyMaterial.fromName(assemblyData.coreMaterial());
+                CoreManager.CoreDefinition coreDef = CoreManager.getForMaterial(coreMat);
 
-            // Only process augments that are enabled
+                // This triggers the core's specific behavior (e.g., Momentum.onBlockMined for Tin)
+                if (coreDef != null) {
+                    coreDef.handler().onBlockDestroyed(stack, level, state, pos, entity);
+                }
+            }
+
+            // 2. AUGMENT PROCESSING
+            // Check if any augments are installed and enabled
             ToolAugmentSlots slots = getAugmentSlots(stack);
             boolean hasEnabledAugments = false;
 
@@ -283,9 +294,8 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
                 }
             }
 
-
+            // If enabled augments exist, try to let the AugmentProcessor handle the break
             if (hasEnabledAugments) {
-                // Process through AugmentProcessor with PICKAXE tool type
                 AugmentProcessor.ProcessResult result = AugmentProcessor.processBlockBreak(
                         stack,
                         ArsenalToolType.PICKAXE,
@@ -295,28 +305,27 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
                         entity
                 );
 
+                // If an augment handled the drops (like Smelting or Voiding), skip vanilla logic
                 if (result.handled) {
-                    System.out.println("[ArsenalPickaxe] Augments handled drops - SKIPPING super.mineBlock()");
                     EquipmentSlot slot = entity.getMainHandItem() == stack
                             ? EquipmentSlot.MAINHAND
                             : EquipmentSlot.OFFHAND;
 
+                    // Manually apply durability damage since we are bypassing super.mineBlock()
                     stack.hurtAndBreak(1, entity, slot);
 
-                    // Apply combo effects if any
+                    // Handle any special augment combo effects
                     if (result.specialCombo != null) {
                         System.out.println("[ArsenalPickaxe] Special combo: " + result.specialCombo);
-                        // Add any combo-specific effects here
                     }
 
-                    return true; // This should prevent vanilla drops!
-                } else {
-                    System.out.println("[ArsenalPickaxe] No augment handled this block, using vanilla");
+                    return true; // Successfully handled by augments
                 }
             }
         }
 
-        // No enabled augment handled it, use vanilla behavior
+        // 3. VANILLA FALLBACK
+        // No enabled augment handled the block, or we are on the client: use default behavior
         return super.mineBlock(stack, level, state, pos, entity);
     }
 

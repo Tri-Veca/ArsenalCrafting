@@ -38,6 +38,11 @@ public interface CoreHandler {
     }
 
 
+    default void onBlockDestroyed(ItemStack stack, Level level, BlockState state, BlockPos pos, LivingEntity entity) {
+        // Default: Do nothing
+    }
+
+
     // ============= ENTITY INTERACTIONS =============
     default boolean canHandleEntity(Entity target, ItemStack tool) {
         return false;

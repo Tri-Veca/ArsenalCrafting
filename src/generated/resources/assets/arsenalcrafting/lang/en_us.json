@@ -23,6 +23,8 @@
   "block.arsenalcrafting.void_casing": "Void Casing",
   "core.arsenalcrafting.greedy": "Greedy",
   "core.arsenalcrafting.greedy.desc": "+2 Efficiency, -15% Durability",
+  "core.arsenalcrafting.momentum": "Momentum",
+  "core.arsenalcrafting.momentum.desc": "Consecutive mining grants increasing Haste levels",
   "core.arsenalcrafting.repair_reduction": "Repair Reduction",
   "core.arsenalcrafting.repair_reduction.desc": "Decreases the repair cost slightly",
   "core.arsenalcrafting.speed_boost": "Durability Speed",

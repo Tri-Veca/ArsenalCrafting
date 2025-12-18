@@ -1,7 +1,11 @@
 package com.arsenalcrafting.mod.items.tool.powers;
 
 import com.arsenalcrafting.mod.items.tool.ArsenalToolType;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Central holder for built-in CoreHandler implementations.
@@ -17,6 +21,7 @@ public final class CoreHandlers {
     public static final SpeedBoostCore SPEED_BOOST = new SpeedBoostCore();
     public static final RepairReductionCore REPAIR_REDUCTION = new RepairReductionCore();
     public static final GreedyCore GREEDY = new GreedyCore();
+    public static final MomentumCore MOMENTUM = new MomentumCore();
 
 
 
@@ -67,7 +72,6 @@ public final class CoreHandlers {
             }
         }
 
-    // Inside com.arsenalcrafting.mod.items.tool.powers.CoreHandlers
 
 
     public static final class GreedyCore implements CoreHandler {
@@ -87,6 +91,18 @@ public final class CoreHandlers {
             return currentMax * Greedy.getDurabilityMultiplier();
         }
 
+    }
+
+    public static final class MomentumCore implements CoreHandler {
+        @Override
+        public boolean supportsToolType(ArsenalToolType type) {
+            return type != null && type.isMiningTool();
+        }
+
+        @Override
+        public void onBlockDestroyed(ItemStack stack, Level level, BlockState state, BlockPos pos, LivingEntity entity) {
+            Momentum.onBlockMined(stack, entity);
+        }
     }
 
 }

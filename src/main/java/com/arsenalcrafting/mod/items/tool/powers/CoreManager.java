@@ -42,6 +42,13 @@ public class CoreManager {
                 CoreHandlers.GREEDY
         ));
 
+        register(AlloyMaterial.TIN, new CoreDefinition(
+                "momentum",
+                "Momentum",
+                "Consecutive mining grants increasing Haste levels",
+                CoreHandlers.MOMENTUM
+        ));
+
     }
 
     private static void register(AlloyMaterial material, CoreDefinition def) {
