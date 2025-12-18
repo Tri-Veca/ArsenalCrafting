@@ -147,6 +147,10 @@ public class AutoSmeltAugmentItem extends Item implements Augment, InstallableAu
         return Optional.empty();
     }
 
+
+
+
+
     @Override
     public void installOnTool(ItemStack tool) {
         tool.set(DynamicComponents.getEnabledComponent("auto_smelt"), true);

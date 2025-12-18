@@ -23,7 +23,7 @@ public class UniversalAugmentItem extends Item implements Augment, InstallableAu
         tool.set(DynamicComponents.getEnabledComponent(augmentId), true);
 
         // Set tier if applicable
-       AugmentManager.AugmentDefinition def = AugmentManager.get(augmentId);
+        AugmentManager.AugmentDefinition def = AugmentManager.get(augmentId);
         if (def.hasTiers() && tier > 0) {
             tool.set(DynamicComponents.getTierComponent(augmentId), tier);
         }

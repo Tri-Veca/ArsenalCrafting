@@ -8,6 +8,7 @@ import com.arsenalcrafting.mod.core.augments.AugmentHandlers;
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
 import com.arsenalcrafting.mod.core.augments.AugmentProcessor;
 import com.arsenalcrafting.mod.component.DynamicComponents;
+import com.arsenalcrafting.mod.items.augments.EfficiencyAugmentItem;
 import com.arsenalcrafting.mod.items.tool.powers.CoreManager;
 import com.arsenalcrafting.mod.items.tool.powers.Greedy;
 import net.minecraft.ChatFormatting;
@@ -191,6 +192,11 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
                 }
             }
         }
+        //3. Apply EfficiencyAugment
+        if (isAugmentEnabled(stack,"efficiency")) {
+            speed += EfficiencyAugmentItem.getSpeedBonus(stack, speed);
+            System.out.println("[DEBUG] getDestroySpeed: After Efficiency = " + speed);
+        }
 
         return speed;
     }
@@ -366,6 +372,11 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
                     // This ensures Gold (Greedy) modifies the numbers before they are displayed
                     finalDurability = coreDef.handler().modifyMaxDurability(stack, finalDurability);
                     finalEfficiency = coreDef.handler().modifyMiningSpeed(stack, finalEfficiency);
+                }
+                // 2. Apply Efficiency Augment once
+                if (isAugmentEnabled(stack, "efficiency")) {
+                    // Note: getSpeedBonus should ideally just return the flat bonus (+2, +10, +26)
+                    finalEfficiency += EfficiencyAugmentItem.getSpeedBonus(stack, finalEfficiency);
                 }
 
 

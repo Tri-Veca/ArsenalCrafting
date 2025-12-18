@@ -86,15 +86,22 @@ public class ToolMenu extends AbstractContainerMenu {
     }
 
     public void toggleAugment(String augmentId) {
-        // ADD NULL CHECK
-        if (augmentId == null || augmentId.isEmpty()) {
-            return; // Can't toggle null/empty augment
+        if (augmentId == null || augmentId.isEmpty() || toolStack.isEmpty()) {
+            return;
         }
 
         boolean currentlyEnabled = isAugmentEnabled(augmentId);
+        // Capture the tier BEFORE toggling
+        int currentTier = AugmentManager.getTier(augmentId, toolStack);
+
+        // Toggle the enabled flag
         arsenalTool.setAugmentEnabled(toolStack, augmentId, !currentlyEnabled);
 
-        // Sync with client
+        // FORCE the tier back onto the tool so it isn't lost
+        if (currentTier > 1) {
+            toolStack.set(com.arsenalcrafting.mod.component.DynamicComponents.getTierComponent(augmentId), currentTier);
+        }
+
         broadcastChanges();
     }
 
@@ -142,6 +149,11 @@ public class ToolMenu extends AbstractContainerMenu {
 
         return itemstack;
     }
+    public int getTierForAugment(String augmentId) {
+        if (this.toolStack.isEmpty()) return 0;
+        // This calls your existing manager to check the tool's actual data
+        return com.arsenalcrafting.mod.core.augments.AugmentManager.getTier(augmentId, this.toolStack);
+    }
 
     @Override
     public void broadcastChanges() {
@@ -151,5 +163,19 @@ public class ToolMenu extends AbstractContainerMenu {
             // Force sync of the tool item
             player.inventoryMenu.broadcastChanges();
         }
+
+    }
+
+    public int getTierForSlot(int slotIndex) {
+        if (toolStack.isEmpty()) return 0;
+
+        ToolAugmentSlots slots = toolStack.getOrDefault(ModComponents.TOOL_AUGMENT_SLOTS.get(), new ToolAugmentSlots());
+        String augmentId = slots.getAugmentInSlot(slotIndex);
+
+        if (augmentId != null && !augmentId.isEmpty()) {
+            // Use your existing AugmentManager to get the tier from the tool stack
+            return AugmentManager.getTier(augmentId, toolStack);
+        }
+        return 0;
     }
 }

@@ -329,6 +329,28 @@ public class AugmentHandlers {
         }
     }
 
+    public static class Efficiency implements AugmentHandler {
+        @Override
+        public int priority() {
+            return 0; // Speed should be calculated early
+        }
+
+        @Override
+        public boolean isExclusive() {
+            return false;
+        }
+
+        @Override
+        public boolean supportsToolType(ArsenalToolType type) {
+            return type.isMiningTool();
+        }
+
+
+
+        // Efficiency doesn't "handle" the block break (drops),
+        // it only changes speed, so we don't override handleBlockBreak.
+    }
+
 
         // ============= COMBAT AUGMENTS =============
 

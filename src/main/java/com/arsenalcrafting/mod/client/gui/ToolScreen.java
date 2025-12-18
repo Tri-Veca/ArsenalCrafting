@@ -103,15 +103,26 @@ public class ToolScreen extends AbstractContainerScreen<ToolMenu> {
                     176, 0, SLOT_SIZE + 2, SLOT_SIZE + 2);
         }
 
+
+        // Draw augment icons
         // Draw augment icons
         ToolAugmentSlots slots = menu.getAugmentSlots();
         for (int i = 0; i < 4; i++) {
             String augmentId = slots.getAugmentInSlot(i);
             if (augmentId != null && !augmentId.isEmpty()) {
-                // Draw augment icon
+
+                // 1. Get the tier
+                int tier = menu.getTierForAugment(augmentId);
+
+                // 2. Build the filename.
+                // If tier is 2 or 3 -> "fortune_t2", "fortune_t3"
+                // If tier is 1 or 0 -> "fortune", "autosmelt"
+                String suffix = (tier > 1) ? "_t" + tier : "";
+                String fileName = augmentId + suffix;
+
                 ResourceLocation icon = ResourceLocation.fromNamespaceAndPath(
                         ArsenalCrafting.MOD_ID,
-                        "textures/item/" + augmentId  + ".png"
+                        "textures/item/" + fileName + ".png"
                 );
 
                 try {
@@ -120,10 +131,23 @@ public class ToolScreen extends AbstractContainerScreen<ToolMenu> {
                             leftPos + SLOT_X[i] + 1, topPos + SLOT_Y + 1,
                             0, 0, 16, 16, 16, 16);
                 } catch (Exception e) {
-                    // Fallback if texture not found - draw gray square
-                    guiGraphics.fill(leftPos + SLOT_X[i] + 1, topPos + SLOT_Y + 1,
-                            leftPos + SLOT_X[i] + 17, topPos + SLOT_Y + 17,
-                            0xFF666666);
+                    // FALLBACK: If "fortune_t3.png" is missing, always try the base "fortune.png"
+                    ResourceLocation fallback = ResourceLocation.fromNamespaceAndPath(
+                            ArsenalCrafting.MOD_ID,
+                            "textures/item/" + augmentId + ".png"
+                    );
+
+                    try {
+                        RenderSystem.setShaderTexture(0, fallback);
+                        guiGraphics.blit(fallback,
+                                leftPos + SLOT_X[i] + 1, topPos + SLOT_Y + 1,
+                                0, 0, 16, 16, 16, 16);
+                    } catch (Exception e2) {
+                        // Gray square if the file literally doesn't exist at all
+                        guiGraphics.fill(leftPos + SLOT_X[i] + 1, topPos + SLOT_Y + 1,
+                                leftPos + SLOT_X[i] + 17, topPos + SLOT_Y + 17,
+                                0xFF666666);
+                    }
                 }
             }
         }

@@ -1,5 +1,6 @@
 package com.arsenalcrafting.mod.items.tool;
 
+import com.arsenalcrafting.mod.core.augments.AugmentManager;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -116,6 +117,8 @@ public final class ToolAugmentSlots {
                 for (com.arsenalcrafting.mod.core.augments.AugmentManager.AugmentDefinition def : allAugments) {
                     if (def != null && com.arsenalcrafting.mod.core.augments.AugmentManager.isInstalled(def.id(), stack) && nextSlot < 4) {
                         newSlots = newSlots.withSlot(nextSlot++, def.id());
+                        int tier = AugmentManager.getTier(def.id(), stack);
+                        AugmentManager.install(def.id(), stack, tier);
                     }
                 }
             }

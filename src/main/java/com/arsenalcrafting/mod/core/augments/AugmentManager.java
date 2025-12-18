@@ -55,6 +55,11 @@ public class AugmentManager {
                 AugmentHandlers.Magnetism.class, false, 1
         ));
 
+        register(new AugmentDefinition(
+                "efficiency", "Efficiency", "Increases mining speed",
+                AugmentHandlers.Efficiency.class, true, 3
+        ));
+
         // Future augments go here ONLY
     }
 

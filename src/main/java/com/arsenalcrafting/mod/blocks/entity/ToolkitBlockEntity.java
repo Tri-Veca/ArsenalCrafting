@@ -49,11 +49,14 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
     private static final int ROD_SLOT = 3;
 
     private boolean isAssembling = false;
+    private boolean isSyncing = false; // Prevents the recursive loop
 
     private final ItemStackHandler itemHandler = new ItemStackHandler(SLOTS) {
         @Override
         protected void onContentsChanged(int slot) {
+
             setChanged();
+            if (isAssembling || isSyncing) return;
 
             // Only trigger assembly if we are NOT already assembling,
             // and only for the component/output slots.
@@ -145,37 +148,42 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
      * Sync augments from tool to GUI slots
      */
     public void syncAugmentsFromTool() {
-        ItemStack outputTool = itemHandler.getStackInSlot(OUTPUT_SLOT);
+        if (isSyncing) return; // Guard against recursive loops
+        isSyncing = true;
 
-        if (outputTool.isEmpty() || !(outputTool.getItem() instanceof ArsenalTool arsenalTool)) {
-            // Clear all augment slots if no tool or wrong tool
-            for (int i = AUGMENT_SLOT_START; i < AUGMENT_SLOT_END; i++) {
-                itemHandler.setStackInSlot(i, ItemStack.EMPTY);
+        try {
+            ItemStack outputTool = itemHandler.getStackInSlot(OUTPUT_SLOT);
+            if (outputTool.isEmpty() || !(outputTool.getItem() instanceof ArsenalTool arsenalTool)) {
+                for (int i = AUGMENT_SLOT_START; i < AUGMENT_SLOT_END; i++) {
+                    itemHandler.setStackInSlot(i, ItemStack.EMPTY);
+                }
+                return;
             }
-            return;
-        }
 
-       ToolAugmentSlots slots = arsenalTool.getAugmentSlots(outputTool);
+            ToolAugmentSlots slots = arsenalTool.getAugmentSlots(outputTool);
 
-        // Clear augment slots first
-        for (int i = AUGMENT_SLOT_START; i < AUGMENT_SLOT_END; i++) {
-            itemHandler.setStackInSlot(i, ItemStack.EMPTY);
-        }
+            for (int i = 0; i < 4; i++) {
+                int toolkitSlot = i + AUGMENT_SLOT_START;
+                String augmentId = slots.getAugmentInSlot(i);
 
-        // Fill augment slots from tool
-        for (int i = 0; i < 4; i++) {
-            String augmentId = slots.getAugmentInSlot(i);
-            if (augmentId != null) {
-                int tier = AugmentManager.getTier(augmentId, outputTool);
-                ItemStack augmentItem = findAugmentItem(augmentId, tier);
-                if (!augmentItem.isEmpty()) {
-                    int toolkitSlot = i + AUGMENT_SLOT_START;
+                if (augmentId != null && !augmentId.isEmpty()) {
+                    int tier = AugmentManager.getTier(augmentId, outputTool);
+                    ItemStack augmentItem = findAugmentItem(augmentId, tier);
+
+                    // Using setStackInSlot triggers onContentsChanged, but our flag will block the loop
                     itemHandler.setStackInSlot(toolkitSlot, augmentItem);
+                } else {
+                    itemHandler.setStackInSlot(toolkitSlot, ItemStack.EMPTY);
                 }
             }
-        }
 
-        setChanged();
+            setChanged();
+            if (level != null && !level.isClientSide) {
+                level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
+            }
+        } finally {
+            isSyncing = false; // Always release the flag
+        }
     }
 
     /**
@@ -184,7 +192,6 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
     public void installAugments() {
         ItemStack outputTool = itemHandler.getStackInSlot(OUTPUT_SLOT);
 
-        // Only proceed if we have a valid assembled tool
         if (outputTool.isEmpty() || !(outputTool.getItem() instanceof ArsenalTool arsenalTool)) {
             return;
         }
@@ -192,45 +199,43 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
         ToolAugmentSlots slots = arsenalTool.getAugmentSlots(outputTool);
         boolean changed = false;
 
-        // Check each augment slot in Toolkit (4-7)
         for (int toolkitSlot = AUGMENT_SLOT_START; toolkitSlot < AUGMENT_SLOT_END; toolkitSlot++) {
             ItemStack augmentStack = itemHandler.getStackInSlot(toolkitSlot);
-            int toolSlot = toolkitSlot - AUGMENT_SLOT_START; // Convert to 0-3
+            int toolSlot = toolkitSlot - AUGMENT_SLOT_START;
 
-            if (!augmentStack.isEmpty() && augmentStack.getItem() instanceof UniversalAugmentItem augmentItem) {
-                String augmentId = augmentItem.getAugmentId();
-                int tier = augmentItem.getTier();
+            // FIX: Check for the general interface first so tier-less augs aren't ignored
+            if (!augmentStack.isEmpty() && augmentStack.getItem() instanceof InstallableAugmentItem installable) {
+                String augmentId = "";
+                int tier = 0;
 
-                // Check if augment can be installed on this tool type
+                // If it's a UniversalAugmentItem, we can safely grab ID and Tier
+                if (installable instanceof UniversalAugmentItem uni) {
+                    augmentId = uni.getAugmentId();
+                    tier = uni.getTier();
+                }
+                // Add other specific item classes here if they don't extend UniversalAugmentItem
+
+                if (augmentId.isEmpty()) continue;
+
                 if (!AugmentManager.canInstallOnToolType(augmentId, arsenalTool.getToolType())) {
-                    System.out.println("[Toolkit] Augment " + augmentId + " cannot be installed on " + arsenalTool.getToolType());
                     continue;
                 }
 
-                // Get current augment in this slot
                 String currentAugmentId = slots.getAugmentInSlot(toolSlot);
                 int currentTier = currentAugmentId != null ? AugmentManager.getTier(currentAugmentId, outputTool) : 0;
 
-                // Only install if different
                 if (!augmentId.equals(currentAugmentId) || tier != currentTier) {
-                    System.out.println("[Toolkit] Installing " + augmentId + " (Tier " + tier + ") in slot " + toolSlot);
-
-                    // Remove existing augment if different
                     if (currentAugmentId != null && !currentAugmentId.equals(augmentId)) {
                         AugmentManager.uninstall(currentAugmentId, outputTool);
                     }
 
-                    // Install new augment
                     slots = slots.withSlot(toolSlot, augmentId);
                     AugmentManager.install(augmentId, outputTool, tier);
-
                     changed = true;
                 }
             } else if (augmentStack.isEmpty()) {
-                // Empty slot - clear augment if present
                 String currentAugmentId = slots.getAugmentInSlot(toolSlot);
                 if (currentAugmentId != null) {
-                    System.out.println("[Toolkit] Clearing " + currentAugmentId + " from slot " + toolSlot);
                     slots = slots.clearSlot(toolSlot);
                     AugmentManager.uninstall(currentAugmentId, outputTool);
                     changed = true;
@@ -241,15 +246,10 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
         if (changed) {
             arsenalTool.setAugmentSlots(outputTool, slots);
             setChanged();
-
-            // Sync with client
             if (level != null && !level.isClientSide) {
                 level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
             }
         }
-
-
-
     }
 
     /**
@@ -298,27 +298,18 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
     }
 
     private ItemStack findAugmentItem(String augmentId, int tier) {
-        // Search through registered items to find the augment item
         for (var entry : ModItems.ITEMS.getEntries()) {
             Item item = entry.get();
-            if (item instanceof UniversalAugmentItem augmentItem) {
-                if (augmentItem.getAugmentId().equals(augmentId) &&
-                        augmentItem.getTier() == tier) {
-                    return new ItemStack(item);
+            if (item instanceof UniversalAugmentItem uniItem) {
+                if (uniItem.getAugmentId().equals(augmentId)) {
+                    // If the tool has a tier (1, 2, 3), we MUST match the item tier exactly.
+                    // If the tool has no tier (0), we just take the first item with that ID.
+                    if (tier <= 1 || uniItem.getTier() == tier) {
+                        return new ItemStack(uniItem);
+                    }
                 }
             }
         }
-
-        // If exact tier not found, try to find any tier of this augment
-        for (var entry : ModItems.ITEMS.getEntries()) {
-            Item item = entry.get();
-            if (item instanceof UniversalAugmentItem augmentItem) {
-                if (augmentItem.getAugmentId().equals(augmentId)) {
-                    return new ItemStack(item);
-                }
-            }
-        }
-
         return ItemStack.EMPTY;
     }
 
