@@ -49,7 +49,7 @@ public final class Momentum {
     }
 
     private static void applyEffect(LivingEntity player, int combo) {
-        // We match the effect duration to the highest leeway (60-80 ticks)
+
         // to ensure the Haste doesn't run out before the combo does.
         if (combo >= TIER_3) {
             player.addEffect(new MobEffectInstance(MobEffects.DIG_SPEED, 80, 2, true, false)); // Haste 3

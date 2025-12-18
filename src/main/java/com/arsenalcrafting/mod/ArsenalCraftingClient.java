@@ -42,8 +42,6 @@ public class ArsenalCraftingClient {
             );
         });
 
-
-
     }
 
     public static void register() {
@@ -51,7 +49,7 @@ public class ArsenalCraftingClient {
             Player player = tickEvent.getEntity();
 
             if (!player.level().isClientSide()) return;
-
+            //tick method for updating tick on ArsenalPickaxeItem for Light Augment
             tickHeldToolAugments(player, player.getMainHandItem());
             tickHeldToolAugments(player, player.getOffhandItem());
         });

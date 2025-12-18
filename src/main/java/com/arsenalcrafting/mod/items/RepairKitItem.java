@@ -127,7 +127,7 @@ public class RepairKitItem extends Item {
 
 
     // ---------------- TOOLTIP ----------------
-    // In RepairKitItem.java - KEEP ONLY THIS TOOLTIP CHECK
+
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context,
                                 List<Component> tooltip, TooltipFlag flag) {

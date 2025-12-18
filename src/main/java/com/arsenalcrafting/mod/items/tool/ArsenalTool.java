@@ -24,7 +24,9 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.arsenalcrafting.mod.registry.ModComponents.TOOL_ASSEMBLY_DATA;
-
+//More will be added to support other tools/ new augments.
+//ALL Arsenal Tools will implement!
+//Not super organized
 public interface ArsenalTool {
 
     ArsenalToolType getToolType();
@@ -140,12 +142,6 @@ public interface ArsenalTool {
         }
     }
 
-
-
-
-
-
-
     /**
      * Primary material used for repair cost.
      * Head material takes priority, fallback to base material.
@@ -171,10 +167,6 @@ public interface ArsenalTool {
         AlloyMaterial mat = getRepairMaterial(stack);
         return mat != null ? mat.getModifier() : 1.0f;
     }
-
-
-
-
 
 
     // ---- TOOLTIP ----

@@ -3,7 +3,7 @@ package com.arsenalcrafting.mod.items.tool.toolparts;
 import com.arsenalcrafting.mod.component.ToolComponentType;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import net.minecraft.world.item.Item;
-
+//Generic. Used to all generate tool components.
 public class ToolComponentItem extends Item {
     private final AlloyMaterial material;
     private final ToolComponentType componentType;

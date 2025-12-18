@@ -56,10 +56,7 @@ public final class ToolAugmentSlots {
         }
     }
 
-    /**
-     * Returns the augment id in the slot, or "" when empty.
-     * Never returns null.
-     */
+
     public String getAugmentInSlot(int slot) {
         if (slot < 0 || slot >= 4) return "";
         return slots[slot];
@@ -106,7 +103,6 @@ public final class ToolAugmentSlots {
 
     /**
      * Migrate from old dynamic system into this safe container.
-     * Returns a ToolAugmentSlots (never null).
      */
     public static ToolAugmentSlots migrateFromOld(com.arsenalcrafting.mod.items.tool.ArsenalTool tool, net.minecraft.world.item.ItemStack stack) {
         ToolAugmentSlots newSlots = new ToolAugmentSlots();

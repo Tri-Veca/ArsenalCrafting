@@ -1,5 +1,9 @@
 package com.arsenalcrafting.mod.component;
+// We loop through this we Data Generating.
 
+/**
+ * Single Source Of Truth for Components
+ */
 public enum ToolComponentType {
     // Heads/Blades
     PICKAXE_HEAD("pickaxe_head", "Pickaxe Head"),

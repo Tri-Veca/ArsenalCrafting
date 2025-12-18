@@ -61,7 +61,7 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
 
-        // Handle shift-right click for GUI
+
         InteractionResultHolder<ItemStack> arsenalResult = onToolUse(level, player, hand);
         if (arsenalResult.getResult().consumesAction()) {
             return arsenalResult;

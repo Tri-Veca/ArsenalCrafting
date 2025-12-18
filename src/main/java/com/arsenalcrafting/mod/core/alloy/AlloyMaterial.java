@@ -10,20 +10,23 @@ import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.Nullable;
 
 public enum AlloyMaterial {
+/**
+ * Lists all Materials. Crucial Class, is the backbone for the entire mod!
 
+ */
     COPPER(
-            "Copper",
-            1,
-            190,
-            5.0f,
-            0.75f,
-            1.6f,
-            0f,
-            1.0f,
-            4,
-            ChatFormatting.RED,
-            0xFFe77c56,
-            false
+            "Copper",   //Name
+            1,             //maps tier to Incorrect tool for block BlockTag
+            190,        //durability, getMaxDamage
+            5.0f,       //efficency, getDestroySpeed
+            0.75f,        //how cheap are repairs? lower is better.
+            1.6f,      //attack speed. default for swords
+            0f,      // 0 extra dmg. Correct for Copper
+            1.0f,      // how many can we swing?
+            4,       //max aug slots
+            ChatFormatting.RED,   //tooltip color
+            0xFFe77c56,          //tint color
+            false            //allow alloy to be created automatically. We don't use for vanilla materials
     ),
     TIN(
             "Tin",
@@ -154,18 +157,8 @@ public enum AlloyMaterial {
     private final boolean allowAlloy;
 
 
-    AlloyMaterial(String name,
-                  int tier,
-                  int durability,
-                  float efficiency,
-                  float modifier,
-                  float attackSpeed,
-                  float damage,
-                  float arc,
-                  int toolAugmentSlots,
-                  ChatFormatting color,
-                  int itemColor,
-                  boolean allowAlloy) {
+    AlloyMaterial(String name, int tier, int durability, float efficiency, float modifier, float attackSpeed, float damage, float arc, int toolAugmentSlots,
+                  ChatFormatting color, int itemColor, boolean allowAlloy) {
         this.name = name;
         this.tier = tier;
         this.durability = durability;
@@ -213,13 +206,15 @@ public enum AlloyMaterial {
 
     @Nullable
     public static AlloyMaterial fromItem(Item item) {
+        //Sets vanilla items to their respective materials for repair kit usage
         if (item == Items.COPPER_INGOT) return COPPER;
         if (item == Items.IRON_INGOT) return IRON;
         if (item == Items.GOLD_INGOT) return GOLD;
         if (item == Items.DIAMOND) return DIAMOND;
         if (item == Items.NETHERITE_INGOT) return NETHERITE;
 
-        // If you have modded ingots later:
+
+        //Sets modded ingots to their respective materials for repair kit usage
         if (item == ItemStackHelper.getAlloyStack(AlloyMaterial.BRONZE).getItem()) return BRONZE;
         if (item == ItemStackHelper.getAlloyStack(AlloyMaterial.STEEL).getItem()) return STEEL;
         if (item == ItemStackHelper.getAlloyStack(AlloyMaterial.TITANIUM).getItem()) return TITANIUM;
@@ -246,6 +241,7 @@ public enum AlloyMaterial {
     }
 
     public static TagKey<Block> getToolBreakTag(AlloyMaterial material){
+        //Set Incorrect for tool to Alloy Material Tier
         int tier = material.getTier();
         switch (tier) {
             case 1 -> {

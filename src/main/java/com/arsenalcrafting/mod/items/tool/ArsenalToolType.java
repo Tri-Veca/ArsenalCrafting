@@ -9,7 +9,7 @@ public enum ArsenalToolType {
     HOE,
 
     // Combat weapons
-    SWORD,
+    SWORD, //probably not gonna use
     KATANA,
     DAGGER,
     BROADSWORD;

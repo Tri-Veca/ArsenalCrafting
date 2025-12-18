@@ -3,8 +3,8 @@ package com.arsenalcrafting.mod.items.tool.powers;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Greedy core power (Midas Touch)
- * Centralized logic for Gold material modifiers.
+ * Greedy core power
+ *Change values here:
  */
 public final class Greedy {
 
