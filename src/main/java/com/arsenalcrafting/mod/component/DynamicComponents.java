@@ -56,7 +56,6 @@ public class DynamicComponents {
                         .build()
         );
 
-        // (Make sure to initialize LIGHT_POS_HOLDER here too if it's not registered elsewhere)
 
         // 2. Register augments inside the loop
         for (AugmentManager.AugmentDefinition def : AugmentManager.getAll()) {
