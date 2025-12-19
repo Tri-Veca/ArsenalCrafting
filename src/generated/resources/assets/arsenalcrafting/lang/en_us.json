@@ -39,6 +39,8 @@
   "core.arsenalcrafting.speed_boost.desc": "Higher mining speed when durability is low",
   "core.arsenalcrafting.sturdy": "Sturdy",
   "core.arsenalcrafting.sturdy.desc": "40% chance to not use durability",
+  "core.arsenalcrafting.workhorse": "WorkHorse",
+  "core.arsenalcrafting.workhorse.desc": "Instantly breaks hard blocks regardless of tool tier",
   "gui.arsenalcrafting.augment.title": "Augment Configuration",
   "gui.arsenalcrafting.click_to_toggle": "Click to Toggle",
   "gui.arsenalcrafting.status.disabled": "Disabled",

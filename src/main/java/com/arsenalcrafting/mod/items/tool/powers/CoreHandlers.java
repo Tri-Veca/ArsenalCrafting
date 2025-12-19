@@ -6,6 +6,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -25,6 +26,7 @@ public final class CoreHandlers {
     public static final MomentumCore MOMENTUM = new MomentumCore();
     public static final BurnProtectionCore BURN_PROTECTION = new BurnProtectionCore();
     public static final SturdyCore STURDY = new SturdyCore();
+    public static final WorkHorseCore WORKHORSE = new WorkHorseCore();
 
 
 
@@ -119,6 +121,25 @@ public final class CoreHandlers {
         @Override
         public boolean supportsToolType(ArsenalToolType type) {
             return type != null && (type.isMiningTool() || type.isWeapon());
+        }
+    }
+
+    public static final class WorkHorseCore implements CoreHandler {
+        @Override
+        public boolean supportsToolType(ArsenalToolType type) {
+            return type != null && type.isMiningTool();
+        }
+
+        @Override
+        public boolean canHandleBlock(BlockState state, ItemStack tool) {
+            return WorkHorse.isHardBlock(state);
+        }
+
+        @Override
+        public boolean handleBlockBreak(ItemStack tool, Level level, BlockState state,
+                                        BlockPos pos, LivingEntity miner) {
+            // EMPTY - All logic is in ArsenalPickaxeItem.mineBlock
+            return false;
         }
     }
 
