@@ -1,0 +1,18 @@
+{
+  "type": "arsenalcrafting:alloy_smelting",
+  "ingredients": [
+    {
+      "item": "minecraft:copper_ingot"
+    },
+    {
+      "item": "minecraft:copper_ingot"
+    },
+    {
+      "item": "arsenalcrafting:tin_alloy"
+    }
+  ],
+  "result": {
+    "id": "arsenalcrafting:bronze_alloy",
+    "count": 1
+  }
+}

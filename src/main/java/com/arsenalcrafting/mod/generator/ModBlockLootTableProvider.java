@@ -27,9 +27,9 @@ public class ModBlockLootTableProvider extends BlockLootSubProvider {
     protected void generate() {
         dropSelf(ModBlocks.LAVA_TANK.get());
         dropSelf(ModBlocks.TOOLKIT.get());
-        dropSelf(ModBlocks.ALLOY_SMELTER_CORE.get());
         dropSelf(ModBlocks.IRON_CASING.get());
         dropSelf(ModBlocks.VOID_CASING.get());
+        dropSelf(ModBlocks.ALLOY_SMELTER.get());
 
         // dropSelf(ModBlocks.MAGIC_BLOCK.get());
 

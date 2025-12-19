@@ -1,6 +1,7 @@
 package com.arsenalcrafting.mod.registry;
 
 import com.arsenalcrafting.mod.ArsenalCrafting;
+import com.arsenalcrafting.mod.blocks.AlloySmelterBlock;
 import com.arsenalcrafting.mod.blocks.LavaTankBlock;
 import com.arsenalcrafting.mod.blocks.ToolkitBlock;
 import net.minecraft.core.registries.Registries;
@@ -34,9 +35,17 @@ public class ModBlocks {
             )
     );
 
+    public static final DeferredHolder<Block, AlloySmelterBlock> ALLOY_SMELTER =
+            registerBlock("alloy_smelter", () -> new AlloySmelterBlock(
+                    BlockBehaviour.Properties.of()
+                            .strength(3.5f)
+                            .requiresCorrectToolForDrops()
+                            .noOcclusion()
+            ));
+
+
     // --- Functional Blocks ---
-    public static final DeferredHolder<Block, Block> ALLOY_SMELTER_CORE = registerBlock("alloy_smelter_core",
-            () -> new Block(BlockBehaviour.Properties.ofFullCopy(Blocks.IRON_BLOCK).sound(SoundType.ANVIL).noOcclusion()));
+
 
     public static final DeferredHolder<Block, ToolkitBlock> TOOLKIT = registerBlock("toolkit",
             () -> new ToolkitBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.SMITHING_TABLE).noOcclusion()));
