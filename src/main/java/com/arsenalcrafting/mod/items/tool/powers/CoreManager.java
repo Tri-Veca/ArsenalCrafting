@@ -55,6 +55,13 @@ public class CoreManager {
                 CoreHandlers.BURN_PROTECTION
         ));
 
+        register(AlloyMaterial.BRONZE, new CoreDefinition(
+                "sturdy",
+                "Sturdy",
+                "40% chance to not use durability",
+                CoreHandlers.STURDY
+        ));
+
     }
 
     private static void register(AlloyMaterial material, CoreDefinition def) {

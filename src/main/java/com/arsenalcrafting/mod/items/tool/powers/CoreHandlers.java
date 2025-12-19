@@ -24,6 +24,7 @@ public final class CoreHandlers {
     public static final GreedyCore GREEDY = new GreedyCore();
     public static final MomentumCore MOMENTUM = new MomentumCore();
     public static final BurnProtectionCore BURN_PROTECTION = new BurnProtectionCore();
+    public static final SturdyCore STURDY = new SturdyCore();
 
 
 
@@ -113,6 +114,14 @@ public final class CoreHandlers {
             return type != null && (type.isMiningTool() || type.isWeapon());
         }
     }
+
+    public static final class SturdyCore implements CoreHandler {
+        @Override
+        public boolean supportsToolType(ArsenalToolType type) {
+            return type != null && (type.isMiningTool() || type.isWeapon());
+        }
+    }
+
 
 }
 

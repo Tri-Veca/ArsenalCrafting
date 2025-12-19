@@ -9,6 +9,7 @@ import com.arsenalcrafting.mod.core.augments.AugmentManager;
 import com.arsenalcrafting.mod.core.augments.AugmentProcessor;
 import com.arsenalcrafting.mod.items.augments.EfficiencyAugmentItem;
 import com.arsenalcrafting.mod.items.tool.powers.CoreManager;
+import com.arsenalcrafting.mod.items.tool.powers.Sturdy;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
@@ -32,6 +33,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 import static com.arsenalcrafting.mod.registry.ModComponents.TOOL_ASSEMBLY_DATA;
 
@@ -310,6 +312,7 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool{
                         entity
                 );
 
+
                 // If an augment handled the drops (like Smelting or Voiding), skip vanilla logic
                 if (result.handled) {
                     EquipmentSlot slot = entity.getMainHandItem() == stack
@@ -332,6 +335,25 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool{
         // 3. VANILLA FALLBACK
         // No enabled augment handled the block, or we are on the client: use default behavior
         return super.mineBlock(stack, level, state, pos, entity);
+    }
+
+    @Override
+    public <T extends LivingEntity> int damageItem(ItemStack stack, int amount, @Nullable T entity, Consumer<Item> onBroken) {
+        // Check for Sturdy core
+        ToolAssemblyData data = stack.get(TOOL_ASSEMBLY_DATA.get());
+        if (data != null && entity != null) {
+            AlloyMaterial coreMat = AlloyMaterial.fromName(data.coreMaterial());
+            if (coreMat != null) {
+                CoreManager.CoreDefinition def = CoreManager.getForMaterial(coreMat);
+                if (def != null && "sturdy".equals(def.id())) {
+                    if (Sturdy.trySaveDurability(entity.getRandom())) {
+                        return 0; // No durability consumed
+                    }
+                }
+            }
+        }
+
+        return super.damageItem(stack, amount, entity, onBroken);
     }
 
 

@@ -37,6 +37,8 @@
   "core.arsenalcrafting.repair_reduction.desc": "Decreases the repair cost slightly",
   "core.arsenalcrafting.speed_boost": "Durability Speed",
   "core.arsenalcrafting.speed_boost.desc": "Higher mining speed when durability is low",
+  "core.arsenalcrafting.sturdy": "Sturdy",
+  "core.arsenalcrafting.sturdy.desc": "40% chance to not use durability",
   "gui.arsenalcrafting.augment.title": "Augment Configuration",
   "gui.arsenalcrafting.click_to_toggle": "Click to Toggle",
   "gui.arsenalcrafting.status.disabled": "Disabled",
