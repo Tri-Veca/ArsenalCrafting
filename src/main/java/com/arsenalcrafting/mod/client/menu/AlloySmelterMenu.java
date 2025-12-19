@@ -1,4 +1,4 @@
-package com.arsenalcrafting.mod.blocks.menu;
+package com.arsenalcrafting.mod.client.menu;
 
 import com.arsenalcrafting.mod.blocks.entity.AlloySmelterBlockEntity;
 import com.arsenalcrafting.mod.registry.ModBlocks;

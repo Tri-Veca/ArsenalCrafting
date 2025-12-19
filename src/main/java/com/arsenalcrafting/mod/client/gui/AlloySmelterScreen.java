@@ -1,7 +1,7 @@
 package com.arsenalcrafting.mod.client.gui;
 
 import com.arsenalcrafting.mod.ArsenalCrafting;
-import com.arsenalcrafting.mod.blocks.menu.AlloySmelterMenu;
+import com.arsenalcrafting.mod.client.menu.AlloySmelterMenu;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
