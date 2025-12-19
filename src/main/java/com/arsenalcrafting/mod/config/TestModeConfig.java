@@ -5,7 +5,7 @@ import com.arsenalcrafting.mod.items.tool.ArsenalToolType;
 
 import java.util.HashMap;
 import java.util.Map;
-
+//VERY OLD Class. Have not used sense refactoring.
 public class TestModeConfig {
     // ========== CORE STATE ==========
     private static boolean testModeEnabled = false;

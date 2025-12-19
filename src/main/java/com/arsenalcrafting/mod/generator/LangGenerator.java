@@ -80,23 +80,15 @@ public class LangGenerator implements DataProvider {
         entries.put("item.arsenalcrafting.augment_slots", "Augment Slots: %s");
         entries.put("item.arsenalcrafting.alloy_color", "Alloy Color: %s");
         entries.put("item.arsenalcrafting.tin_alloy", "Tin");
-        //TODO Automate Core Powers In LANG
-        /*entries.put("core.arsenalcrafting.speed_boost", "Durability Speed");
-        entries.put( "core.arsenalcrafting.speed_boost.desc", "Mining and attack speed increase as durability decreases");
-        entries.put("core.arsenalcrafting.repair_reduction", "Repair Reduction");
-        entries.put( "core.arsenalcrafting.repair_reduction.desc", "Reduces the repair cost slightly");
-        entries.put("core.arsenalcrafting.greedy", "Greedy");
-        entries.put( "core.arsenalcrafting.greedy.desc", "+2 Efficiency, -15% Durability");
 
-         */
-        // === AUTOMATED CORE POWERS ===
+
+
+        // 6. AUTOMATED CORE POWERS
         //  Pulls directly from CoreManager so you never have to manually add IDs here again
         System.out.println("[LangGenerator] Adding core power entries...");
         for (var coreDef : com.arsenalcrafting.mod.items.tool.powers.CoreManager.getAll()) {
-            // core.arsenalcrafting.greedy = Greedy
             entries.put("core.arsenalcrafting." + coreDef.id(), coreDef.name());
 
-            // core.arsenalcrafting.greedy.desc = +2 Efficiency, -15% Durability
             entries.put("core.arsenalcrafting." + coreDef.id() + ".desc", coreDef.description());
         }
 
@@ -112,14 +104,14 @@ public class LangGenerator implements DataProvider {
         entries.put( "gui.arsenalcrafting.tool", "Augment Menu");
         entries.put("tooltip.arsenalcrafting.installed_augments", "Installed Augments");
 
-        // 6. Messages & Instructions
+        // 7. Messages & Instructions
         entries.put("message.arsenalcrafting.augment_installed", "§a%s augment installed!");
         entries.put("message.arsenalcrafting.augment_removed", "§7%s augment removed.");
         entries.put("message.arsenalcrafting.incompatible_augment", "§cCannot install %s with %s already installed!");
         entries.put("message.arsenalcrafting.no_augment_slots", "§cNo augment slots available!");
         entries.put("message.arsenalcrafting.alloy_created", "§aCreated %s Alloy!");
 
-        // 7. AUGMENTS - Generated from AugmentManager
+        // 8. AUGMENTS - Generated from AugmentManager
         System.out.println("[LangGenerator] Adding augment entries...");
         for (var def : AugmentManager.getAll()) {
             String augmentName = def.name();
@@ -163,7 +155,7 @@ public class LangGenerator implements DataProvider {
 
         }
 
-        // 8. Alloy properties for tooltips (optional)
+        // 9. Alloy properties for tooltips (optional)
         for (AlloyMaterial material : AlloyMaterial.values()) {
             String materialId = material.name().toLowerCase();
             entries.put("tooltip.arsenalcrafting." + materialId + "_durability", "Base Durability: " + material.getDurability());

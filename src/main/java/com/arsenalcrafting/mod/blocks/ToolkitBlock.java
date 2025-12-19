@@ -67,7 +67,6 @@ public class ToolkitBlock extends BaseEntityBlock {
 
     /**
      * Handles block interaction (right-click) logic. This is the canonical override
-     * for functional blocks in NeoForge 21.1.x (MC 1.21).
      */
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {

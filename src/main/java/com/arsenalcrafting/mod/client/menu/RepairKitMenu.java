@@ -20,7 +20,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-
+//This class is a jungle!
 public class RepairKitMenu extends AbstractContainerMenu {
 
     private final Container container = new SimpleContainer(2);
@@ -40,7 +40,7 @@ public class RepairKitMenu extends AbstractContainerMenu {
     private int clientPreviewValue = 0;
     private String clientPreviewMaterial = "";
 
-    // CLIENT ctor
+    // CLIENT
     public RepairKitMenu(int id, Inventory playerInventory, FriendlyByteBuf extraData) {
         this(id, playerInventory, playerInventory.player.getMainHandItem());
 
@@ -53,7 +53,7 @@ public class RepairKitMenu extends AbstractContainerMenu {
         }
     }
 
-    // SERVER ctor
+    // SERVER
     public RepairKitMenu(int id, Inventory inv, ItemStack kitStack) {
         super(ModMenus.REPAIRKIT.get(), id);
         this.kitStack = kitStack;
@@ -241,7 +241,7 @@ public class RepairKitMenu extends AbstractContainerMenu {
             return;
         }
 
-        // CRITICAL FIX: Check if tool needs repair
+        // Check if tool needs repair
         if (tool.getDamageValue() <= 0) {
             // Tool is fully repaired, don't consume ingots
             return;
@@ -257,7 +257,7 @@ public class RepairKitMenu extends AbstractContainerMenu {
         if (!(tool.getItem() instanceof ArsenalTool arsenalTool)) return;
         String toolMaterial = arsenalTool.getMaterialName(tool);
 
-        // CRITICAL: Check if ingot material matches tool material
+        // Check if ingot material matches tool material
         if (!toolMaterial.isEmpty() && !toolMaterial.equals(ingotMaterial)) {
             return;
         }
@@ -416,7 +416,7 @@ public class RepairKitMenu extends AbstractContainerMenu {
         int valueUsed;
 
         if (hasRepairReduction) {
-            // Use the RepairReduction class
+
             valueUsed = RepairReduction.calculateValueUsed(percentActuallyRepaired, efficiency, storedValue);
         } else {
             valueUsed = Math.max(1, (int) Math.ceil((percentActuallyRepaired * efficiency) / 15.0f));

@@ -36,7 +36,7 @@ public class FortuneAugmentItem extends Item implements Augment, InstallableAugm
         tool.set(DynamicComponents.getTierComponent("fortune"), tier);
         System.out.println("[Toolkit] Fortune tier " + tier + " installed!");
     }
-
+    //Only Allow Ores to be vein mined
     public static boolean isOre(BlockState state){
         if (!(state.is(BlockTags.COAL_ORES) ||
                 state.is(BlockTags.COPPER_ORES) ||

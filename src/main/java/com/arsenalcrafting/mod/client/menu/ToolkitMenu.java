@@ -128,9 +128,7 @@ public class ToolkitMenu extends AbstractContainerMenu {
                 player, ModBlocks.TOOLKIT.get());
     }
 
-    /**
-     * Handles shift-click behavior (quick transfer).
-     */
+
     // --- THIS is what makes shift-click work ---
     @Override
     public ItemStack quickMoveStack(Player player, int index) {

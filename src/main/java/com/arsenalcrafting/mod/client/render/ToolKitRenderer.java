@@ -27,17 +27,17 @@ public class ToolKitRenderer implements BlockEntityRenderer<ToolkitBlockEntity> 
     ) {
         poseStack.pushPose();
 
-        // 1️⃣ Position on the side of the block
+        // Position on the side of the block
         poseStack.translate(0.9, 0.25, 0.5);
 
-        // 2️⃣ Rotate so the pickaxe is vertical (handle down)
+        // Rotation
         poseStack.mulPose(Axis.XP.rotationDegrees(0));
 
 
-        // 3️⃣ Move it UP so the head is near the top
+        // Up value
         poseStack.translate(0.0, 0.6, 0.0);
 
-        // 4️⃣ Scale (optional, keep 1 for now)
+        // Scale
         poseStack.scale(1.1F, 1.1F, 1.1F);
 
         Minecraft.getInstance().getItemRenderer().renderStatic(

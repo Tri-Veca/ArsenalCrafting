@@ -25,7 +25,7 @@ public class ArsenalCrafting {
         TestModeConfig.setTestMode(false);
         System.out.println("[ArsenalCrafting] Constructor completed - Test Mode should be OFF");
 
-        // Generate lang file on mod init (during development)
+
 
         // IMPORTANT: The client setup (ModScreens) is handled automatically
         // by the @EventBusSubscriber annotation on the ModScreens class.
@@ -38,12 +38,7 @@ public class ArsenalCrafting {
             }
         });
     }
-    private void clearStuckLights() {
-        // This will clean up any light blocks that got saved
-        System.out.println("[ArsenalCrafting] Cleaning up stuck light blocks...");
-        // The actual cleanup code goes in your Light class
-        // Just call the static method
-    }
+
 
 
 

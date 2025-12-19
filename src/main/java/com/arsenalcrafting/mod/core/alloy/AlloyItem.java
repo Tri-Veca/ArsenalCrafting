@@ -1,7 +1,7 @@
 package com.arsenalcrafting.mod.core.alloy;
 
 import net.minecraft.world.item.Item;
-
+//Generic Alloy
 public class AlloyItem extends Item {
     private final AlloyMaterial material;
 

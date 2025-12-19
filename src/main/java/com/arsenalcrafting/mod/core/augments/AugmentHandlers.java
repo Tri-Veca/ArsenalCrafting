@@ -129,7 +129,6 @@ public class AugmentHandlers {
     }
 
 
-
     public static class Light implements AugmentHandler {
 
         // Track current light position per player
@@ -346,17 +345,23 @@ public class AugmentHandlers {
         }
 
 
-
         // Efficiency doesn't "handle" the block break (drops),
         // it only changes speed, so we don't override handleBlockBreak.
     }
 
 
-        // ============= COMBAT AUGMENTS =============
+    // ============= COMBAT AUGMENTS =============
 
     public static class FireAspect implements AugmentHandler {
-        @Override public int priority() { return 15; }
-        @Override public boolean isExclusive() { return false; }
+        @Override
+        public int priority() {
+            return 15;
+        }
+
+        @Override
+        public boolean isExclusive() {
+            return false;
+        }
 
         @Override
         public boolean supportsToolType(ArsenalToolType type) {
@@ -405,30 +410,11 @@ public class AugmentHandlers {
             return false;
         }
     }
-    }
+}
 
 
-    // ============= UTILITY AUGMENTS =============
 
-   /* public static class Magnet implements AugmentHandler {
-        @Override public int priority() { return 100; } // Runs last
-        @Override public boolean isExclusive() { return false; }
 
-        @Override
-        public boolean supportsToolType(ToolType type) {
-            return type == ToolType.UNIVERSAL; // Works on everything
-        }
-
-        @Override
-        public void onToolUpdate(ItemStack tool, Player player) {
-            // Collect nearby items every tick
-            collectNearbyItems(player);
-        }
-    }
-
-    */
-
-    // ============= TOOL-SPECIFIC AUGMENTS =============
 
 
 
