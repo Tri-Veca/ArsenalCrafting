@@ -1,9 +1,10 @@
 package com.arsenalcrafting.mod.blocks.entity;
 
+import com.arsenalcrafting.mod.client.menu.AlloySmelterMenu;
 import com.arsenalcrafting.mod.core.alloy.AlloyRecipeInput;
 import com.arsenalcrafting.mod.core.alloy.AlloyRecipeType;
 import com.arsenalcrafting.mod.registry.ModBlockEntities;
-import com.arsenalcrafting.mod.blocks.menu.AlloySmelterMenu;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;

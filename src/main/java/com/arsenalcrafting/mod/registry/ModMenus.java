@@ -2,6 +2,7 @@ package com.arsenalcrafting.mod.registry;
 
 import com.arsenalcrafting.mod.ArsenalCrafting;
 import com.arsenalcrafting.mod.blocks.entity.ToolkitBlockEntity;
+import com.arsenalcrafting.mod.client.menu.AlloySmelterMenu;
 import com.arsenalcrafting.mod.client.menu.RepairKitMenu;
 import com.arsenalcrafting.mod.client.menu.ToolMenu;
 import com.arsenalcrafting.mod.client.menu.ToolkitMenu;
@@ -26,10 +27,10 @@ public class ModMenus {
     public static final DeferredHolder<MenuType<?>, MenuType<RepairKitMenu>> REPAIRKIT =
             MENUS.register("repairkit", () -> IMenuTypeExtension.create(RepairKitMenu::new));
 
-    public static final DeferredHolder<MenuType<?>, MenuType<com.arsenalcrafting.mod.blocks.menu.AlloySmelterMenu>> ALLOY_SMELTER_MENU =
+    public static final DeferredHolder<MenuType<?>, MenuType<AlloySmelterMenu>> ALLOY_SMELTER_MENU =
             MENUS.register("alloy_smelter_menu", () ->
                     IMenuTypeExtension.create((windowId, inv, data) ->
-                            new com.arsenalcrafting.mod.blocks.menu.AlloySmelterMenu(windowId, inv, data)));
+                            new AlloySmelterMenu(windowId, inv, data)));
 
     // Alloy Smelter Menu (Placeholder for liquid management/smelting GUI)
     // public static final DeferredHolder<MenuType<?>, MenuType<AlloySmelterMenu>> ALLOY_SMELTER =
