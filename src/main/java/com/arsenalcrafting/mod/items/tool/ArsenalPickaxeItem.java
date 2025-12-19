@@ -10,6 +10,7 @@ import com.arsenalcrafting.mod.core.augments.AugmentProcessor;
 import com.arsenalcrafting.mod.items.augments.EfficiencyAugmentItem;
 import com.arsenalcrafting.mod.items.tool.powers.CoreManager;
 import com.arsenalcrafting.mod.items.tool.powers.Sturdy;
+import com.arsenalcrafting.mod.items.tool.powers.WorkHorse;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
@@ -128,75 +129,92 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool{
     }
 
 
-
     @Override
     public boolean isCorrectToolForDrops(ItemStack stack, BlockState state) {
-        // Get the actual head material from the tool assembly
+        // FIRST: Must be mineable with pickaxe
+        if (!state.is(BlockTags.MINEABLE_WITH_PICKAXE)) {
+            return false;
+        }
+
         ToolAssemblyData data = stack.get(TOOL_ASSEMBLY_DATA.get());
+
+        // SECOND: WORKHORSE CORE allows mining ANY hard block
+        if (data != null && !data.isEmpty()) {
+            AlloyMaterial coreMat = AlloyMaterial.fromName(data.coreMaterial());
+            if (coreMat != null) {
+                CoreManager.CoreDefinition def = CoreManager.getForMaterial(coreMat);
+                if (def != null && "workhorse".equals(def.id())) {
+                    // WorkHorse tools can mine ANY hard block (≥10 hardness)
+                    if (WorkHorse.isHardBlock(state)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        // THIRD: Normal tier-based check for everything else
         AlloyMaterial material = getBaseMaterial(); // Default fallback
 
         if (data != null && !data.isEmpty()) {
-            // HEAD material determines mining capability
+            // Use HEAD material for tier check (not core material)
             AlloyMaterial headMat = AlloyMaterial.fromName(data.headMaterial());
             if (headMat != null) {
                 material = headMat;
             }
         }
 
-        System.out.println("[DEBUG] isCorrectToolForDrops: Using " + material.getName() +
-                " (tier " + material.getTier() + ") for block: " +
-                state.getBlock().getName().getString());
-
-        // First check if block is mineable with pickaxe
-        if (!state.is(BlockTags.MINEABLE_WITH_PICKAXE)) {
-            System.out.println("[DEBUG] Block is not mineable with pickaxe");
-            return false;
-        }
-
-        // Then check if this material tier can mine it
+        // Check if this material tier can mine the block
         TagKey<Block> incorrectTag = AlloyMaterial.getToolBreakTag(material);
         boolean isIncorrect = state.is(incorrectTag);
 
-        System.out.println("[DEBUG] Is in incorrect tag? " + isIncorrect + " (tag: " + incorrectTag.location() + ")");
-
-        return !isIncorrect;
+        return !isIncorrect; // True if NOT in incorrect tag
     }
+
+
 
     @Override
     public float getDestroySpeed(ItemStack stack, BlockState state) {
-        // First check if we can mine this block at all
+        // Check if we can mine this block at all
         if (!isCorrectToolForDrops(stack, state)) {
-            System.out.println("[DEBUG] getDestroySpeed: Not correct tool, returning 1.0");
             return 1.0f;
         }
 
-        // 1. Start with vanilla Pickaxe speed logic
-        float speed = super.getDestroySpeed(stack, state);
-        System.out.println("[DEBUG] getDestroySpeed: Vanilla speed = " + speed);
-
-        // 2. Apply head material efficiency
+        // WORKHORSE: Instamine hard blocks
         ToolAssemblyData data = stack.get(TOOL_ASSEMBLY_DATA.get());
+        if (data != null && !data.isEmpty()) {
+            AlloyMaterial coreMat = AlloyMaterial.fromName(data.coreMaterial());
+            if (coreMat != null) {
+                CoreManager.CoreDefinition def = CoreManager.getForMaterial(coreMat);
+                if (def != null && "workhorse".equals(def.id())) {
+                    if (WorkHorse.isHardBlock(state)) {
+                        // Give speed well above insta-mine threshold
+                        float blockHardness = state.getDestroySpeed(null, null);
+                        return Math.max(blockHardness * 100.0f, 2000.0f); // Always instamine
+                    }
+                }
+            }
+        }
+
+        // Normal speed calculation...
+        float speed = super.getDestroySpeed(stack, state);
+
         if (data != null && !data.isEmpty()) {
             AlloyMaterial headMat = AlloyMaterial.fromName(data.headMaterial());
             if (headMat != null) {
                 speed = headMat.getEfficiency();
-                System.out.println("[DEBUG] getDestroySpeed: Head material efficiency = " + speed);
             }
 
-            // 3. Apply core modifier (SpeedBoost, etc.)
             AlloyMaterial coreMat = AlloyMaterial.fromName(data.coreMaterial());
             if (coreMat != null) {
                 CoreManager.CoreDefinition def = CoreManager.getForMaterial(coreMat);
                 if (def != null) {
                     speed = def.handler().modifyMiningSpeed(stack, speed);
-                    System.out.println("[DEBUG] getDestroySpeed: After core modifier = " + speed);
                 }
             }
         }
-        //3. Apply EfficiencyAugment
+
         if (isAugmentEnabled(stack,"efficiency")) {
             speed += EfficiencyAugmentItem.getSpeedBonus(stack, speed);
-            System.out.println("[DEBUG] getDestroySpeed: After Efficiency = " + speed);
         }
 
         return speed;
@@ -266,6 +284,7 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool{
         }
     }
 
+
     /**
      * Overrides the block breaking logic to check for and delegate to augments.
      */
@@ -273,26 +292,38 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool{
     public boolean mineBlock(@NotNull ItemStack stack, @NotNull Level level, @NotNull BlockState state,
                              @NotNull BlockPos pos, @NotNull LivingEntity entity) {
 
-        // Logic should only run on the server to manage data components and effects
-        if (!level.isClientSide) {
+        System.out.println("\n=== [WorkHorse] mineBlock ===");
 
-            // 1. DYNAMIC CORE LOGIC (Process Tin Momentum / Copper Efficiency etc.)
+        if (!level.isClientSide) {
             ToolAssemblyData assemblyData = stack.get(TOOL_ASSEMBLY_DATA.get());
+
+            // ========== WORKHORSE CORE ==========
             if (assemblyData != null) {
                 AlloyMaterial coreMat = AlloyMaterial.fromName(assemblyData.coreMaterial());
                 CoreManager.CoreDefinition coreDef = CoreManager.getForMaterial(coreMat);
 
-                // This triggers the core's specific behavior (e.g., Momentum.onBlockMined for Tin)
+                if (coreDef != null && "workhorse".equals(coreDef.id())) {
+                    if (WorkHorse.isHardBlock(state)) {
+                        System.out.println("[WorkHorse] Instamine hard block");
+                        // Block already breaking due to insta-speed in getDestroySpeed
+                        // Just ensure durability consumed
+                    }
+                }
+            }
+            // ====================================
+
+            // Process other cores
+            if (assemblyData != null) {
+                AlloyMaterial coreMat = AlloyMaterial.fromName(assemblyData.coreMaterial());
+                CoreManager.CoreDefinition coreDef = CoreManager.getForMaterial(coreMat);
                 if (coreDef != null) {
                     coreDef.handler().onBlockDestroyed(stack, level, state, pos, entity);
                 }
             }
 
-            // 2. AUGMENT PROCESSING
-            // Check if any augments are installed and enabled
+            // Process augments
             ToolAugmentSlots slots = getAugmentSlots(stack);
             boolean hasEnabledAugments = false;
-
             for (int i = 0; i < 4; i++) {
                 String augmentId = slots.getAugmentInSlot(i);
                 if (augmentId != null && isAugmentEnabled(stack, augmentId)) {
@@ -301,41 +332,24 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool{
                 }
             }
 
-            // If enabled augments exist, try to let the AugmentProcessor handle the break
             if (hasEnabledAugments) {
                 AugmentProcessor.ProcessResult result = AugmentProcessor.processBlockBreak(
-                        stack,
-                        ArsenalToolType.PICKAXE,
-                        level,
-                        state,
-                        pos,
-                        entity
-                );
+                        stack, ArsenalToolType.PICKAXE, level, state, pos, entity);
 
-
-                // If an augment handled the drops (like Smelting or Voiding), skip vanilla logic
                 if (result.handled) {
                     EquipmentSlot slot = entity.getMainHandItem() == stack
-                            ? EquipmentSlot.MAINHAND
-                            : EquipmentSlot.OFFHAND;
-
-                    // Manually apply durability damage since we are bypassing super.mineBlock()
+                            ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND;
                     stack.hurtAndBreak(1, entity, slot);
-
-                    // Handle any special augment combo effects
-                    if (result.specialCombo != null) {
-                        System.out.println("[ArsenalPickaxe] Special combo: " + result.specialCombo);
-                    }
-
-                    return true; // Successfully handled by augments
+                    return true;
                 }
             }
         }
 
-        // 3. VANILLA FALLBACK
-        // No enabled augment handled the block, or we are on the client: use default behavior
+        // VANILLA BREAK
         return super.mineBlock(stack, level, state, pos, entity);
     }
+
+
 
     @Override
     public <T extends LivingEntity> int damageItem(ItemStack stack, int amount, @Nullable T entity, Consumer<Item> onBroken) {

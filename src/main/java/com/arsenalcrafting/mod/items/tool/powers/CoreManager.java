@@ -62,6 +62,13 @@ public class CoreManager {
                 CoreHandlers.STURDY
         ));
 
+        register(AlloyMaterial.STEEL, new CoreDefinition(
+                "workhorse",
+                "WorkHorse",
+                "Instantly breaks hard blocks regardless of tool tier",
+                CoreHandlers.WORKHORSE
+        ));
+
     }
 
     private static void register(AlloyMaterial material, CoreDefinition def) {
