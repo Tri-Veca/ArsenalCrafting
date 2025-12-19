@@ -11,11 +11,11 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "arsenalcrafting:alloy_smelter_core"
+          "name": "arsenalcrafting:alloy_smelter"
         }
       ],
       "rolls": 1.0
     }
   ],
-  "random_sequence": "arsenalcrafting:blocks/alloy_smelter_core"
+  "random_sequence": "arsenalcrafting:blocks/alloy_smelter"
 }

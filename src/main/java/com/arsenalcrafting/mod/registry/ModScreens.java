@@ -1,5 +1,6 @@
 package com.arsenalcrafting.mod.registry;
 
+import com.arsenalcrafting.mod.client.gui.AlloySmelterScreen;
 import com.arsenalcrafting.mod.client.gui.RepairKitScreen;
 import com.arsenalcrafting.mod.client.gui.ToolScreen;
 import com.arsenalcrafting.mod.client.gui.ToolkitScreen;
@@ -27,5 +28,6 @@ public class ModScreens {
         event.register(ModMenus.TOOLKIT.get(), ToolkitScreen::new);
         event.register(ModMenus.TOOL.get(), ToolScreen::new);
         event.register(ModMenus.REPAIRKIT.get(), RepairKitScreen::new);
+        event.register(ModMenus.ALLOY_SMELTER_MENU.get(), AlloySmelterScreen::new);
     }
 }

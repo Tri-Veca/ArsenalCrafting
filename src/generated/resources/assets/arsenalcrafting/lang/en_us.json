@@ -27,6 +27,7 @@
   "block.arsenalcrafting.lava_tank": "Lava Tank",
   "block.arsenalcrafting.toolkit": "Tool Kit",
   "block.arsenalcrafting.void_casing": "Void Casing",
+  "container.arsenalcrafting.alloy_smelter": "Alloy Smelter",
   "core.arsenalcrafting.burn_protection": "Burn Protection",
   "core.arsenalcrafting.burn_protection.desc": "Grants Item Burn Protection",
   "core.arsenalcrafting.greedy": "Greedy",

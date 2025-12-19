@@ -15,10 +15,7 @@ public class ModBlockEntities {
             DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, ArsenalCrafting.MOD_ID);
 
     // Alloy Smelter (Multiblock core)
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AlloySmelterBlockEntity>> ALLOY_SMELTER_CORE =
-            BLOCK_ENTITIES.register("alloy_smelter_core", () ->
-                    BlockEntityType.Builder.of(AlloySmelterBlockEntity::new,
-                            ModBlocks.ALLOY_SMELTER_CORE.get()).build(null));
+
 
     // Toolkit (Modular crafting station)
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ToolkitBlockEntity>> TOOLKIT =
@@ -33,6 +30,10 @@ public class ModBlockEntities {
                             ModBlocks.LAVA_TANK.get()
                     ).build(null)
             );
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AlloySmelterBlockEntity>> ALLOY_SMELTER =
+            BLOCK_ENTITIES.register("alloy_smelter", () ->
+                    BlockEntityType.Builder.of(AlloySmelterBlockEntity::new,
+                            ModBlocks.ALLOY_SMELTER.get()).build(null));
 
     public static void register(IEventBus eventBus) {
         BLOCK_ENTITIES.register(eventBus);
