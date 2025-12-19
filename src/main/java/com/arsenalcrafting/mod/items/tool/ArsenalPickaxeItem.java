@@ -7,10 +7,8 @@ import com.arsenalcrafting.mod.core.augments.AugmentHandler;
 import com.arsenalcrafting.mod.core.augments.AugmentHandlers;
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
 import com.arsenalcrafting.mod.core.augments.AugmentProcessor;
-import com.arsenalcrafting.mod.component.DynamicComponents;
 import com.arsenalcrafting.mod.items.augments.EfficiencyAugmentItem;
 import com.arsenalcrafting.mod.items.tool.powers.CoreManager;
-import com.arsenalcrafting.mod.items.tool.powers.Greedy;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
@@ -37,12 +35,13 @@ import java.util.List;
 
 import static com.arsenalcrafting.mod.registry.ModComponents.TOOL_ASSEMBLY_DATA;
 
-public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
+public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool{
     private final ArsenalToolType toolType = ArsenalToolType.PICKAXE;
     private final AlloyMaterial baseMaterial;
 
     public ArsenalPickaxeItem(AlloyMaterial material, Properties properties) {
-        super(new DummyToolTier(material), properties);
+        super(new DummyToolTier(material), properties );
+
         this.baseMaterial = material;
     }
 
@@ -217,12 +216,12 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
             if (handler instanceof AugmentHandlers.Light light) {
                 light.onToolUnequip(stack, player);
             }
+
             // Only process if the tool is currently held in the main or off hand
 
         }
 
     }
-
 
 
 

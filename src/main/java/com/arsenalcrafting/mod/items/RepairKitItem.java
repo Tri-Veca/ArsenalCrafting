@@ -4,7 +4,6 @@ import com.arsenalcrafting.mod.component.RepairKitData;
 import com.arsenalcrafting.mod.component.ToolAssemblyData;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.items.tool.powers.CoreManager;
-import com.arsenalcrafting.mod.items.tool.powers.RepairReduction;
 import com.arsenalcrafting.mod.registry.ModComponents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;

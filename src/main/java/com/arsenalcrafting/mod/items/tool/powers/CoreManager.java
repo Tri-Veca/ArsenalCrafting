@@ -48,6 +48,12 @@ public class CoreManager {
                 "Consecutive mining grants increasing Haste levels",
                 CoreHandlers.MOMENTUM
         ));
+        register(AlloyMaterial.NETHERITE, new CoreDefinition(
+                "burn_protection",
+                "Burn Protection",
+                "Grants Item Burn Protection",
+                CoreHandlers.BURN_PROTECTION
+        ));
 
     }
 

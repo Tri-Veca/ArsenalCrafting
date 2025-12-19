@@ -3,7 +3,6 @@ package com.arsenalcrafting.mod.items.augments;
 import com.arsenalcrafting.mod.component.DynamicComponents;
 import com.arsenalcrafting.mod.core.augments.Augment;
 import com.arsenalcrafting.mod.core.augments.InstallableAugmentItem;
-import com.arsenalcrafting.mod.registry.ModComponents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;

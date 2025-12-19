@@ -2,6 +2,7 @@ package com.arsenalcrafting.mod.items.tool.powers;
 
 import com.arsenalcrafting.mod.items.tool.ArsenalToolType;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -22,6 +23,7 @@ public final class CoreHandlers {
     public static final RepairReductionCore REPAIR_REDUCTION = new RepairReductionCore();
     public static final GreedyCore GREEDY = new GreedyCore();
     public static final MomentumCore MOMENTUM = new MomentumCore();
+    public static final BurnProtectionCore BURN_PROTECTION = new BurnProtectionCore();
 
 
 
@@ -102,6 +104,13 @@ public final class CoreHandlers {
         @Override
         public void onBlockDestroyed(ItemStack stack, Level level, BlockState state, BlockPos pos, LivingEntity entity) {
             Momentum.onBlockMined(stack, entity);
+        }
+    }
+
+    public static final class BurnProtectionCore implements CoreHandler {
+        @Override
+        public boolean supportsToolType(ArsenalToolType type) {
+            return type != null && (type.isMiningTool() || type.isWeapon());
         }
     }
 

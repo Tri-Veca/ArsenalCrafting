@@ -1,7 +1,5 @@
 package com.arsenalcrafting.mod.items.tool.powers;
 
-import net.minecraft.world.item.ItemStack;
-
 public class RepairReduction {
 
     private RepairReduction() {} // Utility class

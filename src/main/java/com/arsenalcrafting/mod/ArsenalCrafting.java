@@ -27,6 +27,7 @@ public class ArsenalCrafting {
 
 
 
+
         // IMPORTANT: The client setup (ModScreens) is handled automatically
         // by the @EventBusSubscriber annotation on the ModScreens class.
         NeoForge.EVENT_BUS.addListener(LevelEvent.Load.class, event -> {
