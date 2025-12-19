@@ -1,7 +1,6 @@
 package com.arsenalcrafting.mod.core;
 
 import com.arsenalcrafting.mod.component.ToolComponentType;
-import com.arsenalcrafting.mod.core.alloy.AlloyItem;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.items.augments.UniversalAugmentItem;
 import com.arsenalcrafting.mod.items.tool.toolparts.ToolComponentItem;

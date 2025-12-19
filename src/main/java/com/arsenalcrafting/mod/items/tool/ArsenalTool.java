@@ -4,8 +4,7 @@ import com.arsenalcrafting.mod.component.ToolAssemblyData;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.core.augments.AugmentHandler;
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
-import com.arsenalcrafting.mod.items.tool.powers.CoreHandler;
-import com.arsenalcrafting.mod.items.tool.powers.CoreManager;
+import com.arsenalcrafting.mod.items.tool.powers.BurnProtection;
 import com.arsenalcrafting.mod.registry.ModComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
@@ -16,9 +15,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.common.extensions.IItemExtension;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -27,7 +26,7 @@ import static com.arsenalcrafting.mod.registry.ModComponents.TOOL_ASSEMBLY_DATA;
 //More will be added to support other tools/ new augments.
 //ALL Arsenal Tools will implement!
 //Not super organized
-public interface ArsenalTool {
+public interface ArsenalTool extends IItemExtension {
 
     ArsenalToolType getToolType();
     AlloyMaterial getBaseMaterial();
@@ -272,4 +271,17 @@ public interface ArsenalTool {
         }
         return false;
     }
+
+    @Override
+    default boolean canBeHurtBy(ItemStack stack, net.minecraft.world.damagesource.DamageSource source) {
+        // If it's fire damage, check burn protection
+        if (source.is(net.minecraft.tags.DamageTypeTags.IS_FIRE)) {
+            return !BurnProtection.hasBurnProtection(stack);
+        }
+
+        // Default behavior for other damage types
+        return IItemExtension.super.canBeHurtBy(stack, source);
+    }
 }
+
+

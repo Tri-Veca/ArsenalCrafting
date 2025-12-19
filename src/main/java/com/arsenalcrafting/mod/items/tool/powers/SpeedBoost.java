@@ -9,7 +9,6 @@ import net.minecraft.world.item.ItemStack;
  * as durability gets lower.
  *
  * IMPORTANT:
- * - This does NOT apply potion effects
  * - This does NOT store state
  * - Efficiency is calculated LIVE from durability
  * - Repairing the tool automatically reduces the bonus

@@ -1,25 +1,19 @@
 package com.arsenalcrafting.mod.client.menu;
 
 import com.arsenalcrafting.mod.blocks.entity.ToolkitBlockEntity;
-import com.arsenalcrafting.mod.items.tool.ArsenalPickaxeItem;
-import com.arsenalcrafting.mod.items.tool.toolparts.ToolHeadItem;
-import com.arsenalcrafting.mod.items.tool.toolparts.ToolRodItem;
 import com.arsenalcrafting.mod.registry.ModBlocks;
 import com.arsenalcrafting.mod.registry.ModMenus;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
-import net.minecraft.world.inventory.ContainerListener;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.items.SlotItemHandler;
-import org.jetbrains.annotations.NotNull;
 
 // The Menu (Container) for the Toolkit block GUI. This connects the inventory slots and handles shift-clicking.
 public class ToolkitMenu extends AbstractContainerMenu {

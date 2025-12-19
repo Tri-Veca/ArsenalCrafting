@@ -11,7 +11,7 @@ import java.util.Locale;
 
 /**
  * Generates item models for:
- *  - The Arsenal Pickaxe (2-layer model: head + rod)
+ *  - The Arsenal Pickaxe (3-layer model: head + core+ rod)
  *  - All tool part items (heads and rods), using shared grayscale base textures
  *
  * The actual colors are applied at runtime via ModItemColors / AlloyMaterial.getItemColor().
@@ -56,19 +56,21 @@ public class ArsenalItemModelProvider extends ItemModelProvider {
     }
 
     /**
-     * Item models for all tool part items (heads + rods) for every AlloyMaterial.
+     * Item models for all tool part items (heads + core + rods) for every AlloyMaterial.
      *
      * Each part item uses the same grayscale texture:
      *  - Heads -> pickaxe_head_base
      *  - Rods  -> tool_rod_base
+     *   - Cores  -> core_base
      *
      * Colour is applied in ModItemColors.colorToolPart based on the item's AlloyMaterial.
      *
      * This expects your item registry names to follow:
      *  - "<material>_pickaxe_head"
      *  - "<material>_tool_rod"
+     *  - "<material>_core"
      *
-     * e.g. "bronze_pickaxe_head", "titanium_tool_rod"
+     * e.g. "bronze_pickaxe_head", "titanium_tool_rod", "diamond_core
      *
      * If your actual registry names differ, just tweak the strings below.
      */

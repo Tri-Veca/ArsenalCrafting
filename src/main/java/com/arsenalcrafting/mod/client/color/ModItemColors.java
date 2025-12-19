@@ -15,7 +15,6 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
-import net.neoforged.neoforge.registries.DeferredHolder;
 
 @OnlyIn(Dist.CLIENT)
 @EventBusSubscriber(
