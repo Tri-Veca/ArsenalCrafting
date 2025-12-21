@@ -67,6 +67,12 @@ public class LangGenerator implements DataProvider {
         entries.put("item.arsenalcrafting.drill", "Drill");
         entries.put("item.arsenalcrafting.saw", "Saw");
 
+
+        //molds
+        entries.put("block.arsenalcrafting.pickaxe_head_mold", "Pickaxe Head Mold");
+        entries.put("block.arsenalcrafting.tool_rod_mold", "Tool Rod Mold");
+        entries.put("block.arsenalcrafting.core_mold", "Core Mold");
+
         // 4. Alloy material names (for tooltips)
         for (AlloyMaterial material : AlloyMaterial.values()) {
             String materialName = material.getName();

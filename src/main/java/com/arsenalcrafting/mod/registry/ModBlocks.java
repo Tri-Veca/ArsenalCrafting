@@ -3,6 +3,7 @@ package com.arsenalcrafting.mod.registry;
 import com.arsenalcrafting.mod.ArsenalCrafting;
 import com.arsenalcrafting.mod.blocks.AlloySmelterBlock;
 import com.arsenalcrafting.mod.blocks.LavaTankBlock;
+import com.arsenalcrafting.mod.blocks.MoldBlock;
 import com.arsenalcrafting.mod.blocks.ToolkitBlock;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.BlockItem;
@@ -56,6 +57,14 @@ public class ModBlocks {
     public static final DeferredHolder<Block, Block> IRON_CASING = registerBlock("iron_casing",
             () -> new Block(BlockBehaviour.Properties.ofFullCopy(Blocks.IRON_BLOCK).strength(5.0f)));
 
+    public static final DeferredHolder<Block, MoldBlock> PICKAXE_HEAD_MOLD =
+            registerBlock("pickaxe_head_mold", MoldBlock::new);
+
+    public static final DeferredHolder<Block, MoldBlock> TOOL_ROD_MOLD =
+            registerBlock("tool_rod_mold", MoldBlock::new);
+
+    public static final DeferredHolder<Block, MoldBlock> CORE_MOLD =
+            registerBlock("core_mold", MoldBlock::new);
 
 
     private static <T extends Block> DeferredHolder<Block, T> registerBlock(String name, Supplier<T> block) {
