@@ -8,7 +8,9 @@ public final class WorkHorse {
     private static final float HARDNESS_THRESHOLD = 10.0f;
 
     public static boolean isHardBlock(BlockState state) {
-        return state.getDestroySpeed(null, null) >= HARDNESS_THRESHOLD;
+        // Check if block hardness is >= 10
+        float hardness = state.getDestroySpeed(null, null);
+        return hardness >= HARDNESS_THRESHOLD;
     }
 
     public static String getDescription() {
