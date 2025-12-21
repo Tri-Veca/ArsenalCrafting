@@ -106,7 +106,7 @@ public enum AlloyMaterial {
             6.0f,
             0.8f,
             1.6f,
-            1.0f,
+            1.5f,
             1.0f,
             4,
             ChatFormatting.GOLD,

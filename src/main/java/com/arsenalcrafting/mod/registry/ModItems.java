@@ -149,6 +149,7 @@ public class ModItems {
 
         System.out.println("[ModItems] Total universal augments registered: " + UNIVERSAL_AUGMENTS.size());
     }
+    // TODO add seperate gadgets registry
     public static void register(IEventBus eventBus) {
         // Register universal augment items
         registerUniversalAugments();

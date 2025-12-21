@@ -30,8 +30,9 @@ public class LangGenerator implements DataProvider {
 
         // 1. Mod & Creative Tab
         entries.put("mod.arsenalcrafting", "Arsenal Crafting");
-        entries.put("itemGroup.arsenalcrafting.arsenal_tab", "Arsenal Crafting");
+        entries.put("itemGroup.arsenalcrafting.0_arsenal_tab", "Arsenal Crafting");
         entries.put("itemGroup.arsenalcrafting.main", "Arsenal Crafting");
+        entries.put("itemGroup.arsenalcrafting.1_arsenal_components_tab", "Arsenal Crafting Components");
 
         // 2. Blocks
         entries.put("block.arsenalcrafting.alloy_smelter_core", "Alloy Smelter Core");
@@ -59,9 +60,12 @@ public class LangGenerator implements DataProvider {
         }
 
         // Other items
+
         entries.put("item.arsenalcrafting.arsenal_pickaxe", "Arsenal Pickaxe");
         entries.put("item.arsenalcrafting.repair_kit", "Tool Repair Kit");
+        // TODO add seperate gadgets section
         entries.put("item.arsenalcrafting.drill", "Drill");
+        entries.put("item.arsenalcrafting.saw", "Saw");
 
         // 4. Alloy material names (for tooltips)
         for (AlloyMaterial material : AlloyMaterial.values()) {
