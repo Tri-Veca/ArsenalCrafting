@@ -138,11 +138,15 @@ public final class CoreHandlers {
         @Override
         public boolean handleBlockBreak(ItemStack tool, Level level, BlockState state,
                                         BlockPos pos, LivingEntity miner) {
-            // EMPTY - All logic is in ArsenalPickaxeItem.mineBlock
-            return false;
+            // WorkHorse only handles hard blocks
+            return WorkHorse.isHardBlock(state);
+        }
+
+        @Override
+        public float modifyMiningSpeed(ItemStack tool, float baseSpeed) {
+            // DO NOT modify base speed here - let getDestroySpeed handle it
+            return baseSpeed;
         }
     }
-
-
 }
 

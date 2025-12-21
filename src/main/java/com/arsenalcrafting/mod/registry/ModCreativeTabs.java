@@ -34,6 +34,7 @@ public class ModCreativeTabs {
                         output.accept(ModItems.DRILL.get());
                         output.accept(ModItems.SAW.get());
                         output.accept(ModItems.ARSENAL_PICKAXE.get());
+                        output.accept(ModItems.REPAIR_KIT.get());
                     })
                     .build());
 

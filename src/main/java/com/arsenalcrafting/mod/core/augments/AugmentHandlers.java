@@ -5,6 +5,7 @@ import com.arsenalcrafting.mod.items.augments.*;
 import com.arsenalcrafting.mod.items.tool.ArsenalToolType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -17,6 +18,10 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.*;
 
+/**
+ * Contains all augment handler implementations.
+ * Each handler delegates to the corresponding augment item's static methods.
+ */
 public class AugmentHandlers {
 
     // ============= MINING AUGMENTS =============
@@ -29,12 +34,17 @@ public class AugmentHandlers {
 
         @Override
         public boolean isExclusive() {
-            return false;
-        } // FALSE so Ore-Miner can run after
+            return false; // Allows combos with other augments
+        }
+
+        @Override
+        public boolean supportsToolType(ArsenalToolType type) {
+            return type.isMiningTool();
+        }
 
         @Override
         public boolean canHandleBlock(BlockState state, ItemStack tool) {
-            return true; // Let handleBlockBreak check recipes
+            return true; // Let the item method check recipes
         }
 
         @Override
@@ -47,13 +57,18 @@ public class AugmentHandlers {
     public static class OreMiner implements AugmentHandler {
         @Override
         public int priority() {
-            return 20;
+            return 20; // Runs AFTER Auto-Smelt (10), BEFORE Fortune (30)
         }
 
         @Override
         public boolean isExclusive() {
-            return true;
-        } // TRUE to stop processing after vein mining
+            return false;
+        }
+
+        @Override
+        public boolean supportsToolType(ArsenalToolType type) {
+            return type.isMiningTool();
+        }
 
         @Override
         public boolean canHandleBlock(BlockState state, ItemStack tool) {
@@ -63,20 +78,58 @@ public class AugmentHandlers {
         @Override
         public boolean handleBlockBreak(ItemStack tool, Level level, BlockState state,
                                         BlockPos pos, LivingEntity miner) {
-            return OreMinerAugmentItem.onBlockMined(tool, level, state, pos, miner);
+            if (!(level instanceof ServerLevel serverLevel)) {
+                return false;
+            }
+
+            if (!(miner instanceof Player player)) {
+                return false;
+            }
+
+            boolean autoSmeltActive = AugmentManager.isActive("auto_smelt", tool);
+            boolean fortuneActive = AugmentManager.isActive("fortune", tool);
+
+            System.out.println("[OreMiner] AutoSmelt: " + autoSmeltActive + ", Fortune: " + fortuneActive);
+
+            if (autoSmeltActive && fortuneActive) {
+                // All three: Auto-Smelt + Fortune + Ore Miner
+                System.out.println("[OreMiner] Processing with Fortune + Auto-Smelt");
+                return OreMinerAugmentItem.veinMineWithFortuneAndSmelting(
+                        serverLevel, pos, state, player, tool);
+            } else if (autoSmeltActive) {
+                // Just Auto-Smelt + Ore Miner (no Fortune)
+                System.out.println("[OreMiner] Processing with Auto-Smelt only");
+                return OreMinerAugmentItem.veinMineWithSmelting(
+                        serverLevel, pos, state, player, tool);
+            } else if (fortuneActive) {
+                // Just Fortune + Ore Miner (no Auto-Smelt)
+                System.out.println("[OreMiner] Processing with Fortune only");
+                return OreMinerAugmentItem.veinMineWithFortune(
+                        serverLevel, pos, state, player, tool);
+            } else {
+                // Just Ore Miner alone
+                System.out.println("[OreMiner] Processing normally");
+                return OreMinerAugmentItem.veinMineNormal(
+                        serverLevel, pos, state, player, tool);
+            }
         }
     }
 
     public static class SilkTouch implements AugmentHandler {
         @Override
         public int priority() {
-            return 10;
+            return 10; // Same priority as Auto-Smelt
         }
 
         @Override
         public boolean isExclusive() {
-            return true;
-        } // TRUE to stop processing after vein mining
+            return AugmentCombos.SILK_TOUCH_BLOCKS_FORTUNE; // Configurable!
+        }
+
+        @Override
+        public boolean supportsToolType(ArsenalToolType type) {
+            return type.isMiningTool();
+        }
 
         @Override
         public boolean canHandleBlock(BlockState state, ItemStack tool) {
@@ -91,54 +144,44 @@ public class AugmentHandlers {
     }
 
     public static class Fortune implements AugmentHandler {
-
         @Override
         public int priority() {
-            // Run before AutoSmelt / OreMiner or after, depending on how you want the combo.
-            // You can adjust this value to tune ordering.
-            return 30;
+            return 30; // Run AFTER Auto-Smelt (10) and Ore Miner (20)
         }
 
         @Override
         public boolean isExclusive() {
-            // false so it can combo with AutoSmelt, OreMiner, Magnetism, etc.
             return false;
         }
 
         @Override
         public boolean supportsToolType(ArsenalToolType type) {
-            // Fortune only makes sense on pickaxes in your system
-            return type == ArsenalToolType.PICKAXE;
+            return type.isMiningTool();
         }
 
         @Override
         public boolean canHandleBlock(BlockState state, ItemStack tool) {
-            // Only run if Fortune is actually installed on the tool
-            return tool.getOrDefault(DynamicComponents.getEnabledComponent("fortune"), false);
+            return FortuneAugmentItem.isOre(state);
         }
 
         @Override
-        public boolean handleBlockBreak(ItemStack tool,
-                                        Level level,
-                                        BlockState state,
-                                        BlockPos pos,
-                                        LivingEntity miner) {
+        public boolean handleBlockBreak(ItemStack tool, Level level, BlockState state,
+                                        BlockPos pos, LivingEntity miner) {
+            // Let FortuneAugmentItem.onBlockMined() decide whether to run
+            // It has the logic to check other augments
             return FortuneAugmentItem.onBlockMined(tool, level, state, pos, miner);
         }
-
     }
 
-
     public static class Light implements AugmentHandler {
-
         // Track current light position per player
         private static final Map<UUID, BlockPos> PLAYER_LIGHT_POS = new HashMap<>();
-        // Track all light blocks we've placed in this session
+        // Track all light blocks we've placed
         private static final Set<BlockPos> ALL_LIGHT_BLOCKS = new HashSet<>();
 
         @Override
         public int priority() {
-            return 5;
+            return 5; // Early priority for utility
         }
 
         @Override
@@ -148,7 +191,7 @@ public class AugmentHandlers {
 
         @Override
         public boolean supportsToolType(ArsenalToolType type) {
-            return type == ArsenalToolType.PICKAXE;
+            return type.isMiningTool();
         }
 
         @Override
@@ -163,16 +206,12 @@ public class AugmentHandlers {
             boolean needsMove = false;
 
             if (lastPos == null) {
-                // No light currently placed
                 needsMove = true;
             } else if (!currentPos.equals(lastPos)) {
-                // Player moved
                 needsMove = true;
             } else if (!(level.getBlockState(lastPos).getBlock() instanceof LightBlock)) {
-                // Light was destroyed by something
                 needsMove = true;
             } else if (level.getBlockState(lastPos).getValue(LightBlock.LEVEL) < 15) {
-                // Light level is wrong
                 needsMove = true;
             }
 
@@ -212,14 +251,10 @@ public class AugmentHandlers {
             removePlayerLight(player);
         }
 
-        /**
-         * Mark a light block as temporary so we can clean it up on world load
-         */
         private void markAsTemporaryLight(Level level, BlockPos pos) {
             if (!level.isClientSide) {
                 BlockEntity blockEntity = level.getBlockEntity(pos);
                 if (blockEntity != null) {
-                    // Store metadata in the block entity
                     CompoundTag tag = blockEntity.getPersistentData();
                     tag.putBoolean("arsenal_temporary_light", true);
                     tag.putLong("arsenal_placed_time", level.getGameTime());
@@ -229,34 +264,20 @@ public class AugmentHandlers {
             ALL_LIGHT_BLOCKS.add(pos);
         }
 
-        /**
-         * Check if we can place a light block here
-         */
         private boolean canPlaceLight(Level level, BlockPos pos) {
             BlockState state = level.getBlockState(pos);
-            return state.isAir() ||
-                    state.getBlock() == Blocks.LIGHT ||
-                    state.canBeReplaced();
+            return state.isAir() || state.getBlock() == Blocks.LIGHT || state.canBeReplaced();
         }
 
-        /**
-         * Place light block with our custom properties
-         */
         private void placeLightBlock(Level level, BlockPos pos) {
-            // Use a light block with level 15 (maximum brightness)
             BlockState lightState = Blocks.LIGHT.defaultBlockState()
                     .setValue(LightBlock.LEVEL, 15)
                     .setValue(LightBlock.WATERLOGGED, false);
 
-            level.setBlock(pos, lightState, 3); // Block.UPDATE_ALL flag
-
-            // Force light update
+            level.setBlock(pos, lightState, 3);
             level.getChunkSource().getLightEngine().checkBlock(pos);
         }
 
-        /**
-         * Remove light block safely
-         */
         private void removeLightBlock(Level level, BlockPos pos) {
             if (level.getBlockState(pos).getBlock() == Blocks.LIGHT) {
                 level.removeBlock(pos, false);
@@ -264,9 +285,6 @@ public class AugmentHandlers {
             }
         }
 
-        /**
-         * Remove all lights for a player
-         */
         public void removePlayerLight(Player player) {
             BlockPos pos = PLAYER_LIGHT_POS.remove(player.getUUID());
             if (pos != null) {
@@ -274,19 +292,12 @@ public class AugmentHandlers {
             }
         }
 
-        /**
-         * CRITICAL: Clean up all temporary lights on world load
-         * Call this from a world load event handler
-         */
         public static void cleanupOnWorldLoad(Level level) {
-            // Clear memory tracking
             PLAYER_LIGHT_POS.clear();
             ALL_LIGHT_BLOCKS.clear();
-
             System.out.println("[ArsenalCrafting] Light augment: Cleared memory tracking on world load");
 
-            // Optional: Scan and remove any light blocks around players
-            // This is more aggressive but fixes stuck blocks
+            // Clean up any light blocks around players
             for (Player player : level.players()) {
                 BlockPos center = player.blockPosition();
                 for (int x = -2; x <= 2; x++) {
@@ -302,10 +313,6 @@ public class AugmentHandlers {
             }
         }
 
-
-        /**
-         * Clean up when player leaves/logs out
-         */
         public static void onPlayerLogout(Player player) {
             PLAYER_LIGHT_POS.remove(player.getUUID());
         }
@@ -314,7 +321,7 @@ public class AugmentHandlers {
     public static class Magnetism implements AugmentHandler {
         @Override
         public int priority() {
-            return 100; // Utility runs after mining/combat logic
+            return 100; // Utility runs last
         }
 
         @Override
@@ -323,7 +330,13 @@ public class AugmentHandlers {
         }
 
         @Override
+        public boolean supportsToolType(ArsenalToolType type) {
+            return true; // Works with all tools
+        }
+
+        @Override
         public void onToolUpdate(ItemStack tool, Player player) {
+            // Delegate to the augment item's static method
             MagnetismAugmentItem.tickMagnet(tool, player);
         }
     }
@@ -331,7 +344,7 @@ public class AugmentHandlers {
     public static class Efficiency implements AugmentHandler {
         @Override
         public int priority() {
-            return 0; // Speed should be calculated early
+            return 0; // Speed calculated early
         }
 
         @Override
@@ -344,13 +357,11 @@ public class AugmentHandlers {
             return type.isMiningTool();
         }
 
-
-        // Efficiency doesn't "handle" the block break (drops),
-        // it only changes speed, so we don't override handleBlockBreak.
+        // Efficiency doesn't handle block breaks directly
+        // It modifies speed via AugmentProcessor.applyMiningSpeedModifiers()
     }
 
-
-    // ============= COMBAT AUGMENTS =============
+    // ============= COMBAT AUGMENTS (Future) =============
 
     public static class FireAspect implements AugmentHandler {
         @Override
@@ -365,7 +376,7 @@ public class AugmentHandlers {
 
         @Override
         public boolean supportsToolType(ArsenalToolType type) {
-            return type.isWeapon(); // Only weapons
+            return type.isWeapon();
         }
 
         @Override
@@ -404,17 +415,10 @@ public class AugmentHandlers {
         public boolean handleEntityAttack(ItemStack tool, LivingEntity attacker,
                                           Entity target, float damage) {
             if (attacker instanceof Player player) {
-                player.heal(damage * 0.1f); // Heal 10% of damage dealt
+                player.heal(damage * 0.1f);
                 return true;
             }
             return false;
         }
     }
 }
-
-
-
-
-
-
-

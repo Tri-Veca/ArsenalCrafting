@@ -2,13 +2,10 @@ package com.arsenalcrafting.mod.items.tool;
 
 import com.arsenalcrafting.mod.component.ToolAssemblyData;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
-import com.arsenalcrafting.mod.core.augments.AugmentHandler;
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
+import com.arsenalcrafting.mod.core.augments.AugmentProcessor;
 import com.arsenalcrafting.mod.items.tool.powers.BurnProtection;
-import com.arsenalcrafting.mod.items.tool.powers.CoreManager;
-import com.arsenalcrafting.mod.items.tool.powers.WorkHorse;
 import com.arsenalcrafting.mod.registry.ModComponents;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -18,7 +15,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.common.extensions.IItemExtension;
@@ -27,15 +23,18 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.arsenalcrafting.mod.registry.ModComponents.TOOL_ASSEMBLY_DATA;
-//More will be added to support other tools/ new augments.
-//ALL Arsenal Tools will implement!
-//Not super organized
+
+/**
+ * Core interface for all Arsenal tools.
+ * Provides augment slot management, material info, and GUI access.
+ */
 public interface ArsenalTool extends IItemExtension {
 
     ArsenalToolType getToolType();
     AlloyMaterial getBaseMaterial();
 
-    // ---- AUGMENT SLOTS ----
+    // ==================== AUGMENT SLOTS ====================
+
     default ToolAugmentSlots getAugmentSlots(ItemStack stack) {
         ToolAugmentSlots slots = stack.get(ModComponents.TOOL_AUGMENT_SLOTS.get());
         if (slots == null) {
@@ -76,7 +75,18 @@ public interface ArsenalTool extends IItemExtension {
         return 4;
     }
 
-    // ---- AUGMENT STATE ----
+    default int getFirstFreeSlot(ItemStack stack) {
+        ToolAugmentSlots slots = getAugmentSlots(stack);
+        for (int i = 0; i < 4; i++) {
+            if (slots.getAugmentInSlot(i).isEmpty()) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    // ==================== AUGMENT STATE ====================
+
     default boolean isAugmentEnabled(ItemStack stack, String augmentId) {
         if (augmentId == null || augmentId.isEmpty()) return false;
         return AugmentManager.isInstalled(augmentId, stack);
@@ -101,134 +111,8 @@ public interface ArsenalTool extends IItemExtension {
         setAugmentEnabled(stack, augmentId, !currentlyEnabled);
     }
 
-    // ---- GUI ----
-    default InteractionResultHolder<ItemStack> onToolUse(Level level, Player player, InteractionHand hand) {
-        ItemStack stack = player.getItemInHand(hand);
-        if (player.isShiftKeyDown() && hand == InteractionHand.MAIN_HAND) {
-            if (!level.isClientSide) {
-                openToolGui(player, stack);
-            }
-            return InteractionResultHolder.success(stack);
-        }
-        return InteractionResultHolder.pass(stack);
-    }
+    // ==================== VALIDATION / INSTALLATION ====================
 
-    default void openToolGui(Player player, ItemStack stack) {
-        player.openMenu(new SimpleMenuProvider(
-                (id, inventory, p) -> new com.arsenalcrafting.mod.client.menu.ToolMenu(id, inventory, stack),
-                Component.translatable("gui.arsenalcrafting.tool")
-        ));
-    }
-
-    public static void tickHeldToolAugments(Player player, ItemStack stack) {
-        if (!(stack.getItem() instanceof ArsenalTool tool)) return;
-
-        ToolAugmentSlots slots = tool.getAugmentSlots(stack);
-        if (slots == null) return;
-
-        // Process ALL augments in slot order
-        for (int i = 0; i < tool.getTotalAugmentSlots(); i++) {
-            String augmentId = slots.getAugmentInSlot(i);
-            if (augmentId == null || augmentId.isEmpty()) continue;
-
-            if (!AugmentManager.isInstalled(augmentId, stack)) continue;
-
-            AugmentHandler handler = AugmentManager.getHandler(augmentId);
-            if (handler == null) continue;
-
-            if (!handler.supportsToolType(tool.getToolType())) continue;
-
-            // Just call update for EVERY augment
-            handler.onToolUpdate(stack, player);
-
-            // Since isExclusive is false for all, no break
-        }
-    }
-
-    /**
-     * Primary material used for repair cost.
-     * Head material takes priority, fallback to base material.
-     */
-    default AlloyMaterial getRepairMaterial(ItemStack stack) {
-        ToolAssemblyData data = stack.get(TOOL_ASSEMBLY_DATA.get());
-        if (data != null && !data.isEmpty()) {
-            AlloyMaterial head = AlloyMaterial.fromName(data.headMaterial());
-            if (head != null) return head;
-        }
-        return getBaseMaterial();
-    }
-
-    default String getMaterialName(ItemStack stack) {
-        AlloyMaterial mat = getRepairMaterial(stack);
-        return mat != null ? mat.getName() : "";
-    }
-
-    /**
-     1 value 15% of durability
-     */
-    default float getRepairEfficiency(ItemStack stack) {
-        AlloyMaterial mat = getRepairMaterial(stack);
-        return mat != null ? mat.getModifier() : 1.0f;
-    }
-
-
-
-
-    // ---- TOOLTIP ----
-    @OnlyIn(Dist.CLIENT)
-    default void appendArsenalTooltip(ItemStack stack, Item.TooltipContext context,
-                                      List<Component> tooltip, TooltipFlag flag) {
-        ToolAugmentSlots slots = getAugmentSlots(stack);
-        int usedSlots = slots.getUsedSlotCount();
-
-        if (usedSlots > 0) {
-            tooltip.add(Component.literal(""));
-            tooltip.add(Component.translatable("tooltip.arsenalcrafting.installed_augments")
-                    .withStyle(net.minecraft.ChatFormatting.GOLD));
-
-            for (int i = 0; i < 4; i++) {
-                String augmentId = slots.getAugmentInSlot(i);
-                if (augmentId == null || augmentId.isEmpty()) continue;
-
-                boolean enabled = isAugmentEnabled(stack, augmentId);
-                net.minecraft.ChatFormatting color = enabled ? net.minecraft.ChatFormatting.GREEN : net.minecraft.ChatFormatting.RED;
-
-                // Determine the correct translation key. If the augment has tiers, the key includes the tier.
-                String translationKey;
-                var def = AugmentManager.get(augmentId); // assumes AugmentManager.get(id) returns the augment definition used in LangGenerator
-                if (def != null && def.hasTiers()) {
-                    int tier = AugmentManager.getTier(augmentId, stack); // assumes this returns int (1..maxTier)
-                    if (tier <= 0) tier = 1; // defensive fallback
-                    translationKey = "augment.arsenalcrafting." + def.id() + "_augment.tier" + tier;
-                } else {
-                    // Fallback to whatever translation key AugmentManager already provides for non-tiered augments
-                    translationKey = AugmentManager.getTranslationKey(augmentId);
-                }
-
-                Component augmentName = Component.translatable(translationKey)
-                        .withStyle(color);
-
-                if (enabled) {
-                    augmentName = augmentName.copy()
-                            .append(Component.literal(" ✓").withStyle(net.minecraft.ChatFormatting.GREEN));
-                } else {
-                    augmentName = augmentName.copy()
-                            .append(Component.literal(" ✗").withStyle(net.minecraft.ChatFormatting.RED));
-                }
-
-                tooltip.add(Component.literal("  Slot " + (i + 1) + ": ").withStyle(net.minecraft.ChatFormatting.GRAY)
-                        .append(augmentName));
-            }
-        }
-
-        tooltip.add(Component.literal(""));
-        tooltip.add(Component.translatable("item.arsenalcrafting.augment_slots",
-                        usedSlots + "/" + getTotalAugmentSlots())
-                .withStyle(net.minecraft.ChatFormatting.LIGHT_PURPLE));
-    }
-
-
-    // ---- VALIDATION / INSTALLATION ----
     default boolean isValidAugmentForTool(String augmentId) {
         if (augmentId == null || augmentId.isEmpty()) return false;
         var handler = AugmentManager.getHandler(augmentId);
@@ -243,16 +127,6 @@ public interface ArsenalTool extends IItemExtension {
         if (!isValidAugmentForTool(augmentId)) return false;
         if (getUsedAugmentSlots(stack) >= getTotalAugmentSlots()) return false;
         return !getAugmentSlots(stack).hasAugment(augmentId);
-    }
-
-    default int getFirstFreeSlot(ItemStack stack) {
-        ToolAugmentSlots slots = getAugmentSlots(stack);
-        for (int i = 0; i < 4; i++) {
-            if (slots.getAugmentInSlot(i).isEmpty()) {
-                return i;
-            }
-        }
-        return -1;
     }
 
     default boolean installAugment(ItemStack stack, String augmentId, int tier) {
@@ -278,16 +152,121 @@ public interface ArsenalTool extends IItemExtension {
         return false;
     }
 
+    // ==================== GUI ====================
+
+    default InteractionResultHolder<ItemStack> onToolUse(Level level, Player player, InteractionHand hand) {
+        ItemStack stack = player.getItemInHand(hand);
+        if (player.isShiftKeyDown() && hand == InteractionHand.MAIN_HAND) {
+            if (!level.isClientSide) {
+                openToolGui(player, stack);
+            }
+            return InteractionResultHolder.success(stack);
+        }
+        return InteractionResultHolder.pass(stack);
+    }
+
+    default void openToolGui(Player player, ItemStack stack) {
+        player.openMenu(new SimpleMenuProvider(
+                (id, inventory, p) -> new com.arsenalcrafting.mod.client.menu.ToolMenu(id, inventory, stack),
+                Component.translatable("gui.arsenalcrafting.tool")
+        ));
+    }
+
+    public static void tickHeldToolAugments(Player player, ItemStack stack) {
+        // Just delegate to AugmentProcessor which has proper caching and error handling
+        AugmentProcessor.processToolTick(stack, player);
+    }
+
+    // ==================== MATERIAL INFO ====================
+
+    /**
+     * Primary material used for repair cost.
+     * Head material takes priority, fallback to base material.
+     */
+    default AlloyMaterial getRepairMaterial(ItemStack stack) {
+        ToolAssemblyData data = stack.get(TOOL_ASSEMBLY_DATA.get());
+        if (data != null && !data.isEmpty()) {
+            AlloyMaterial head = AlloyMaterial.fromName(data.headMaterial());
+            if (head != null) return head;
+        }
+        return getBaseMaterial();
+    }
+
+    default String getMaterialName(ItemStack stack) {
+        AlloyMaterial mat = getRepairMaterial(stack);
+        return mat != null ? mat.getName() : "";
+    }
+
+    /**
+     * Repair efficiency - 1 value = 15% of durability
+     */
+    default float getRepairEfficiency(ItemStack stack) {
+        AlloyMaterial mat = getRepairMaterial(stack);
+        return mat != null ? mat.getModifier() : 1.0f;
+    }
+
+    // ==================== TOOLTIP ====================
+
+    @OnlyIn(Dist.CLIENT)
+    default void appendArsenalTooltip(ItemStack stack, Item.TooltipContext context,
+                                      List<Component> tooltip, TooltipFlag flag) {
+        ToolAugmentSlots slots = getAugmentSlots(stack);
+        int usedSlots = slots.getUsedSlotCount();
+
+        if (usedSlots > 0) {
+            tooltip.add(Component.literal(""));
+            tooltip.add(Component.translatable("tooltip.arsenalcrafting.installed_augments")
+                    .withStyle(net.minecraft.ChatFormatting.GOLD));
+
+            for (int i = 0; i < 4; i++) {
+                String augmentId = slots.getAugmentInSlot(i);
+                if (augmentId == null || augmentId.isEmpty()) continue;
+
+                boolean enabled = isAugmentEnabled(stack, augmentId);
+                net.minecraft.ChatFormatting color = enabled
+                        ? net.minecraft.ChatFormatting.GREEN
+                        : net.minecraft.ChatFormatting.RED;
+
+                // Get translation key
+                String translationKey;
+                var def = AugmentManager.get(augmentId);
+                if (def != null && def.hasTiers()) {
+                    int tier = AugmentManager.getTier(augmentId, stack);
+                    if (tier <= 0) tier = 1;
+                    translationKey = "augment.arsenalcrafting." + def.id() + "_augment.tier" + tier;
+                } else {
+                    translationKey = AugmentManager.getTranslationKey(augmentId);
+                }
+
+                Component augmentName = Component.translatable(translationKey).withStyle(color);
+
+                if (enabled) {
+                    augmentName = augmentName.copy()
+                            .append(Component.literal(" ✓").withStyle(net.minecraft.ChatFormatting.GREEN));
+                } else {
+                    augmentName = augmentName.copy()
+                            .append(Component.literal(" ✗").withStyle(net.minecraft.ChatFormatting.RED));
+                }
+
+                tooltip.add(Component.literal("  Slot " + (i + 1) + ": ")
+                        .withStyle(net.minecraft.ChatFormatting.GRAY)
+                        .append(augmentName));
+            }
+        }
+
+        tooltip.add(Component.literal(""));
+        tooltip.add(Component.translatable("item.arsenalcrafting.augment_slots",
+                        usedSlots + "/" + getTotalAugmentSlots())
+                .withStyle(net.minecraft.ChatFormatting.LIGHT_PURPLE));
+    }
+
+    // ==================== BURN PROTECTION ====================
+
     @Override
     default boolean canBeHurtBy(ItemStack stack, net.minecraft.world.damagesource.DamageSource source) {
-        // If it's fire damage, check burn protection
         if (source.is(net.minecraft.tags.DamageTypeTags.IS_FIRE)) {
             return !BurnProtection.hasBurnProtection(stack);
         }
-
-        // Default behavior for other damage types
         return IItemExtension.super.canBeHurtBy(stack, source);
     }
 }
-
-
