@@ -11,7 +11,8 @@ import net.minecraft.world.item.ItemStack;
  */
 public final class BurnProtection {
 
-    private BurnProtection() {}
+    private BurnProtection() {
+    }
 
     public static boolean hasBurnProtection(ItemStack stack) {
         if (!(stack.getItem() instanceof ArsenalTool)) {
@@ -32,4 +33,5 @@ public final class BurnProtection {
         return def != null && "burn_protection".equals(def.id());
 
     }
-}
+
+    }

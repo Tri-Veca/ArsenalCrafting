@@ -42,9 +42,9 @@ public class CoreProcessor {
     }
 
     public static void onBlockDestroyed(ItemStack tool, Level level, BlockState state, BlockPos pos, LivingEntity entity) {
-        CoreManager.CoreDefinition coreDef = CoreManager.getFromTool(tool);
-        if (coreDef != null) {
-            coreDef.handler().onBlockDestroyed(tool, level, state, pos, entity);
+        CoreHandler core = getActiveCore(tool);
+        if (core != null) {
+            core.onBlockDestroyed(tool, level, state, pos, entity);
         }
     }
 

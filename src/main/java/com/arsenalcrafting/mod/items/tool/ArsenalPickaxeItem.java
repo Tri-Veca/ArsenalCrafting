@@ -178,20 +178,6 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
                              @NotNull BlockPos pos, @NotNull LivingEntity entity) {
 
 
-        ToolAssemblyData data = stack.get(ModComponents.TOOL_ASSEMBLY_DATA.get());
-        if (data != null && !data.isEmpty()) {
-            AlloyMaterial coreMat = AlloyMaterial.fromName(data.coreMaterial());
-            if (coreMat != null) {
-                CoreManager.CoreDefinition def = CoreManager.getForMaterial(coreMat);
-
-                // Check if it's a Momentum core
-                if (def != null && "momentum".equals(def.id())) {
-                    Momentum.onBlockMined(stack, entity);
-                }
-
-            }
-        }
-
         // Process block break through UnifiedProcessor (handles cores + augments)
         if (UnifiedProcessor.processBlockBreak(stack, level, state, pos, entity)) {
             EquipmentSlot slot = entity.getMainHandItem() == stack

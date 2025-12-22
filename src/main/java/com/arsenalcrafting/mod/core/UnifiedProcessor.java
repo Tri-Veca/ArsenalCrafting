@@ -17,7 +17,10 @@ public class UnifiedProcessor {
 
     public static boolean processBlockBreak(ItemStack tool, Level level, BlockState state,
                                             BlockPos pos, LivingEntity miner) {
-        // 1. Augments handle (Auto-Smelt, Fortune, etc.)
+        // 1. Cores handle (Momentum, etc.)
+        CoreProcessor.onBlockDestroyed(tool, level, state, pos, miner);
+
+        // 2. Augments handle (Auto-Smelt, Fortune, etc.)
         if (AugmentProcessor.processBlockBreak(tool, level, state, pos, miner)) {
             return true;
         }
