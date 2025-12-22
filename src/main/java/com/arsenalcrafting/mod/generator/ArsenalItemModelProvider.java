@@ -101,6 +101,7 @@ public class ArsenalItemModelProvider extends ItemModelProvider {
                     .parent(new ModelFile.UncheckedModelFile(mcLoc("item/generated")))
                     .texture("layer0", modLoc("item/tool_rod_item_base"));
 
+
             getBuilder(key + "_core")
                     .parent(new ModelFile.UncheckedModelFile(mcLoc("item/generated")))
                     .texture("layer0", modLoc("item/core_item_base"));
