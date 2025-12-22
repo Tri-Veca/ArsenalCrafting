@@ -5,8 +5,12 @@ import com.arsenalcrafting.mod.component.ToolComponentType;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
 import com.arsenalcrafting.mod.core.augments.AugmentProcessor;
+import com.arsenalcrafting.mod.items.augments.EfficiencyAugmentItem;
 import com.arsenalcrafting.mod.items.tool.powers.BurnProtection;
+import com.arsenalcrafting.mod.items.tool.powers.CoreManager;
 import com.arsenalcrafting.mod.registry.ModComponents;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -268,10 +272,66 @@ public interface ArsenalTool extends IItemExtension {
             }
         }
 
+
         tooltip.add(Component.literal(""));
         tooltip.add(Component.translatable("item.arsenalcrafting.augment_slots",
                         usedSlots + "/" + getTotalAugmentSlots())
                 .withStyle(net.minecraft.ChatFormatting.LIGHT_PURPLE));
+
+         ToolAssemblyData assemblyData = stack.get(TOOL_ASSEMBLY_DATA.get());
+        if (assemblyData != null && !assemblyData.isEmpty()) {
+            tooltip.add(Component.literal(""));
+            tooltip.add(Component.translatable("item.arsenalcrafting.tool_parts").withStyle(ChatFormatting.DARK_AQUA));
+
+            tooltip.add(Component.translatable("item.arsenalcrafting.head_material", assemblyData.headMaterial()).withStyle(ChatFormatting.WHITE));
+            tooltip.add(Component.translatable("item.arsenalcrafting.rod_material", assemblyData.rodMaterial()).withStyle(ChatFormatting.WHITE));
+            tooltip.add(Component.translatable("item.arsenalcrafting.core_material", assemblyData.coreMaterial()).withStyle(ChatFormatting.WHITE));
+
+            AlloyMaterial headMat = AlloyMaterial.fromName(assemblyData.headMaterial());
+            AlloyMaterial rodMat = AlloyMaterial.fromName(assemblyData.rodMaterial());
+            AlloyMaterial coreMat = AlloyMaterial.fromName(assemblyData.coreMaterial());
+
+            if (headMat != null && rodMat != null && coreMat != null) {
+                tooltip.add(Component.literal(""));
+
+                // --- DYNAMIC STATS ---
+                float finalDurability = (float) rodMat.getDurability();
+                float finalEfficiency = headMat.getEfficiency();
+
+                CoreManager.CoreDefinition coreDef = CoreManager.getForMaterial(coreMat);
+                if (coreDef != null) {
+                    finalDurability = coreDef.handler().modifyMaxDurability(stack, finalDurability);
+                    finalEfficiency = coreDef.handler().modifyMiningSpeed(stack, finalEfficiency);
+                }
+
+                if (isAugmentEnabled(stack, "efficiency")) {
+                    finalEfficiency += EfficiencyAugmentItem.getSpeedBonus(stack, finalEfficiency);
+                }
+
+                tooltip.add(Component.translatable("item.arsenalcrafting.repairability", headMat.getName())
+                        .withStyle(headMat.getColor()));
+
+                tooltip.add(Component.translatable("item.arsenalcrafting.durability")
+                        .append(": " + (int) finalDurability)
+                        .withStyle(rodMat.getColor()));
+
+                tooltip.add(Component.translatable("item.arsenalcrafting.efficiency")
+                        .append(": " + String.format("%.1f", finalEfficiency))
+                        .withStyle(headMat.getColor()));
+
+                if (coreDef != null) {
+                    tooltip.add(Component.literal("• ")
+                            .append(Component.translatable("core.arsenalcrafting." + coreDef.id())
+                                    .withStyle(coreMat.getColor())));
+
+                    if (Screen.hasShiftDown()) {
+                        tooltip.add(Component.translatable("core.arsenalcrafting." + coreDef.id() + ".desc")
+                                .withStyle(ChatFormatting.DARK_GRAY));
+                    }
+                }
+            }
+        }
+
     }
 
     // ==================== BURN PROTECTION ====================

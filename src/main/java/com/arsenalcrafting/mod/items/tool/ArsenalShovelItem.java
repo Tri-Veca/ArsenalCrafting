@@ -5,6 +5,8 @@ import com.arsenalcrafting.mod.core.UnifiedProcessor;
 import com.arsenalcrafting.mod.component.ToolAssemblyData;
 import com.arsenalcrafting.mod.config.TestModeConfig;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
+import com.arsenalcrafting.mod.core.augments.AugmentHandler;
+import com.arsenalcrafting.mod.core.augments.AugmentHandlers;
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
 import com.arsenalcrafting.mod.items.augments.EfficiencyAugmentItem;
 import com.arsenalcrafting.mod.items.tool.powers.CoreManager;
@@ -68,6 +70,50 @@ public class ArsenalShovelItem extends ShovelItem implements ArsenalTool {
 
 
     @Override
+    public boolean isEnchantable(ItemStack stack) {
+        return false;
+    }
+
+    private static class DummyToolTier implements Tier {
+        private final AlloyMaterial material;
+
+        public DummyToolTier(AlloyMaterial material) {
+            this.material = material;
+        }
+
+        @Override
+        public int getUses() {
+            return material.getDurability();
+        }
+
+        @Override
+        public float getSpeed() {
+            return material.getEfficiency();
+        }
+
+        @Override
+        public float getAttackDamageBonus() {
+            return material.getDamage();
+        }
+
+        @Override
+        public TagKey<Block> getIncorrectBlocksForDrops() {
+            return AlloyMaterial.getToolBreakTag(material);
+        }
+
+        @Override
+        public int getEnchantmentValue() {
+            return 0;
+        }
+
+        @Override
+        public Ingredient getRepairIngredient() {
+            return Ingredient.EMPTY;
+        }
+    }
+
+    //Gui stuff
+    @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         InteractionResultHolder<ItemStack> arsenalResult = onToolUse(level, player, hand);
@@ -99,6 +145,7 @@ public class ArsenalShovelItem extends ShovelItem implements ArsenalTool {
         return stack;
     }
 
+    //Durability Stuff
     @Override
     public int getMaxDamage(ItemStack stack) {
         ToolAssemblyData assemblyData = stack.get(TOOL_ASSEMBLY_DATA.get());
@@ -147,6 +194,7 @@ public class ArsenalShovelItem extends ShovelItem implements ArsenalTool {
         return !isIncorrect;
     }
 
+    //Efficiency Stuff
     @Override
     public float getDestroySpeed(ItemStack stack, BlockState state) {
         // Check if we can mine this block at all
@@ -157,10 +205,11 @@ public class ArsenalShovelItem extends ShovelItem implements ArsenalTool {
         // Get base speed from super
         float speed = super.getDestroySpeed(stack, state);
 
-        // Use UnifiedProcessor (shovels don't need WorkHorse ×30 logic)
+        // Use UnifiedProcessor which handles WorkHorse ×30 for hard blocks
         return UnifiedProcessor.getDestroySpeed(stack, state, speed);
     }
 
+    //Anything that requires constant updates
     @Override
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean selected) {
         super.inventoryTick(stack, level, entity, slot, selected);
@@ -169,21 +218,31 @@ public class ArsenalShovelItem extends ShovelItem implements ArsenalTool {
 
         if (selected) {
             UnifiedProcessor.processToolTick(stack, player);
+        } else {
+            // Tool is no longer selected - clean up light
+            AugmentHandler handler = AugmentManager.getHandler("light");
+            if (handler instanceof AugmentHandlers.Light lightHandler) {
+                if (AugmentManager.isActive("light", stack)) {
+                    lightHandler.removePlayerLight(player);
+                }
+            }
         }
     }
 
+    //We now use Unified Processor here!
+    //Controls what happens when the player mines a block
     @Override
     public boolean mineBlock(@NotNull ItemStack stack, @NotNull Level level, @NotNull BlockState state,
                              @NotNull BlockPos pos, @NotNull LivingEntity entity) {
 
-            // Process block break through UnifiedProcessor (handles cores + augments)
-            if (UnifiedProcessor.processBlockBreak(stack, level, state, pos, entity)) {
-                EquipmentSlot slot = entity.getMainHandItem() == stack
-                        ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND;
-                stack.hurtAndBreak(1, entity, slot);
-                return true;
-            }
 
+        // Process block break through UnifiedProcessor (handles cores + augments)
+        if (UnifiedProcessor.processBlockBreak(stack, level, state, pos, entity)) {
+            EquipmentSlot slot = entity.getMainHandItem() == stack
+                    ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND;
+            stack.hurtAndBreak(1, entity, slot);
+            return true;
+        }
 
         // VANILLA BREAK with durability save check
         boolean shouldDamage = true;
@@ -213,104 +272,8 @@ public class ArsenalShovelItem extends ShovelItem implements ArsenalTool {
     @OnlyIn(Dist.CLIENT)
     public void appendHoverText(ItemStack stack, @Nullable Item.TooltipContext context,
                                 List<Component> tooltip, TooltipFlag flag) {
-        // Use the ArsenalTool interface tooltip
+
+        //Get Generic Tool Tips from ArsenalTool Interface
         appendArsenalTooltip(stack, context, tooltip, flag);
-
-        ToolAssemblyData assemblyData = stack.get(TOOL_ASSEMBLY_DATA.get());
-        if (assemblyData != null && !assemblyData.isEmpty()) {
-            tooltip.add(Component.literal(""));
-            tooltip.add(Component.translatable("item.arsenalcrafting.tool_parts").withStyle(ChatFormatting.DARK_AQUA));
-
-            tooltip.add(Component.translatable("item.arsenalcrafting.head_material", assemblyData.headMaterial()).withStyle(ChatFormatting.WHITE));
-            tooltip.add(Component.translatable("item.arsenalcrafting.rod_material", assemblyData.rodMaterial()).withStyle(ChatFormatting.WHITE));
-            tooltip.add(Component.translatable("item.arsenalcrafting.core_material", assemblyData.coreMaterial()).withStyle(ChatFormatting.WHITE));
-
-            AlloyMaterial headMat = AlloyMaterial.fromName(assemblyData.headMaterial());
-            AlloyMaterial rodMat = AlloyMaterial.fromName(assemblyData.rodMaterial());
-            AlloyMaterial coreMat = AlloyMaterial.fromName(assemblyData.coreMaterial());
-
-            if (headMat != null && rodMat != null && coreMat != null) {
-                tooltip.add(Component.literal(""));
-
-                // --- DYNAMIC STATS ---
-                float finalDurability = (float) rodMat.getDurability();
-                float finalEfficiency = headMat.getEfficiency();
-
-                CoreManager.CoreDefinition coreDef = CoreManager.getForMaterial(coreMat);
-                if (coreDef != null) {
-                    finalDurability = coreDef.handler().modifyMaxDurability(stack, finalDurability);
-                    finalEfficiency = coreDef.handler().modifyMiningSpeed(stack, finalEfficiency);
-                }
-
-                if (isAugmentEnabled(stack, "efficiency")) {
-                    finalEfficiency += EfficiencyAugmentItem.getSpeedBonus(stack, finalEfficiency);
-                }
-
-                tooltip.add(Component.translatable("item.arsenalcrafting.repairability", headMat.getName())
-                        .withStyle(headMat.getColor()));
-
-                tooltip.add(Component.translatable("item.arsenalcrafting.durability")
-                        .append(": " + (int) finalDurability)
-                        .withStyle(rodMat.getColor()));
-
-                tooltip.add(Component.translatable("item.arsenalcrafting.efficiency")
-                        .append(": " + String.format("%.1f", finalEfficiency))
-                        .withStyle(headMat.getColor()));
-
-                if (coreDef != null) {
-                    tooltip.add(Component.literal("• ")
-                            .append(Component.translatable("core.arsenalcrafting." + coreDef.id())
-                                    .withStyle(coreMat.getColor())));
-
-                    if (Screen.hasShiftDown()) {
-                        tooltip.add(Component.translatable("core.arsenalcrafting." + coreDef.id() + ".desc")
-                                .withStyle(ChatFormatting.DARK_GRAY));
-                    }
-                }
-            }
-        }
-    }
-
-    @Override
-    public boolean isEnchantable(ItemStack stack) {
-        return false;
-    }
-
-    private static class DummyToolTier implements Tier {
-        private final AlloyMaterial material;
-
-        public DummyToolTier(AlloyMaterial material) {
-            this.material = material;
-        }
-
-        @Override
-        public int getUses() {
-            return material.getDurability();
-        }
-
-        @Override
-        public float getSpeed() {
-            return material.getEfficiency();
-        }
-
-        @Override
-        public float getAttackDamageBonus() {
-            return material.getDamage();
-        }
-
-        @Override
-        public TagKey<Block> getIncorrectBlocksForDrops() {
-            return AlloyMaterial.getToolBreakTag(material);
-        }
-
-        @Override
-        public int getEnchantmentValue() {
-            return 0;
-        }
-
-        @Override
-        public Ingredient getRepairIngredient() {
-            return Ingredient.EMPTY;
-        }
     }
 }
