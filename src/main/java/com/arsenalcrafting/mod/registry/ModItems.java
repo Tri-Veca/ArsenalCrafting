@@ -8,9 +8,7 @@ import com.arsenalcrafting.mod.items.RepairKitItem;
 import com.arsenalcrafting.mod.items.augments.UniversalAugmentItem;
 import com.arsenalcrafting.mod.items.tool.ArsenalPickaxeItem;
 import com.arsenalcrafting.mod.component.ToolComponentType;
-
-
-import com.arsenalcrafting.mod.items.tool.toolparts.ArsenalShovelItem;
+import com.arsenalcrafting.mod.items.tool.ArsenalShovelItem;
 import com.arsenalcrafting.mod.items.tool.toolparts.ToolComponentItem;
 
 import net.minecraft.core.registries.Registries;

@@ -1,4 +1,4 @@
-package com.arsenalcrafting.mod.items.tool.toolparts;
+package com.arsenalcrafting.mod.items.tool;
 
 import com.arsenalcrafting.mod.component.ToolComponentType;
 import com.arsenalcrafting.mod.core.UnifiedProcessor;
@@ -7,8 +7,6 @@ import com.arsenalcrafting.mod.config.TestModeConfig;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
 import com.arsenalcrafting.mod.items.augments.EfficiencyAugmentItem;
-import com.arsenalcrafting.mod.items.tool.ArsenalTool;
-import com.arsenalcrafting.mod.items.tool.ArsenalToolType;
 import com.arsenalcrafting.mod.items.tool.powers.CoreManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;

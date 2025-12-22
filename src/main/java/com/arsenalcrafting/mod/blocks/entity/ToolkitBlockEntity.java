@@ -143,6 +143,28 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
         return null;
     }
 
+    // NEW: Check if rod matches head type
+    private boolean isRodCompatibleWithHead(ItemStack headStack, ItemStack rodStack) {
+        if (headStack.isEmpty() || rodStack.isEmpty()) return true; // Allow empty slots
+
+        Item headItem = headStack.getItem();
+        Item rodItem = rodStack.getItem();
+
+        if (!(headItem instanceof ToolComponentItem headComp)) return false;
+        if (!(rodItem instanceof ToolComponentItem rodComp)) return false;
+
+        ToolComponentType headType = headComp.getComponentType();
+        ToolComponentType rodType = rodComp.getComponentType();
+
+        // Check if they match
+        return switch (headType) {
+            case PICKAXE_HEAD -> rodType == ToolComponentType.TOOL_ROD; // Generic rod for pickaxe
+            case SHOVEL_HEAD -> rodType == ToolComponentType.SHOVEL_TOOL_ROD; // Shovel-specific rod
+            // case AXE_HEAD -> rodType == ToolComponentType.AXE_TOOL_ROD;
+            default -> false;
+        };
+    }
+
     /**
      * Sync augments from tool to GUI slots
      */
@@ -336,6 +358,18 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
 
             boolean isNewTool = outputStack.isEmpty();
             if (isNewTool && (!hasHeadInput || !hasCoreInput || !hasRodInput)) return;
+
+            // NEW: Validate head and rod compatibility
+            if (hasHeadInput && hasRodInput) {
+                if (!isRodCompatibleWithHead(headStack, rodStack)) {
+                    // Incompatible! Clear output and return
+                    if (!outputStack.isEmpty()) {
+                        itemHandler.setStackInSlot(OUTPUT_SLOT, ItemStack.EMPTY);
+                        setChanged();
+                    }
+                    return;
+                }
+            }
 
             // --- Read existing assembly data for SWAPPING ---
             String oldHeadMat = "";
