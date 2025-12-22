@@ -5,10 +5,13 @@ import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.items.tool.ArsenalTool;
 import com.arsenalcrafting.mod.registry.ModComponents;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
 import javax.annotation.Nullable;
@@ -36,6 +39,13 @@ public class CoreProcessor {
         if (def == null) return null;
 
         return HANDLER_CACHE.computeIfAbsent(def.id(), id -> def.handler());
+    }
+
+    public static void onBlockDestroyed(ItemStack tool, Level level, BlockState state, BlockPos pos, LivingEntity entity) {
+        CoreManager.CoreDefinition coreDef = CoreManager.getFromTool(tool);
+        if (coreDef != null) {
+            coreDef.handler().onBlockDestroyed(tool, level, state, pos, entity);
+        }
     }
 
 

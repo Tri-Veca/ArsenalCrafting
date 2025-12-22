@@ -1,6 +1,9 @@
 package com.arsenalcrafting.mod.items.tool.powers;
 
 import com.arsenalcrafting.mod.component.DynamicComponents;
+import com.arsenalcrafting.mod.component.ToolAssemblyData;
+import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
+import com.arsenalcrafting.mod.registry.ModComponents;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
@@ -48,6 +51,7 @@ public final class Momentum {
         applyEffect(player, newCombo);
     }
 
+
     private static void applyEffect(LivingEntity player, int combo) {
 
         // to ensure the Haste doesn't run out before the combo does.
@@ -59,4 +63,6 @@ public final class Momentum {
             player.addEffect(new MobEffectInstance(MobEffects.DIG_SPEED, 80, 0, true, false)); // Haste 1
         }
     }
+
+
 }

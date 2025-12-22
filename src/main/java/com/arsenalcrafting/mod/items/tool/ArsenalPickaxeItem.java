@@ -11,6 +11,7 @@ import com.arsenalcrafting.mod.core.augments.AugmentManager;
 import com.arsenalcrafting.mod.items.augments.EfficiencyAugmentItem;
 import com.arsenalcrafting.mod.items.tool.powers.CoreManager;
 import com.arsenalcrafting.mod.items.tool.powers.Momentum;
+import com.arsenalcrafting.mod.registry.ModComponents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
@@ -48,7 +49,6 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
     }
 
 
-
     @Override
     public ArsenalToolType getToolType() {
         return toolType;
@@ -58,6 +58,7 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
     public AlloyMaterial getBaseMaterial() {
         return baseMaterial;
     }
+
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
@@ -171,20 +172,32 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
             }
         }
     }
+
     @Override
     public boolean mineBlock(@NotNull ItemStack stack, @NotNull Level level, @NotNull BlockState state,
                              @NotNull BlockPos pos, @NotNull LivingEntity entity) {
 
 
-        if (!level.isClientSide) {
-            Momentum.onBlockMined(stack, entity);
-            // Process block break through UnifiedProcessor (handles cores + augments)
-            if (UnifiedProcessor.processBlockBreak(stack, level, state, pos, entity)) {
-                EquipmentSlot slot = entity.getMainHandItem() == stack
-                        ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND;
-                stack.hurtAndBreak(1, entity, slot);
-                return true;
+        ToolAssemblyData data = stack.get(ModComponents.TOOL_ASSEMBLY_DATA.get());
+        if (data != null && !data.isEmpty()) {
+            AlloyMaterial coreMat = AlloyMaterial.fromName(data.coreMaterial());
+            if (coreMat != null) {
+                CoreManager.CoreDefinition def = CoreManager.getForMaterial(coreMat);
+
+                // Check if it's a Momentum core
+                if (def != null && "momentum".equals(def.id())) {
+                    Momentum.onBlockMined(stack, entity);
+                }
+
             }
+        }
+
+        // Process block break through UnifiedProcessor (handles cores + augments)
+        if (UnifiedProcessor.processBlockBreak(stack, level, state, pos, entity)) {
+            EquipmentSlot slot = entity.getMainHandItem() == stack
+                    ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND;
+            stack.hurtAndBreak(1, entity, slot);
+            return true;
         }
 
         // VANILLA BREAK with durability save check
