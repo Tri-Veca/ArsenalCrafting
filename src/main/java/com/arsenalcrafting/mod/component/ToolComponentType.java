@@ -13,6 +13,7 @@ public enum ToolComponentType {
 
     // Handles/Rods
     TOOL_ROD("tool_rod", "Tool Rod"),
+    SHOVEL_TOOL_ROD("shovel_tool_rod", "Shovel Tool Rod"),
     /*HILT("hilt", "Hilt"),
     POMMEL("pommel", "Pommel"),
    GRIP("grip", "Grip"),
@@ -50,5 +51,9 @@ public enum ToolComponentType {
 
     public boolean isHead() {
         return this.id.contains("head");
+    }
+
+    public boolean isRod() {
+        return this.id.contains("rod");
     }
 }

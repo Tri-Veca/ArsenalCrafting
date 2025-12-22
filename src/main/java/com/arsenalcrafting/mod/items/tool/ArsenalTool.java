@@ -42,6 +42,11 @@ public interface ArsenalTool extends IItemExtension {
         return ToolComponentType.PICKAXE_HEAD;
     }
 
+    default ToolComponentType getRodType() {
+        // Default to PICKAXE_HEAD so existing tools don't break immediately
+        return ToolComponentType.TOOL_ROD;
+    }
+
     // ==================== AUGMENT SLOTS ====================
 
     default ToolAugmentSlots getAugmentSlots(ItemStack stack) {

@@ -59,49 +59,61 @@ public class ArsenalItemModelProvider extends ItemModelProvider {
     private void generateArsenalShovelModel() {
         getBuilder("arsenal_shovel")
                 .parent(new ModelFile.UncheckedModelFile(mcLoc("item/handheld")))
-                .texture("layer0", modLoc("item/shovel_head_base"))  // Back
-                .texture("layer1", modLoc("item/tool_rod_base"))  // Middle
-                .texture("layer2", modLoc("item/core_base_shovel_1")); // Front
+                .texture("layer0", modLoc("item/shovel_head_base"))
+                .texture("layer1", modLoc("item/tool_rod_base_shovel"))
+                .texture("layer2", modLoc("item/core_base_shovel_1"));
     }
 
     /**
      * Item models for all tool part items (heads + core + rods) for every AlloyMaterial.
      *
      * Each part item uses the same grayscale texture:
-     *  - Heads -> pickaxe_head_base
-     *  - Rods  -> tool_rod_base
-     *   - Cores  -> core_base
+     *  - Heads -> pickaxe_head_base / shovel_head_base
+     *  - Rods  -> tool_rod_base / shovel_tool_rod_base
+     *  - Cores -> core_base
      *
      * Colour is applied in ModItemColors.colorToolPart based on the item's AlloyMaterial.
      *
      * This expects your item registry names to follow:
      *  - "<material>_pickaxe_head"
+     *  - "<material>_shovel_head"
      *  - "<material>_tool_rod"
+     *  - "<material>_shovel_tool_rod"
+     *  - "<material>_pickaxe_tool_rod"
      *  - "<material>_core"
      *
-     * e.g. "bronze_pickaxe_head", "titanium_tool_rod", "diamond_core
-     *
-     * If your actual registry names differ, just tweak the strings below.
+     * e.g. "bronze_pickaxe_head", "titanium_tool_rod", "diamond_core"
      */
     private void generateToolPartModels() {
         for (AlloyMaterial material : AlloyMaterial.values()) {
             String key = material.getName().toLowerCase(Locale.ROOT); // e.g. "bronze"
 
-            // HEAD ITEMS
+            // PICKAXE HEAD
             getBuilder(key + "_pickaxe_head")
                     .parent(new ModelFile.UncheckedModelFile(mcLoc("item/generated")))
                     .texture("layer0", modLoc("item/pickaxe_head_item_base"));
 
+            // SHOVEL HEAD
             getBuilder(key + "_shovel_head")
                     .parent(new ModelFile.UncheckedModelFile(mcLoc("item/generated")))
                     .texture("layer0", modLoc("item/shovel_head_item_base"));
 
-            // ROD ITEMS
+            // GENERIC TOOL ROD (for pickaxe, or fallback)
             getBuilder(key + "_tool_rod")
                     .parent(new ModelFile.UncheckedModelFile(mcLoc("item/generated")))
                     .texture("layer0", modLoc("item/tool_rod_item_base"));
 
+            // PICKAXE-SPECIFIC TOOL ROD
+            getBuilder(key + "_pickaxe_tool_rod")
+                    .parent(new ModelFile.UncheckedModelFile(mcLoc("item/generated")))
+                    .texture("layer0", modLoc("item/tool_rod_item_base"));
 
+            // SHOVEL-SPECIFIC TOOL ROD
+            getBuilder(key + "_shovel_tool_rod")
+                    .parent(new ModelFile.UncheckedModelFile(mcLoc("item/generated")))
+                    .texture("layer0", modLoc("item/tool_rod_base_shovel")); // Reuse regular rod texture
+
+            // CORE
             getBuilder(key + "_core")
                     .parent(new ModelFile.UncheckedModelFile(mcLoc("item/generated")))
                     .texture("layer0", modLoc("item/core_item_base"));

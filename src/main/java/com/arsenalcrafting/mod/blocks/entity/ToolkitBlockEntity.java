@@ -90,7 +90,6 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
     };
 
     // Helper method to check if item is a tool head (old or new system)
-    // ToolkitBlockEntity.java
     private boolean isToolHead(Item item) {
         if (item instanceof ToolComponentItem toolComponent) {
             // This ensures Shovel, Axe, and Pickaxe heads are all recognized
@@ -123,12 +122,9 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
 
     // Helper method to check if item is a tool rod (old or new system)
     private boolean isToolRod(Item item) {
-        // Old system: ToolRodItem
-        if (item instanceof ToolRodItem) return true;
-
-        // New system: ToolComponentItem with TOOL_ROD type
         if (item instanceof ToolComponentItem toolComponent) {
-            return toolComponent.getComponentType() == ToolComponentType.TOOL_ROD;
+            // This ensures Shovel, Axe, and Pickaxe rods are all recognized
+            return toolComponent.getComponentType().isRod();
         }
         return false;
     }
@@ -322,10 +318,7 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
 
     // --- Tool Assembly Logic ---
     private void assembleTool() {
-        // Prevent recursive calls from onContentsChanged
-        if (isAssembling) {
-            return;
-        }
+        if (isAssembling) return;
         isAssembling = true;
 
         try {
@@ -338,187 +331,79 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
             boolean hasCoreInput = !coreStack.isEmpty();
             boolean hasRodInput  = !rodStack.isEmpty();
 
-            // Nothing to do if no input and no tool
-            if (!hasHeadInput && !hasCoreInput && !hasRodInput && outputStack.isEmpty()) {
-                return;
-            }
-
-            // Output must be empty or an Arsenal Tool
-            if (!outputStack.isEmpty() && !(outputStack.getItem() instanceof ArsenalTool)) {
-                return;
-            }
+            if (!hasHeadInput && !hasCoreInput && !hasRodInput && outputStack.isEmpty()) return;
+            if (!outputStack.isEmpty() && !(outputStack.getItem() instanceof ArsenalTool)) return;
 
             boolean isNewTool = outputStack.isEmpty();
+            if (isNewTool && (!hasHeadInput || !hasCoreInput || !hasRodInput)) return;
 
-            // For a brand-new tool we require all 3 parts present
-            if (isNewTool) {
-                if (!hasHeadInput || !hasCoreInput || !hasRodInput) {
-                    return;
-                }
-            }
-
-            // Validate types (only for slots that have items)
-            if (hasHeadInput && !isToolHead(headStack.getItem())) {
-                return;
-            }
-            if (hasCoreInput && !isCore(coreStack.getItem())) {
-                return;
-            }
-            if (hasRodInput && !isToolRod(rodStack.getItem())) {
-                return;
-            }
-
-            // --- Read existing assembly data from the tool (if any) ---
-            String headMatName = null;
-            String rodMatName  = null;
-            String coreMatName = null;
-
-            ToolAssemblyData existingData = null;
-            if (!outputStack.isEmpty()) {
-                existingData = outputStack.get(ModComponents.TOOL_ASSEMBLY_DATA.get());
-            }
+            // --- Read existing assembly data for SWAPPING ---
+            String oldHeadMat = "";
+            String oldRodMat  = "";
+            String oldCoreMat = "";
+            ToolAssemblyData existingData = outputStack.get(ModComponents.TOOL_ASSEMBLY_DATA.get());
 
             if (existingData != null) {
-                headMatName = existingData.headMaterial();
-                rodMatName  = existingData.rodMaterial();
-                coreMatName = existingData.coreMaterial();
+                oldHeadMat = existingData.headMaterial();
+                oldRodMat  = existingData.rodMaterial();
+                oldCoreMat = existingData.coreMaterial();
             }
 
-            // --- Prepare variables for "swap out" items ---
-            ItemStack swapHead = ItemStack.EMPTY;
-            ItemStack swapCore = ItemStack.EMPTY;
-            ItemStack swapRod  = ItemStack.EMPTY;
+            // --- Prepare material names for the NEW tool ---
+            String headMatName = (hasHeadInput) ? getMaterialFromComponent(headStack.getItem()).getName() : oldHeadMat;
+            String coreMatName = (hasCoreInput) ? getMaterialFromComponent(coreStack.getItem()).getName() : oldCoreMat;
+            String rodMatName  = (hasRodInput)  ? getMaterialFromComponent(rodStack.getItem()).getName()  : oldRodMat;
 
-            // --- Handle HEAD replacement ---
-            if (hasHeadInput) {
-                com.arsenalcrafting.mod.core.alloy.AlloyMaterial newHeadMat =
-                        getMaterialFromComponent(headStack.getItem());
-                if (newHeadMat == null) {
-                    return;
-                }
-
-                // If there was an old head, create the old head item to give back
-                if (headMatName != null && !headMatName.isEmpty()) {
-                    swapHead = findComponentStack(ToolComponentType.PICKAXE_HEAD, headMatName);
-                }
-
-                headMatName = newHeadMat.getName();
-            } else if (isNewTool) {
-                // For a brand new tool, all parts must come from inputs
-                return;
-            }
-
-            // --- Handle CORE replacement ---
-            if (hasCoreInput) {
-                com.arsenalcrafting.mod.core.alloy.AlloyMaterial newCoreMat =
-                        getMaterialFromComponent(coreStack.getItem());
-                if (newCoreMat == null) {
-                    return;
-                }
-
-                if (coreMatName != null && !coreMatName.isEmpty()) {
-                    swapCore = findComponentStack(ToolComponentType.CORE, coreMatName);
-                }
-
-                coreMatName = newCoreMat.getName();
-            } else if (isNewTool) {
-                return;
-            }
-
-            // --- Handle ROD replacement ---
-            if (hasRodInput) {
-                com.arsenalcrafting.mod.core.alloy.AlloyMaterial newRodMat =
-                        getMaterialFromComponent(rodStack.getItem());
-                if (newRodMat == null) {
-                    return;
-                }
-
-                if (rodMatName != null && !rodMatName.isEmpty()) {
-                    swapRod = findComponentStack(ToolComponentType.TOOL_ROD, rodMatName);
-                }
-
-                rodMatName = newRodMat.getName();
-            } else if (isNewTool) {
-                return;
-            }
-
-            // At this point we must have material names for all 3 parts
-            if (headMatName == null || rodMatName == null || coreMatName == null) {
-                return;
-            }
+            if (headMatName == null || rodMatName == null || coreMatName == null) return;
 
             // --- Build or copy the tool ---
             ItemStack assembledTool;
-            if (outputStack.isEmpty()) {
-                // Get the component type of the head in the slot
+            if (isNewTool) {
                 ToolComponentItem headComp = (ToolComponentItem) headStack.getItem();
-                ToolComponentType headType = headComp.getComponentType();
-
-                // Map the head type to the correct Arsenal Tool item
-                Item toolItem = switch (headType) {
-                    case SHOVEL_HEAD -> ModItems.ARSENAL_SHOVEL.get();
-                    //case AXE_HEAD    -> ModItems.ARSENAL_AXE.get();
-                    default           -> ModItems.ARSENAL_PICKAXE.get();
-                };
-
-                assembledTool = new ItemStack(toolItem);
+                assembledTool = new ItemStack(getResultingTool(headComp.getComponentType()));
             } else {
                 assembledTool = outputStack.copy();
             }
 
-            ToolAssemblyData newData = new ToolAssemblyData(
-                    headMatName,
-                    rodMatName,
-                    coreMatName
-            );
-            assembledTool.set(ModComponents.TOOL_ASSEMBLY_DATA.get(), newData);
+            assembledTool.set(ModComponents.TOOL_ASSEMBLY_DATA.get(), new ToolAssemblyData(headMatName, rodMatName, coreMatName));
 
-            // --- Consume inputs & put swapped-out parts back ---
-            // HEAD slot (0)
-            if (hasHeadInput) {
-                // Determine the swap stack BEFORE we clear the slot
-                if (outputStack.getItem() instanceof ArsenalTool currentTool) {
-                    ToolComponentType currentHeadType = currentTool.getHeadType();
-                    // headMatName here is still the OLD material from the existingData check earlier
-                    swapHead = findComponentStack(currentHeadType, existingData != null ? existingData.headMaterial() : "");
-                }
+            // --- Handle Input Consumption and Swapping ---
 
-                if (!swapHead.isEmpty()) {
-                    itemHandler.setStackInSlot(HEAD_SLOT, swapHead);
-                } else {
-                    itemHandler.setStackInSlot(HEAD_SLOT, ItemStack.EMPTY);
-                }
-            }
-
-            // CORE slot (1)
-            if (hasCoreInput) {
-                if (!swapCore.isEmpty()) {
-                    itemHandler.setStackInSlot(CORE_SLOT, swapCore);
-                } else {
-                    itemHandler.setStackInSlot(CORE_SLOT, ItemStack.EMPTY);
-                }
-            }
-
-            // ROD slot (3)
+            // 1. ROD SWAP (Index 3)
             if (hasRodInput) {
-                if (!swapRod.isEmpty()) {
-                    itemHandler.setStackInSlot(ROD_SLOT, swapRod);
-                } else {
-                    itemHandler.setStackInSlot(ROD_SLOT, ItemStack.EMPTY);
+                ItemStack swapRod = ItemStack.EMPTY;
+                if (!oldRodMat.isEmpty() && !outputStack.isEmpty()) {
+                    // Use the Tool's RodType to ensure we get the correct rod back (Shovel Rod, Pickaxe Rod, etc.)
+                    ToolComponentType oldRodType = ((ArsenalTool)outputStack.getItem()).getRodType();
+                    swapRod = findComponentStack(oldRodType, oldRodMat);
                 }
+                itemHandler.setStackInSlot(ROD_SLOT, swapRod);
             }
 
-            // Put the final tool in the output slot
+            // 2. CORE SWAP (Index 1)
+            if (hasCoreInput) {
+                ItemStack swapCore = ItemStack.EMPTY;
+                if (!oldCoreMat.isEmpty()) {
+                    swapCore = findComponentStack(ToolComponentType.CORE, oldCoreMat);
+                }
+                itemHandler.setStackInSlot(CORE_SLOT, swapCore);
+            }
+
+            // 3. HEAD SWAP (Index 0)
+            if (hasHeadInput) {
+                ItemStack swapHead = ItemStack.EMPTY;
+                if (!oldHeadMat.isEmpty() && !outputStack.isEmpty()) {
+                    // Use the Tool's HeadType to ensure we get a Shovel Head back if it was a Shovel
+                    ToolComponentType oldType = ((ArsenalTool)outputStack.getItem()).getHeadType();
+                    swapHead = findComponentStack(oldType, oldHeadMat);
+                }
+                itemHandler.setStackInSlot(HEAD_SLOT, swapHead);
+            }
+
+            // Finalize Output
             itemHandler.setStackInSlot(OUTPUT_SLOT, assembledTool);
 
-            if (level != null && !level.isClientSide)
-                level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
-
-
-            // Sync augments from the new tool
             syncAugmentsFromTool();
-
-            // Sync
             setChanged();
             if (level != null && !level.isClientSide) {
                 level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);

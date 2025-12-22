@@ -1,23 +1,21 @@
-package com.arsenalcrafting.mod.items.tool;
+package com.arsenalcrafting.mod.items.tool.toolparts;
 
 import com.arsenalcrafting.mod.component.ToolComponentType;
 import com.arsenalcrafting.mod.core.UnifiedProcessor;
 import com.arsenalcrafting.mod.component.ToolAssemblyData;
 import com.arsenalcrafting.mod.config.TestModeConfig;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
-import com.arsenalcrafting.mod.core.augments.AugmentHandler;
-import com.arsenalcrafting.mod.core.augments.AugmentHandlers;
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
 import com.arsenalcrafting.mod.items.augments.EfficiencyAugmentItem;
+import com.arsenalcrafting.mod.items.tool.ArsenalTool;
+import com.arsenalcrafting.mod.items.tool.ArsenalToolType;
 import com.arsenalcrafting.mod.items.tool.powers.CoreManager;
-import com.arsenalcrafting.mod.items.tool.powers.Sturdy;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
@@ -48,6 +46,7 @@ public class ArsenalShovelItem extends ShovelItem implements ArsenalTool {
         this.baseMaterial = material;
     }
 
+
     @Override
     public ArsenalToolType getToolType() {
         return toolType;
@@ -60,6 +59,11 @@ public class ArsenalShovelItem extends ShovelItem implements ArsenalTool {
     @Override
     public ToolComponentType getHeadType() {
         return ToolComponentType.SHOVEL_HEAD;
+    }
+
+    @Override
+    public ToolComponentType getRodType() {
+        return ToolComponentType.SHOVEL_TOOL_ROD;
     }
 
 

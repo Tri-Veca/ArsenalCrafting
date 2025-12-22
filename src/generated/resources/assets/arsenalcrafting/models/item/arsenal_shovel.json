@@ -2,7 +2,7 @@
   "parent": "minecraft:item/handheld",
   "textures": {
     "layer0": "arsenalcrafting:item/shovel_head_base",
-    "layer1": "arsenalcrafting:item/tool_rod_base",
+    "layer1": "arsenalcrafting:item/tool_rod_base_shovel",
     "layer2": "arsenalcrafting:item/core_base_shovel_1"
   }
 }
