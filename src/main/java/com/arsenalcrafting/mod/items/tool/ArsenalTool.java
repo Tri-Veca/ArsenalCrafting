@@ -1,6 +1,7 @@
 package com.arsenalcrafting.mod.items.tool;
 
 import com.arsenalcrafting.mod.component.ToolAssemblyData;
+import com.arsenalcrafting.mod.component.ToolComponentType;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
 import com.arsenalcrafting.mod.core.augments.AugmentProcessor;
@@ -32,6 +33,14 @@ public interface ArsenalTool extends IItemExtension {
 
     ArsenalToolType getToolType();
     AlloyMaterial getBaseMaterial();
+
+    /**
+     * Returns the specific component type required for the head slot of this tool.
+     */
+    default ToolComponentType getHeadType() {
+        // Default to PICKAXE_HEAD so existing tools don't break immediately
+        return ToolComponentType.PICKAXE_HEAD;
+    }
 
     // ==================== AUGMENT SLOTS ====================
 

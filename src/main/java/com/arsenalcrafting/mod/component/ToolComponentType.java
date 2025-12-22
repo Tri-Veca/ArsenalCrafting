@@ -8,7 +8,7 @@ public enum ToolComponentType {
     // Heads/Blades
     PICKAXE_HEAD("pickaxe_head", "Pickaxe Head"),
     //AXE_HEAD("axe_head", "Axe Head"),
-    //SHOVEL_HEAD("shovel_head", "Shovel Head"),
+    SHOVEL_HEAD("shovel_head", "Shovel Head"),
 
 
     // Handles/Rods
@@ -46,5 +46,9 @@ public enum ToolComponentType {
             }
         }
         return null;
+    }
+
+    public boolean isHead() {
+        return this.id.contains("head");
     }
 }

@@ -8,6 +8,7 @@ import com.arsenalcrafting.mod.items.RepairKitItem;
 import com.arsenalcrafting.mod.items.augments.UniversalAugmentItem;
 import com.arsenalcrafting.mod.items.tool.ArsenalPickaxeItem;
 import com.arsenalcrafting.mod.component.ToolComponentType;
+import com.arsenalcrafting.mod.items.tool.ArsenalShovelItem;
 import com.arsenalcrafting.mod.items.tool.toolparts.ToolComponentItem;
 import com.arsenalcrafting.mod.items.tool.toolparts.ToolHeadItem;
 import com.arsenalcrafting.mod.items.tool.toolparts.ToolRodItem;
@@ -46,6 +47,9 @@ public class ModItems {
     // --- Tools & Weapons (Base items use the lightest alloy by default) ---
     public static final DeferredHolder<Item, ArsenalPickaxeItem> ARSENAL_PICKAXE = ITEMS.register("arsenal_pickaxe",
             () -> new ArsenalPickaxeItem(AlloyMaterial.BRONZE, new Item.Properties().durability(1000)));
+
+    public static final DeferredHolder<Item, ArsenalShovelItem> ARSENAL_SHOVEL = ITEMS.register("arsenal_shovel",
+            () -> new ArsenalShovelItem(AlloyMaterial.BRONZE, new Item.Properties().durability(1000)));
 
 
 

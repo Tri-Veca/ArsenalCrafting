@@ -1,5 +1,6 @@
 package com.arsenalcrafting.mod.items.tool;
 
+import com.arsenalcrafting.mod.component.ToolComponentType;
 import com.arsenalcrafting.mod.core.UnifiedProcessor;
 import com.arsenalcrafting.mod.component.ToolAssemblyData;
 import com.arsenalcrafting.mod.config.TestModeConfig;
@@ -45,6 +46,8 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
         super(new DummyToolTier(material), properties);
         this.baseMaterial = material;
     }
+
+
 
     @Override
     public ArsenalToolType getToolType() {

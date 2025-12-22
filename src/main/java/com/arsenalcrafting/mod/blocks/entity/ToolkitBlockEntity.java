@@ -90,16 +90,23 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
     };
 
     // Helper method to check if item is a tool head (old or new system)
+    // ToolkitBlockEntity.java
     private boolean isToolHead(Item item) {
-        // Old system: ToolHeadItem
-        if (item instanceof ToolHeadItem) return true;
-
-        // New system: ToolComponentItem with appropriate component type
         if (item instanceof ToolComponentItem toolComponent) {
-            ToolComponentType type = toolComponent.getComponentType();
-            return type == ToolComponentType.PICKAXE_HEAD;
+            // This ensures Shovel, Axe, and Pickaxe heads are all recognized
+            return toolComponent.getComponentType().isHead();
         }
         return false;
+    }
+
+
+    private Item getResultingTool(ToolComponentType headType) {
+        return switch (headType) {
+            case SHOVEL_HEAD -> ModItems.ARSENAL_SHOVEL.get();
+            //case AXE_HEAD    -> ModItems.ARSENAL_AXE.get();
+            case PICKAXE_HEAD -> ModItems.ARSENAL_PICKAXE.get();
+            default           -> ModItems.ARSENAL_PICKAXE.get();
+        };
     }
 
     private boolean isCore(Item item) {
@@ -443,8 +450,18 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
             // --- Build or copy the tool ---
             ItemStack assembledTool;
             if (outputStack.isEmpty()) {
-                // Create new Arsenal Pickaxe (for now - will expand to other tools)
-                assembledTool = new ItemStack(ModItems.ARSENAL_PICKAXE.get());
+                // Get the component type of the head in the slot
+                ToolComponentItem headComp = (ToolComponentItem) headStack.getItem();
+                ToolComponentType headType = headComp.getComponentType();
+
+                // Map the head type to the correct Arsenal Tool item
+                Item toolItem = switch (headType) {
+                    case SHOVEL_HEAD -> ModItems.ARSENAL_SHOVEL.get();
+                    //case AXE_HEAD    -> ModItems.ARSENAL_AXE.get();
+                    default           -> ModItems.ARSENAL_PICKAXE.get();
+                };
+
+                assembledTool = new ItemStack(toolItem);
             } else {
                 assembledTool = outputStack.copy();
             }
@@ -459,11 +476,16 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
             // --- Consume inputs & put swapped-out parts back ---
             // HEAD slot (0)
             if (hasHeadInput) {
+                // Determine the swap stack BEFORE we clear the slot
+                if (outputStack.getItem() instanceof ArsenalTool currentTool) {
+                    ToolComponentType currentHeadType = currentTool.getHeadType();
+                    // headMatName here is still the OLD material from the existingData check earlier
+                    swapHead = findComponentStack(currentHeadType, existingData != null ? existingData.headMaterial() : "");
+                }
+
                 if (!swapHead.isEmpty()) {
-                    // Give old head back
                     itemHandler.setStackInSlot(HEAD_SLOT, swapHead);
                 } else {
-                    // No old head -> consume input
                     itemHandler.setStackInSlot(HEAD_SLOT, ItemStack.EMPTY);
                 }
             }

@@ -30,6 +30,7 @@ public class ArsenalItemModelProvider extends ItemModelProvider {
     @Override
     protected void registerModels() {
         generateArsenalPickaxeModel();
+        generateArsenalShovelModel();
         generateToolPartModels();
         generateAlloyItemModels();
 
@@ -53,6 +54,14 @@ public class ArsenalItemModelProvider extends ItemModelProvider {
                 .texture("layer0", modLoc("item/pickaxe_head_base"))
                 .texture("layer1", modLoc("item/tool_rod_base"))
                 .texture("layer2", modLoc("item/core_base"));
+    }
+
+    private void generateArsenalShovelModel() {
+        getBuilder("arsenal_shovel")
+                .parent(new ModelFile.UncheckedModelFile(mcLoc("item/handheld")))
+                .texture("layer0", modLoc("item/shovel_head_base"))  // Back
+                .texture("layer1", modLoc("item/tool_rod_base"))  // Middle
+                .texture("layer2", modLoc("item/core_base_shovel_1")); // Front
     }
 
     /**
@@ -82,6 +91,10 @@ public class ArsenalItemModelProvider extends ItemModelProvider {
             getBuilder(key + "_pickaxe_head")
                     .parent(new ModelFile.UncheckedModelFile(mcLoc("item/generated")))
                     .texture("layer0", modLoc("item/pickaxe_head_item_base"));
+
+            getBuilder(key + "_shovel_head")
+                    .parent(new ModelFile.UncheckedModelFile(mcLoc("item/generated")))
+                    .texture("layer0", modLoc("item/shovel_head_item_base"));
 
             // ROD ITEMS
             getBuilder(key + "_tool_rod")

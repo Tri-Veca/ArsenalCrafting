@@ -26,44 +26,38 @@ public class ModItemColors {
 
     @SubscribeEvent
     public static void registerItemColorHandlers(RegisterColorHandlersEvent.Item event) {
-        System.out.println("[ModItemColors] Starting color registration...");
-
-        // 1) Arsenal Pickaxe (combo tint: head + rod)
-        event.register(ModItemColors::colorArsenalPickaxe, ModItems.ARSENAL_PICKAXE.get());
-        System.out.println("[ModItemColors] Registered: Arsenal Pickaxe");
+        // 1) Register all Arsenal Tools (Pickaxe, Shovel, etc.)
+        // We register them specifically or by checking if they are instances of ArsenalTool
+        event.register(ModItemColors::colorArsenalTool,
+                ModItems.ARSENAL_PICKAXE.get(),
+                ModItems.ARSENAL_SHOVEL.get()
+                // ModItems.ARSENAL_AXE.get() // Add others here
+        );
 
         // 2) All auto-generated tool components
-        int toolComponentCount = 0;
         for (var materialMap : ModItems.TOOL_COMPONENTS.values()) {
             for (var holder : materialMap.values()) {
-                Item item = holder.get(); // Get the actual Item from DeferredHolder
+                Item item = holder.get();
                 if (item != null) {
                     event.register(ModItemColors::colorToolComponent, item);
-                    toolComponentCount++;
-                    System.out.println("[ModItemColors] Registered tool component: " + holder.getId().getPath());
                 }
             }
         }
-        System.out.println("[ModItemColors] Registered " + toolComponentCount + " tool components");
 
         // 3) All auto-generated alloy items
-        int alloyCount = 0;
         for (var holder : ModItems.ALLOY_ITEMS.values()) {
             Item item = holder.get();
             if (item != null) {
                 event.register(ModItemColors::colorAlloyItem, item);
-                alloyCount++;
-                System.out.println("[ModItemColors] Registered alloy: " + holder.getId());
             }
         }
-        System.out.println("[ModItemColors] Registered " + alloyCount + " alloy items");
     }
 
-    // --------- PICKAXE (2-layer tint: head + rod) ---------
+    // --------- UNIVERSAL TOOL COLORING (3-layer tint) ---------
 
-    private static int colorArsenalPickaxe(ItemStack stack, int tintIndex) {
-        Item item = stack.getItem();
-        if (!(item instanceof ArsenalPickaxeItem pickaxe)) {
+    private static int colorArsenalTool(ItemStack stack, int tintIndex) {
+        // Use the base class/interface ArsenalTool instead of just Pickaxe
+        if (!(stack.getItem() instanceof com.arsenalcrafting.mod.items.tool.ArsenalTool tool)) {
             return 0xFFFFFFFF;
         }
 
@@ -73,20 +67,24 @@ public class ModItemColors {
         AlloyMaterial rodMat;
         AlloyMaterial coreMat;
 
+        // If data exists, use it. Otherwise, use the tool's base material
         if (data != null && !data.isEmpty()) {
             headMat = fromStoredName(data.headMaterial());
             rodMat  = fromStoredName(data.rodMaterial());
-            coreMat  = fromStoredName(data.coreMaterial());
+            coreMat = fromStoredName(data.coreMaterial());
         } else {
-            headMat = pickaxe.getBaseMaterial();
-            rodMat  = pickaxe.getBaseMaterial();
-            coreMat  = pickaxe.getBaseMaterial();
+            // Ensure your ArsenalTool class has a getBaseMaterial() method
+            headMat = tool.getBaseMaterial();
+            rodMat  = tool.getBaseMaterial();
+            coreMat = tool.getBaseMaterial();
         }
 
+        // Map Tint Index to specific part
+        // Layer 0: Head, Layer 1: Rod, Layer 2: Core
         AlloyMaterial target = switch (tintIndex) {
-            case 0 -> headMat; // layer0 = head
-            case 1 -> rodMat;  // layer1 = rod
-            case 2 -> coreMat; // layer2 = core
+            case 0 -> headMat;
+            case 1 -> rodMat;
+            case 2 -> coreMat;
             default -> null;
         };
 
@@ -94,20 +92,12 @@ public class ModItemColors {
     }
 
     // --------- TOOL COMPONENTS (1-layer tint) ---------
-    // UPDATED: Now handles ToolComponentItem instead of ToolHeadItem/ToolRodItem
 
     private static int colorToolComponent(ItemStack stack, int tintIndex) {
-        // only layer0 is tinted on component items
-        if (tintIndex != 0) {
-            return 0xFFFFFFFF;
-        }
+        if (tintIndex != 0) return 0xFFFFFFFF;
 
-        Item item = stack.getItem();
-
-        // CHANGED: Check for ToolComponentItem
-        if (item instanceof ToolComponentItem toolComponent) {
-            AlloyMaterial material = toolComponent.getMaterial();
-            return ensureOpaque(material.getItemColor());
+        if (stack.getItem() instanceof ToolComponentItem toolComponent) {
+            return ensureOpaque(toolComponent.getMaterial().getItemColor());
         }
 
         return 0xFFFFFFFF;
@@ -118,21 +108,19 @@ public class ModItemColors {
     private static int colorAlloyItem(ItemStack stack, int tintIndex) {
         if (tintIndex != 0) return 0xFFFFFFFF;
 
-        Item item = stack.getItem();
-
-        if (item instanceof AlloyItem alloy) {
+        if (stack.getItem() instanceof AlloyItem alloy) {
             return ensureOpaque(alloy.getMaterial().getItemColor());
         }
 
         return 0xFFFFFFFF;
     }
 
-    // --------- helpers ---------
+    // --------- Helpers ---------
 
     private static AlloyMaterial fromStoredName(String s) {
         if (s == null || s.isEmpty()) return null;
         for (AlloyMaterial mat : AlloyMaterial.values()) {
-            if (mat.getName().equalsIgnoreCase(s) || mat.name().equalsIgnoreCase(s)) {
+            if (mat.getName().equalsIgnoreCase(s)) {
                 return mat;
             }
         }
@@ -140,10 +128,6 @@ public class ModItemColors {
     }
 
     private static int ensureOpaque(int color) {
-        // If alpha is 0, force FF
-        if ((color & 0xFF000000) == 0) {
-            color |= 0xFF000000;
-        }
-        return color;
+        return color | 0xFF000000;
     }
 }
