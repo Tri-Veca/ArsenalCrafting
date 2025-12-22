@@ -41,11 +41,19 @@ public class CoreProcessor {
         return HANDLER_CACHE.computeIfAbsent(def.id(), id -> def.handler());
     }
 
-    public static void onBlockDestroyed(ItemStack tool, Level level, BlockState state, BlockPos pos, LivingEntity entity) {
+    public static void onBlockDestroyed(ItemStack tool, Level level,
+                                        BlockState state, BlockPos pos,
+                                        LivingEntity entity) {
+        System.out.println("[CoreProcessor] Block destroyed: " + state.getBlock());
+
         CoreHandler core = getActiveCore(tool);
-        if (core != null) {
-            core.onBlockDestroyed(tool, level, state, pos, entity);
+        if (core == null) {
+            System.out.println("[CoreProcessor] No active core found");
+            return;
         }
+
+        System.out.println("[CoreProcessor] Found core: " + core.getClass().getSimpleName());
+        core.onBlockDestroyed(tool, level, state, pos, entity);
     }
 
 

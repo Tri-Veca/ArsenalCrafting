@@ -2,6 +2,7 @@ package com.arsenalcrafting.mod.items.tool.powers;
 
 import com.arsenalcrafting.mod.items.tool.ArsenalToolType;
 import net.minecraft.core.BlockPos;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -27,6 +28,7 @@ public final class CoreHandlers {
     public static final BurnProtectionCore BURN_PROTECTION = new BurnProtectionCore();
     public static final SturdyCore STURDY = new SturdyCore();
     public static final WorkHorseCore WORKHORSE = new WorkHorseCore();
+    public static final GamblerCore GAMBLER = new GamblerCore();
 
 
 
@@ -147,6 +149,51 @@ public final class CoreHandlers {
             // DO NOT modify base speed here - let getDestroySpeed handle it
             return baseSpeed;
         }
+    }
+
+
+
+    public static final class GamblerCore implements CoreHandler {
+
+        @Override
+        public boolean supportsToolType(ArsenalToolType type) {
+            return true; // Works on all tools for now
+        }
+
+        @Override
+        public boolean canHandleBlock(BlockState state, ItemStack tool) {
+            boolean isOre = state.is(BlockTags.COAL_ORES)
+                    || state.is(BlockTags.COPPER_ORES)
+                    || state.is(BlockTags.DIAMOND_ORES)
+                    || state.is(BlockTags.EMERALD_ORES)
+                    || state.is(BlockTags.GOLD_ORES)
+                    || state.is(BlockTags.IRON_ORES)
+                    || state.is(BlockTags.LAPIS_ORES)
+                    || state.is(BlockTags.REDSTONE_ORES);
+
+            System.out.println("[GamblerCore] Checking: " + state.getBlock().getName().getString() + " = " + isOre);
+            return isOre;
+        }
+
+        @Override
+        public void onBlockDestroyed(ItemStack stack, Level level,
+                                     BlockState state, BlockPos pos,
+                                     LivingEntity entity) {
+            System.out.println("[GamblerCore] onBlockDestroyed called for " + state.getBlock());
+
+            if (canHandleBlock(state, stack)) {
+                System.out.println("[GamblerCore] It's an ore, rolling for bonus loot...");
+                Gambler.tryProcMining(level, pos, level.getRandom());
+            }
+        }
+
+        @Override
+        public boolean handleBlockBreak(ItemStack tool, Level level,
+                                        BlockState state, BlockPos pos,
+                                        LivingEntity miner) {
+            return false;
+        }
+
     }
 }
 

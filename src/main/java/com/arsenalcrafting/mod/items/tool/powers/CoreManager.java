@@ -62,6 +62,13 @@ public class CoreManager {
                 "Instantly breaks hard blocks regardless of tool tier",
                 CoreHandlers.WORKHORSE
         ));
+
+        register(AlloyMaterial.DIAMOND, new CoreDefinition(
+                "gambler",                    // ID
+                "Gambler",                    // Display name
+                "7% chance for bonus loot when mining or killing", // Description
+                CoreHandlers.GAMBLER          // The handler we just made!
+        ));
     }
 
     private static void register(AlloyMaterial material, CoreDefinition def) {

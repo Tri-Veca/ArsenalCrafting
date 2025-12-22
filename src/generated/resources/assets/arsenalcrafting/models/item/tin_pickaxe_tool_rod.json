@@ -1,6 +1,0 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "arsenalcrafting:item/tool_rod_item_base"
-  }
-}

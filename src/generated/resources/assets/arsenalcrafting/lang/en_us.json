@@ -33,6 +33,8 @@
   "container.arsenalcrafting.alloy_smelter": "Alloy Smelter",
   "core.arsenalcrafting.burn_protection": "Burn Protection",
   "core.arsenalcrafting.burn_protection.desc": "Grants Item Burn Protection",
+  "core.arsenalcrafting.gambler": "Gambler",
+  "core.arsenalcrafting.gambler.desc": "7% chance for bonus loot when mining or killing",
   "core.arsenalcrafting.greedy": "Greedy",
   "core.arsenalcrafting.greedy.desc": "+2 Efficiency, -15% Durability",
   "core.arsenalcrafting.momentum": "Momentum",
