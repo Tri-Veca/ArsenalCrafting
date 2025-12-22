@@ -102,11 +102,8 @@ public class ArsenalItemModelProvider extends ItemModelProvider {
             getBuilder(key + "_tool_rod")
                     .parent(new ModelFile.UncheckedModelFile(mcLoc("item/generated")))
                     .texture("layer0", modLoc("item/tool_rod_item_base"));
+            
 
-            // PICKAXE-SPECIFIC TOOL ROD
-            getBuilder(key + "_pickaxe_tool_rod")
-                    .parent(new ModelFile.UncheckedModelFile(mcLoc("item/generated")))
-                    .texture("layer0", modLoc("item/tool_rod_item_base"));
 
             // SHOVEL-SPECIFIC TOOL ROD
             getBuilder(key + "_shovel_tool_rod")
