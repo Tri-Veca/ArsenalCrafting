@@ -72,15 +72,26 @@ public class LangGenerator implements DataProvider {
         // TODO add seperate gadgets section
         entries.put("item.arsenalcrafting.drill", "Drill");
         entries.put("item.arsenalcrafting.saw", "Saw");
-        
+
 
         System.out.println("[LangGenerator] Adding automated mold entries...");
+
+// 1. Standard Molds (Gold appearance)
         for (var entry : ModBlocks.MOLD_BLOCKS.entrySet()) {
             ToolComponentType type = entry.getKey();
             Block block = entry.getValue().get();
 
-            // Result: "Pickaxe Head" + " Mold" = "Pickaxe Head Mold"
+            // Result: "Pickaxe Head Mold"
             entries.put(block.getDescriptionId(), type.getDisplayName() + " Mold");
+        }
+
+// 2. Bronze Molds (Tinted bronze)
+        for (var entry : ModBlocks.BRONZE_MOLD_BLOCKS.entrySet()) {
+            ToolComponentType type = entry.getKey();
+            Block block = entry.getValue().get();
+
+            // Result: "Bronze Pickaxe Head Mold"
+            entries.put(block.getDescriptionId(), "Bronze " + type.getDisplayName() + " Mold");
         }
 
         // 4. Alloy material names (for tooltips)

@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "arsenalcrafting:bronze_shovel_tool_rod_mold"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "arsenalcrafting:blocks/bronze_shovel_tool_rod_mold"
+}

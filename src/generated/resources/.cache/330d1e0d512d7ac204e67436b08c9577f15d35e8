@@ -1,4 +1,9 @@
-// 1.21.1	2025-12-23T07:30:45.3874557	Block Models: arsenalcrafting
+// 1.21.1	2025-12-23T09:42:43.2077942	Block Models: arsenalcrafting
+8a46c8460f41221a3cf745e84cfa2974e3980ddb assets/arsenalcrafting/models/block/bronze_core_mold.json
+48f8318f7098c0d153726382ed415c0e6b192d1f assets/arsenalcrafting/models/block/bronze_pickaxe_head_mold.json
+b2dced2779337b82f071456f074a6ff0c7e0fdbe assets/arsenalcrafting/models/block/bronze_shovel_head_mold.json
+6a63df0b6ce0c2a748c081e137015d6c07a1921c assets/arsenalcrafting/models/block/bronze_shovel_tool_rod_mold.json
+25ff72126ceb57e0a86fe7ac560989cd8b32c553 assets/arsenalcrafting/models/block/bronze_tool_rod_mold.json
 5b19e3d9ba7c351822dcef838afd5d9e2a127d31 assets/arsenalcrafting/models/block/core_mold.json
 e691bd24eb7e58e17f9beda38f4073ba835320a3 assets/arsenalcrafting/models/block/pickaxe_head_mold.json
 37c8681fa4fa1c1f96ce1eb1cd1a6f1866222bb0 assets/arsenalcrafting/models/block/shovel_head_mold.json

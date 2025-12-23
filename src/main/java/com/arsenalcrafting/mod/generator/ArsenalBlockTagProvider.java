@@ -26,5 +26,10 @@ public class ArsenalBlockTagProvider extends BlockTagsProvider {
             mineableTag.add(holder.get());
             toolTag.add(holder.get());
         });
+
+        ModBlocks.BRONZE_MOLD_BLOCKS.values().forEach(holder -> {
+            mineableTag.add(holder.get());
+            toolTag.add(holder.get());
+        });
     }
 }

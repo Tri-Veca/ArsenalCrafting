@@ -2,6 +2,7 @@ package com.arsenalcrafting.mod.generator;
 
 import com.arsenalcrafting.mod.ArsenalCrafting;
 import com.arsenalcrafting.mod.registry.ModBlocks;
+import net.minecraft.core.Direction;
 import net.minecraft.data.PackOutput;
 import net.neoforged.neoforge.client.model.generators.BlockModelProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
@@ -23,6 +24,7 @@ public class ArsenalBlockModelProvider extends BlockModelProvider {
         ModBlocks.MOLD_BLOCKS.values().forEach(holder -> {
             String name = holder.getId().getPath();
 
+
             // withExistingParent creates the JSON file
             // We use 'minecraft:block/carpet' as the base shape
             // We map the 'wool' texture key to our mold's item texture
@@ -30,5 +32,19 @@ public class ArsenalBlockModelProvider extends BlockModelProvider {
                     .texture("wool", modLoc("item/" + name))
                     .renderType("translucent");
         });
+
+        // 2. Bronze Molds (Uses the gold texture + Bronze Tint)
+        // 2. Bronze Molds (Manual Textures)
+        ModBlocks.BRONZE_MOLD_BLOCKS.values().forEach(holder -> {
+            String modelName = holder.getId().getPath();
+
+            // This creates a flat block model (like a carpet)
+            // It points to: assets/yourmod/textures/item/bronze_whatever_mold.png
+            withExistingParent(modelName, "minecraft:block/carpet")
+                    .texture("wool", modLoc("item/" + modelName))
+                    .renderType("cutout"); // Ensures transparency in the mold hole works
+        });
+
     }
 }
+

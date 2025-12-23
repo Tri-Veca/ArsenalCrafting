@@ -28,6 +28,11 @@ public class ArsenalBlockStateProvider extends BlockStateProvider {
             simpleBlock(holder.get(), models().getExistingFile(modLoc("block/" + name)));
         });
 
+        // Link Bronze Molds
+        ModBlocks.BRONZE_MOLD_BLOCKS.values().forEach(holder -> {
+            simpleBlock(holder.get(), models().getExistingFile(modLoc("block/" + holder.getId().getPath())));
+        });
+
         // Add any other static blocks here if needed
         // simpleBlock(ModBlocks.LAVA_TANK.get());
     }

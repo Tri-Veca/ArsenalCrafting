@@ -1,4 +1,9 @@
-// 1.21.1	2025-12-23T07:30:45.3894553	Block States: arsenalcrafting
+// 1.21.1	2025-12-23T08:12:20.0957965	Block States: arsenalcrafting
+a0bbfb45f2f3033664f3df70f90237bad4bc3323 assets/arsenalcrafting/blockstates/bronze_core_mold.json
+a2324ea729400682255f7d815cb66330dc90715f assets/arsenalcrafting/blockstates/bronze_pickaxe_head_mold.json
+75612ca6259f56df15012e93700437e47b344f25 assets/arsenalcrafting/blockstates/bronze_shovel_head_mold.json
+bc40aabcdee70d386f9acdd44ec14349ccafbed8 assets/arsenalcrafting/blockstates/bronze_shovel_tool_rod_mold.json
+e1a0fbcb1c6eeac80419673496d402ca3b3d7ae7 assets/arsenalcrafting/blockstates/bronze_tool_rod_mold.json
 74c76ab975243650cea123c0b4537806dc269fb8 assets/arsenalcrafting/blockstates/core_mold.json
 b1e29eaac65dace8aaf25d4f97db294d92ab5bd1 assets/arsenalcrafting/blockstates/pickaxe_head_mold.json
 2c1d69b2e3fa258a13dfc6173e4d95f95e12a8d3 assets/arsenalcrafting/blockstates/shovel_head_mold.json

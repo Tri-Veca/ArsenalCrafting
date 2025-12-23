@@ -6,6 +6,7 @@ import com.arsenalcrafting.mod.core.alloy.AlloyItem;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.items.tool.ArsenalPickaxeItem;
 import com.arsenalcrafting.mod.items.tool.toolparts.ToolComponentItem; // CHANGED
+import com.arsenalcrafting.mod.registry.ModBlocks;
 import com.arsenalcrafting.mod.registry.ModComponents;
 import com.arsenalcrafting.mod.registry.ModItems;
 import net.minecraft.world.item.Item;
@@ -24,34 +25,28 @@ import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 )
 public class ModItemColors {
 
-    @SubscribeEvent
-    public static void registerItemColorHandlers(RegisterColorHandlersEvent.Item event) {
-        // 1) Register all Arsenal Tools (Pickaxe, Shovel, etc.)
-        // We register them specifically or by checking if they are instances of ArsenalTool
-        event.register(ModItemColors::colorArsenalTool,
-                ModItems.ARSENAL_PICKAXE.get(),
-                ModItems.ARSENAL_SHOVEL.get()
-                // ModItems.ARSENAL_AXE.get() // Add others here
-        );
+        @SubscribeEvent
+        public static void registerItemColorHandlers(RegisterColorHandlersEvent.Item event) {
+            // 1) Register Arsenal Tools
+            event.register(ModItemColors::colorArsenalTool,
+                    ModItems.ARSENAL_PICKAXE.get(),
+                    ModItems.ARSENAL_SHOVEL.get()
+            );
 
-        // 2) All auto-generated tool components
-        for (var materialMap : ModItems.TOOL_COMPONENTS.values()) {
-            for (var holder : materialMap.values()) {
-                Item item = holder.get();
-                if (item != null) {
-                    event.register(ModItemColors::colorToolComponent, item);
+            // 2) Tool Components
+            for (var materialMap : ModItems.TOOL_COMPONENTS.values()) {
+                for (var holder : materialMap.values()) {
+                    event.register(ModItemColors::colorToolComponent, holder.get());
                 }
             }
+
+            // 3) Alloy Items
+            for (var holder : ModItems.ALLOY_ITEMS.values()) {
+                event.register(ModItemColors::colorAlloyItem, holder.get());
+            }
+
         }
 
-        // 3) All auto-generated alloy items
-        for (var holder : ModItems.ALLOY_ITEMS.values()) {
-            Item item = holder.get();
-            if (item != null) {
-                event.register(ModItemColors::colorAlloyItem, item);
-            }
-        }
-    }
 
     // --------- UNIVERSAL TOOL COLORING (3-layer tint) ---------
 

@@ -28,6 +28,7 @@ public class ModBlocks {
     public static final DeferredRegister<Block> BLOCKS =
             DeferredRegister.create(Registries.BLOCK, ArsenalCrafting.MOD_ID);
     public static final Map<ToolComponentType, DeferredHolder<Block, MoldBlock>> MOLD_BLOCKS = new HashMap<>();
+    public static final Map<ToolComponentType, DeferredHolder<Block, MoldBlock>> BRONZE_MOLD_BLOCKS = new HashMap<>();
 
 
     public static final DeferredHolder<Block, Block> LAVA_TANK = registerBlock(
@@ -74,19 +75,22 @@ public class ModBlocks {
 
 
     public static void registerMolds() {
-        System.out.println("[ModBlocks] Automating Mold Registration...");
+        System.out.println("[ModBlocks] Automating Mold Registration (Standard & Bronze)...");
 
         for (ToolComponentType type : ToolComponentType.values()) {
-            String registryId = type.getId() + "_mold";
+            // --- 1. Standard Molds (Standard Gold Appearance) ---
+            String goldId = type.getId() + "_mold";
+            DeferredHolder<Block, MoldBlock> goldHolder = BLOCKS.register(goldId, MoldBlock::new);
 
-            // 1. Register the Block
-            DeferredHolder<Block, MoldBlock> blockHolder = BLOCKS.register(registryId, MoldBlock::new);
+            ModItems.ITEMS.register(goldId, () -> new BlockItem(goldHolder.get(), new Item.Properties()));
+            MOLD_BLOCKS.put(type, goldHolder);
 
-            // 2. Register the Item version so it's obtainable
-            ModItems.ITEMS.register(registryId, () -> new BlockItem(blockHolder.get(), new Item.Properties()));
+            // --- 2. Bronze Molds (Tinted via Material Color) ---
+            String bronzeId = "bronze_" + type.getId() + "_mold";
+            DeferredHolder<Block, MoldBlock> bronzeHolder = BLOCKS.register(bronzeId, MoldBlock::new);
 
-            // 3. Store in map for easy access
-            MOLD_BLOCKS.put(type, blockHolder);
+            ModItems.ITEMS.register(bronzeId, () -> new BlockItem(bronzeHolder.get(), new Item.Properties()));
+            BRONZE_MOLD_BLOCKS.put(type, bronzeHolder);
         }
     }
 

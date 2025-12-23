@@ -4,7 +4,10 @@ import com.arsenalcrafting.mod.ArsenalCrafting;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
 import com.arsenalcrafting.mod.registry.ModBlocks;
+import net.minecraft.client.renderer.block.model.BlockModel;
+import net.minecraft.core.Direction;
 import net.minecraft.data.PackOutput;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
@@ -173,6 +176,17 @@ public class ArsenalItemModelProvider extends ItemModelProvider {
             withExistingParent(name, "item/generated")
                     .texture("layer0", modLoc("item/" + name));
         });
+
+        // Bronze Item Models (Manual Textures)
+        ModBlocks.BRONZE_MOLD_BLOCKS.values().forEach(holder -> {
+            String name = holder.getId().getPath();
+
+            // Points the item icon directly to your manual texture
+            // No tinting, no layers.
+            withExistingParent(name, "item/generated")
+                    .texture("layer0", modLoc("item/" + name));
+        });
+
     }
 
 

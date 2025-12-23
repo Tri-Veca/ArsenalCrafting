@@ -32,6 +32,7 @@ public class ModBlockLootTableProvider extends BlockLootSubProvider {
         dropSelf(ModBlocks.ALLOY_SMELTER.get());
 
         ModBlocks.MOLD_BLOCKS.values().forEach(holder -> dropSelf(holder.get()));
+        ModBlocks.BRONZE_MOLD_BLOCKS.values().forEach(holder -> dropSelf(holder.get()));
         /*dropSelf(ModBlocks.PICKAXE_HEAD_MOLD.get());
         dropSelf(ModBlocks.TOOL_ROD_MOLD.get());
         dropSelf(ModBlocks.CORE_MOLD.get());

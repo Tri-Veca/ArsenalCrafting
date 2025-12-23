@@ -1,5 +1,10 @@
-// 1.21.1	2025-12-23T07:30:45.3884549	Loot Tables
+// 1.21.1	2025-12-23T08:12:20.0937972	Loot Tables
 58bd3afa0d8ef894c93abad1d0559b512d42142c data/arsenalcrafting/loot_table/blocks/alloy_smelter.json
+2a1bb291d77acd6c64f4a4e8aee3345668bb5fb7 data/arsenalcrafting/loot_table/blocks/bronze_core_mold.json
+cc071571159711a43f0552e14a6259b6e9d1d9ce data/arsenalcrafting/loot_table/blocks/bronze_pickaxe_head_mold.json
+37118d5ea091ad42502aa6d6cd7fcb8fbd0483dd data/arsenalcrafting/loot_table/blocks/bronze_shovel_head_mold.json
+0903304068eae6af03b8c5577efa6d1f3791e0f1 data/arsenalcrafting/loot_table/blocks/bronze_shovel_tool_rod_mold.json
+dc84ca60aa90e4cf0d0e91f1ef11127494e4de5b data/arsenalcrafting/loot_table/blocks/bronze_tool_rod_mold.json
 56e43d5804496c8d4985c46ef518ced6fa67cabd data/arsenalcrafting/loot_table/blocks/core_mold.json
 c95a2f162652d31d9b26630ee1af02d9b7b1ecbb data/arsenalcrafting/loot_table/blocks/iron_casing.json
 f30914410d59a991351796d4a06684f0552569d1 data/arsenalcrafting/loot_table/blocks/lava_tank.json
