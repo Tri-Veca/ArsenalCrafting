@@ -5,6 +5,7 @@ import com.arsenalcrafting.mod.blocks.AlloySmelterBlock;
 import com.arsenalcrafting.mod.blocks.LavaTankBlock;
 import com.arsenalcrafting.mod.blocks.MoldBlock;
 import com.arsenalcrafting.mod.blocks.ToolkitBlock;
+import com.arsenalcrafting.mod.component.ToolComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -19,11 +20,14 @@ import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Supplier;
 
 public class ModBlocks {
     public static final DeferredRegister<Block> BLOCKS =
             DeferredRegister.create(Registries.BLOCK, ArsenalCrafting.MOD_ID);
+    public static final Map<ToolComponentType, DeferredHolder<Block, MoldBlock>> MOLD_BLOCKS = new HashMap<>();
 
 
     public static final DeferredHolder<Block, Block> LAVA_TANK = registerBlock(
@@ -57,7 +61,7 @@ public class ModBlocks {
     public static final DeferredHolder<Block, Block> IRON_CASING = registerBlock("iron_casing",
             () -> new Block(BlockBehaviour.Properties.ofFullCopy(Blocks.IRON_BLOCK).strength(5.0f)));
 
-    public static final DeferredHolder<Block, MoldBlock> PICKAXE_HEAD_MOLD =
+    /*public static final DeferredHolder<Block, MoldBlock> PICKAXE_HEAD_MOLD =
             registerBlock("pickaxe_head_mold", MoldBlock::new);
 
     public static final DeferredHolder<Block, MoldBlock> TOOL_ROD_MOLD =
@@ -66,6 +70,25 @@ public class ModBlocks {
     public static final DeferredHolder<Block, MoldBlock> CORE_MOLD =
             registerBlock("core_mold", MoldBlock::new);
 
+     */
+
+
+    public static void registerMolds() {
+        System.out.println("[ModBlocks] Automating Mold Registration...");
+
+        for (ToolComponentType type : ToolComponentType.values()) {
+            String registryId = type.getId() + "_mold";
+
+            // 1. Register the Block
+            DeferredHolder<Block, MoldBlock> blockHolder = BLOCKS.register(registryId, MoldBlock::new);
+
+            // 2. Register the Item version so it's obtainable
+            ModItems.ITEMS.register(registryId, () -> new BlockItem(blockHolder.get(), new Item.Properties()));
+
+            // 3. Store in map for easy access
+            MOLD_BLOCKS.put(type, blockHolder);
+        }
+    }
 
     private static <T extends Block> DeferredHolder<Block, T> registerBlock(String name, Supplier<T> block) {
         // Now using DeferredHolder<Block, T>
@@ -81,5 +104,6 @@ public class ModBlocks {
 
     public static void register(IEventBus eventBus) {
         BLOCKS.register(eventBus);
+        registerMolds();
     }
 }

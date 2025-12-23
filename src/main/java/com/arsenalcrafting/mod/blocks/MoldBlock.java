@@ -16,11 +16,12 @@ public class MoldBlock extends Block {
     private static final VoxelShape SHAPE = Block.box(0.0D, 0.0D, 0.0D, 16.0D, 1.0D, 16.0D);
 
     public MoldBlock() {
-        super(BlockBehaviour.Properties.ofFullCopy(Blocks.GOLD_BLOCK)
+        super(BlockBehaviour.Properties.ofFullCopy(Blocks.IRON_BARS) // Use Iron Bars as a better base for thin metal
                 .sound(SoundType.METAL)
                 .noOcclusion()
-                .noCollission()
-                .isRedstoneConductor((state, getter, pos) -> false) // Important for transparency
+                .strength(2.0f, 3.0f) // Now it actually has "health" to be mined
+                .requiresCorrectToolForDrops() // Standard for metal blocks
+                .isRedstoneConductor((state, getter, pos) -> false)
         );
     }
 

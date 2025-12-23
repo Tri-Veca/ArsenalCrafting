@@ -1,12 +1,15 @@
 package com.arsenalcrafting.mod.generator;
 
 import com.arsenalcrafting.mod.ArsenalCrafting;
+import com.arsenalcrafting.mod.component.ToolComponentType;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
+import com.arsenalcrafting.mod.registry.ModBlocks;
 import com.google.gson.JsonObject;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
+import net.minecraft.world.level.block.Block;
 
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
@@ -69,12 +72,16 @@ public class LangGenerator implements DataProvider {
         // TODO add seperate gadgets section
         entries.put("item.arsenalcrafting.drill", "Drill");
         entries.put("item.arsenalcrafting.saw", "Saw");
+        
 
+        System.out.println("[LangGenerator] Adding automated mold entries...");
+        for (var entry : ModBlocks.MOLD_BLOCKS.entrySet()) {
+            ToolComponentType type = entry.getKey();
+            Block block = entry.getValue().get();
 
-        //molds
-        entries.put("block.arsenalcrafting.pickaxe_head_mold", "Pickaxe Head Mold");
-        entries.put("block.arsenalcrafting.tool_rod_mold", "Tool Rod Mold");
-        entries.put("block.arsenalcrafting.core_mold", "Core Mold");
+            // Result: "Pickaxe Head" + " Mold" = "Pickaxe Head Mold"
+            entries.put(block.getDescriptionId(), type.getDisplayName() + " Mold");
+        }
 
         // 4. Alloy material names (for tooltips)
         for (AlloyMaterial material : AlloyMaterial.values()) {

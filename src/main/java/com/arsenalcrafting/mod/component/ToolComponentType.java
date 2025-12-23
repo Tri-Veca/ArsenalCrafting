@@ -21,7 +21,7 @@ public enum ToolComponentType {
      */
 
      //Attachments/Bindings
-    CORE("core", "core");
+    CORE("core", "Core");
 
 
     private final String id;

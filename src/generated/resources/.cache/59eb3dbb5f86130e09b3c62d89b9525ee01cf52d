@@ -1,9 +1,11 @@
-// 1.21.1	2025-12-21T21:53:07.4091453	Loot Tables
+// 1.21.1	2025-12-23T07:30:45.3884549	Loot Tables
 58bd3afa0d8ef894c93abad1d0559b512d42142c data/arsenalcrafting/loot_table/blocks/alloy_smelter.json
 56e43d5804496c8d4985c46ef518ced6fa67cabd data/arsenalcrafting/loot_table/blocks/core_mold.json
 c95a2f162652d31d9b26630ee1af02d9b7b1ecbb data/arsenalcrafting/loot_table/blocks/iron_casing.json
 f30914410d59a991351796d4a06684f0552569d1 data/arsenalcrafting/loot_table/blocks/lava_tank.json
 b6a77ca823356afb78644a48f9918038e02de291 data/arsenalcrafting/loot_table/blocks/pickaxe_head_mold.json
+7e09976b892a5dc4e665351629339fd45e9e513d data/arsenalcrafting/loot_table/blocks/shovel_head_mold.json
+a6ae0843d641a0f138b47df9e3a230ff638d5752 data/arsenalcrafting/loot_table/blocks/shovel_tool_rod_mold.json
 84e21f1e616ac33d56aa4c4776bedf713543dd64 data/arsenalcrafting/loot_table/blocks/toolkit.json
 737d53db4743aa1ebe93629ae0c683ed3e0b8a15 data/arsenalcrafting/loot_table/blocks/tool_rod_mold.json
 cf15848a1d63f20a6a70f3552b9eae2d900ac9e3 data/arsenalcrafting/loot_table/blocks/void_casing.json

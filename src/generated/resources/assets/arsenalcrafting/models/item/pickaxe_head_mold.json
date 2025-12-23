@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "arsenalcrafting:item/fortune"
+    "layer0": "arsenalcrafting:item/pickaxe_head_mold"
   }
 }

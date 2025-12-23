@@ -2,6 +2,8 @@ package com.arsenalcrafting.mod.generator;
 
 import com.arsenalcrafting.mod.ArsenalCrafting;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
+import com.arsenalcrafting.mod.core.augments.AugmentManager;
+import com.arsenalcrafting.mod.registry.ModBlocks;
 import net.minecraft.data.PackOutput;
 import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
@@ -33,6 +35,8 @@ public class ArsenalItemModelProvider extends ItemModelProvider {
         generateArsenalShovelModel();
         generateToolPartModels();
         generateAlloyItemModels();
+        generateAugmentModels();
+        generateMoldItemModels();
 
         // If you have other items, you can add them here as well.
     }
@@ -131,6 +135,44 @@ public class ArsenalItemModelProvider extends ItemModelProvider {
                     .parent(new ModelFile.UncheckedModelFile(mcLoc("item/generated")))
                     .texture("layer0", modLoc("item/alloy_base"));
         }
+    }
+
+    private void generateAugmentModels() {
+        // Loop through all registered augments in the Manager
+        for (var def : AugmentManager.getAll()) {
+            String id = def.id();
+
+            if (def.hasTiers()) {
+                // TIERED AUGMENTS (e.g. Efficiency)
+                for (int i = 1; i <= def.maxTier(); i++) {
+                    String itemName = id + "_augment.tier" + i;
+
+                    // Logic to match your texture naming convention:
+                    // Tier 1 -> "efficiency"
+                    // Tier 2 -> "efficiency_t2"
+                    String textureName = (i == 1) ? id : id + "_t" + i;
+
+                    getBuilder(itemName)
+                            .parent(new ModelFile.UncheckedModelFile("item/generated"))
+                            .texture("layer0", modLoc("item/" + textureName));
+                }
+            } else {
+                // SINGLE AUGMENTS (e.g. Auto Smelt)
+                String itemName = id + "_augment";
+
+                getBuilder(itemName)
+                        .parent(new ModelFile.UncheckedModelFile("item/generated"))
+                        .texture("layer0", modLoc("item/" + id));
+            }
+        }
+    }
+
+    private void generateMoldItemModels() {
+        ModBlocks.MOLD_BLOCKS.values().forEach(holder -> {
+            String name = holder.getId().getPath();
+            withExistingParent(name, "item/generated")
+                    .texture("layer0", modLoc("item/" + name));
+        });
     }
 
 

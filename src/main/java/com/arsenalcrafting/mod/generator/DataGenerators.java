@@ -31,6 +31,10 @@ public class DataGenerators {
         generator.addProvider(event.includeServer(), new LootTableProvider(packOutput, Collections.emptySet(),
                 List.of(new LootTableProvider.SubProviderEntry(ModBlockLootTableProvider::new, LootContextParamSets.BLOCK)), lookupProvider));
 
+        generator.addProvider(event.includeClient(), new ArsenalBlockModelProvider(packOutput, existingFileHelper));
+        generator.addProvider(event.includeClient(), new ArsenalBlockStateProvider(packOutput, existingFileHelper));
+        generator.addProvider(event.includeServer(), new ArsenalBlockTagProvider(packOutput, lookupProvider, existingFileHelper));
+
         // You can add more providers here:
         // generator.addProvider(event.includeServer(), new ArsenalRecipeProvider(packOutput, lookupProvider));
         // generator.addProvider(event.includeClient(), new ArsenalBlockStateProvider(packOutput, existingFileHelper));

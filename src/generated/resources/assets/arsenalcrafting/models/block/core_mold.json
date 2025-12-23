@@ -1,7 +1,7 @@
 {
   "parent": "minecraft:block/carpet",
+  "render_type": "minecraft:translucent",
   "textures": {
     "wool": "arsenalcrafting:item/core_mold"
-  },
-  "render_type": "translucent"
+  }
 }
