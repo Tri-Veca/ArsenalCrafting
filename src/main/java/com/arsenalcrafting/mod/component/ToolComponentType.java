@@ -7,7 +7,7 @@ package com.arsenalcrafting.mod.component;
 public enum ToolComponentType {
     // Heads/Blades
     PICKAXE_HEAD("pickaxe_head", "Pickaxe Head"),
-    //AXE_HEAD("axe_head", "Axe Head"),
+    AXE_HEAD("axe_head", "Axe Head"),
     SHOVEL_HEAD("shovel_head", "Shovel Head"),
 
 

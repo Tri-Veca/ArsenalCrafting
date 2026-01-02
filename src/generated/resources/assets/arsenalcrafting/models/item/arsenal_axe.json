@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "arsenalcrafting:item/axe_head_base",
+    "layer1": "arsenalcrafting:item/tool_rod_base_axe",
+    "layer2": "arsenalcrafting:item/core_base_axe"
+  }
+}

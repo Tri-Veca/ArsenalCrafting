@@ -1,5 +1,7 @@
-// 1.21.1	2025-12-23T08:12:20.0937972	Loot Tables
+// 1.21.1	2026-01-02T01:27:19.2678459	Loot Tables
 58bd3afa0d8ef894c93abad1d0559b512d42142c data/arsenalcrafting/loot_table/blocks/alloy_smelter.json
+e54757485028992b89edd3e9c3d58a6cb4600e15 data/arsenalcrafting/loot_table/blocks/axe_head_mold.json
+54ce71192087f1e0b3d48cab3f27d1f4c90ac195 data/arsenalcrafting/loot_table/blocks/bronze_axe_head_mold.json
 2a1bb291d77acd6c64f4a4e8aee3345668bb5fb7 data/arsenalcrafting/loot_table/blocks/bronze_core_mold.json
 cc071571159711a43f0552e14a6259b6e9d1d9ce data/arsenalcrafting/loot_table/blocks/bronze_pickaxe_head_mold.json
 37118d5ea091ad42502aa6d6cd7fcb8fbd0483dd data/arsenalcrafting/loot_table/blocks/bronze_shovel_head_mold.json

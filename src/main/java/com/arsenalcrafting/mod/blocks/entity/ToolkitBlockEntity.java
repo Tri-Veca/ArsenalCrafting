@@ -102,7 +102,7 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
     private Item getResultingTool(ToolComponentType headType) {
         return switch (headType) {
             case SHOVEL_HEAD -> ModItems.ARSENAL_SHOVEL.get();
-            //case AXE_HEAD    -> ModItems.ARSENAL_AXE.get();
+            case AXE_HEAD    -> ModItems.ARSENAL_AXE.get();
             case PICKAXE_HEAD -> ModItems.ARSENAL_PICKAXE.get();
             default           -> ModItems.ARSENAL_PICKAXE.get();
         };
@@ -160,7 +160,7 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
         return switch (headType) {
             case PICKAXE_HEAD -> rodType == ToolComponentType.TOOL_ROD; // Generic rod for pickaxe
             case SHOVEL_HEAD -> rodType == ToolComponentType.SHOVEL_TOOL_ROD; // Shovel-specific rod
-            // case AXE_HEAD -> rodType == ToolComponentType.AXE_TOOL_ROD;
+            case AXE_HEAD -> rodType == ToolComponentType.TOOL_ROD;
             default -> false;
         };
     }

@@ -36,6 +36,7 @@ public class ArsenalItemModelProvider extends ItemModelProvider {
     protected void registerModels() {
         generateArsenalPickaxeModel();
         generateArsenalShovelModel();
+        generateArsenalAxeModel();
         generateToolPartModels();
         generateAlloyItemModels();
         generateAugmentModels();
@@ -71,6 +72,14 @@ public class ArsenalItemModelProvider extends ItemModelProvider {
                 .texture("layer2", modLoc("item/core_base_shovel_1"));
     }
 
+    private void generateArsenalAxeModel() {
+        getBuilder("arsenal_axe")
+                .parent(new ModelFile.UncheckedModelFile(mcLoc("item/handheld")))
+                .texture("layer0", modLoc("item/axe_head_base"))
+                .texture("layer1", modLoc("item/tool_rod_base_axe"))
+                .texture("layer2", modLoc("item/core_base_axe"));
+    }
+
     /**
      * Item models for all tool part items (heads + core + rods) for every AlloyMaterial.
      *
@@ -104,12 +113,15 @@ public class ArsenalItemModelProvider extends ItemModelProvider {
             getBuilder(key + "_shovel_head")
                     .parent(new ModelFile.UncheckedModelFile(mcLoc("item/generated")))
                     .texture("layer0", modLoc("item/shovel_head_item_base"));
+            //AXE HEAD
+            getBuilder(key + "_axe_head")
+                    .parent(new ModelFile.UncheckedModelFile(mcLoc("item/generated")))
+                    .texture("layer0", modLoc("item/axe_head_item_base"));
 
             // GENERIC TOOL ROD (for pickaxe, or fallback)
             getBuilder(key + "_tool_rod")
                     .parent(new ModelFile.UncheckedModelFile(mcLoc("item/generated")))
                     .texture("layer0", modLoc("item/tool_rod_item_base"));
-
 
 
             // SHOVEL-SPECIFIC TOOL ROD

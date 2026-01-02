@@ -59,6 +59,7 @@ public class LangGenerator implements DataProvider {
             // Tool parts (optional - you can auto-generate these too if needed)
             entries.put("item.arsenalcrafting." + materialId + "_pickaxe_head", materialName + " Pickaxe Head");
             entries.put("item.arsenalcrafting." + materialId + "_shovel_head", materialName + " Shovel Head");
+            entries.put("item.arsenalcrafting." + materialId + "_axe_head", materialName + " Axe Head");
             entries.put("item.arsenalcrafting." + materialId + "_tool_rod", materialName + " Tool Rod");
             entries.put("item.arsenalcrafting." + materialId + "_shovel_tool_rod", materialName + " Shovel Tool Rod");
             entries.put("item.arsenalcrafting." + materialId + "_core", materialName + " Core");
@@ -68,6 +69,7 @@ public class LangGenerator implements DataProvider {
 
         entries.put("item.arsenalcrafting.arsenal_pickaxe", "Arsenal Pickaxe");
         entries.put("item.arsenalcrafting.arsenal_shovel", "Arsenal Shovel");
+        entries.put("item.arsenalcrafting.arsenal_axe", "Arsenal Axe");
         entries.put("item.arsenalcrafting.repair_kit", "Tool Repair Kit");
         // TODO add seperate gadgets section
         entries.put("item.arsenalcrafting.drill", "Drill");
