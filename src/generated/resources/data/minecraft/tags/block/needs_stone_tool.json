@@ -1,16 +1,16 @@
 {
   "values": [
-    "arsenalcrafting:core_mold",
     "arsenalcrafting:tool_rod_mold",
+    "arsenalcrafting:shovel_head_mold",
+    "arsenalcrafting:core_mold",
     "arsenalcrafting:shovel_tool_rod_mold",
     "arsenalcrafting:axe_head_mold",
-    "arsenalcrafting:shovel_head_mold",
     "arsenalcrafting:pickaxe_head_mold",
-    "arsenalcrafting:bronze_core_mold",
     "arsenalcrafting:bronze_tool_rod_mold",
+    "arsenalcrafting:bronze_shovel_head_mold",
+    "arsenalcrafting:bronze_core_mold",
     "arsenalcrafting:bronze_shovel_tool_rod_mold",
     "arsenalcrafting:bronze_axe_head_mold",
-    "arsenalcrafting:bronze_shovel_head_mold",
     "arsenalcrafting:bronze_pickaxe_head_mold"
   ]
 }
