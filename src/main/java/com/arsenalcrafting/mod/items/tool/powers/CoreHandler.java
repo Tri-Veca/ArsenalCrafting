@@ -57,6 +57,23 @@ public interface CoreHandler {
                                     Entity target, HitResult hit) {
         return false;
     }
+    /**
+     * Called when the weapon hits a living entity.
+     * Runs before crit is rolled. Use for on-hit cores (bleed, elemental, etc.)
+     */
+    default void onEntityHit(ItemStack weapon, LivingEntity attacker,
+                             Entity target, float damage) {
+        // Default: do nothing
+    }
+
+    /**
+     * Called when the weapon kills a living entity.
+     * Use for on-kill cores (Gambler drop table, etc.)
+     */
+    default void onEntityKill(ItemStack weapon, LivingEntity attacker,
+                              LivingEntity killed) {
+        // Default: do nothing
+    }
 
     // ============= TOOL USAGE =============
     default void onToolUpdate(ItemStack tool, Player player) {

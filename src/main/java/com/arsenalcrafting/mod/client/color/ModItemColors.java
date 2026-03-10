@@ -31,7 +31,8 @@ public class ModItemColors {
             event.register(ModItemColors::colorArsenalTool,
                     ModItems.ARSENAL_PICKAXE.get(),
                     ModItems.ARSENAL_SHOVEL.get(),
-                    ModItems.ARSENAL_AXE.get()
+                    ModItems.ARSENAL_AXE.get(),
+                    ModItems.ARSENAL_KATANA.get()
             );
 
             // 2) Tool Components

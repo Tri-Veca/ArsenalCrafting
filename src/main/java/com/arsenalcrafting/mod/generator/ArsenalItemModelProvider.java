@@ -37,6 +37,7 @@ public class ArsenalItemModelProvider extends ItemModelProvider {
         generateArsenalPickaxeModel();
         generateArsenalShovelModel();
         generateArsenalAxeModel();
+        generateArsenalKatanaModel();
         generateToolPartModels();
         generateAlloyItemModels();
         generateAugmentModels();
@@ -78,6 +79,14 @@ public class ArsenalItemModelProvider extends ItemModelProvider {
                 .texture("layer0", modLoc("item/axe_head_base"))
                 .texture("layer1", modLoc("item/tool_rod_base_axe"))
                 .texture("layer2", modLoc("item/core_base_axe"));
+    }
+
+    private void generateArsenalKatanaModel() {
+        getBuilder("arsenal_katana")
+                .parent(new ModelFile.UncheckedModelFile(mcLoc("item/handheld")))
+                .texture("layer0", modLoc("item/katana_blade_base"))
+                .texture("layer1", modLoc("item/katana_hilt_base"))
+                .texture("layer2", modLoc("item/core_base_katana"));
     }
 
     /**
@@ -133,6 +142,16 @@ public class ArsenalItemModelProvider extends ItemModelProvider {
             getBuilder(key + "_core")
                     .parent(new ModelFile.UncheckedModelFile(mcLoc("item/generated")))
                     .texture("layer0", modLoc("item/core_item_base"));
+
+            // KATANA BLADE
+            getBuilder(key + "_katana_blade_head")
+                    .parent(new ModelFile.UncheckedModelFile(mcLoc("item/generated")))
+                    .texture("layer0", modLoc("item/katana_blade_item_base"));
+
+            // KATANA HILT
+            getBuilder(key + "_katana_hilt_rod")
+                    .parent(new ModelFile.UncheckedModelFile(mcLoc("item/generated")))
+                    .texture("layer0", modLoc("item/katana_hilt_item_base"));
         }
     }
 

@@ -14,11 +14,11 @@ public enum ToolComponentType {
     // Handles/Rods
     TOOL_ROD("tool_rod", "Tool Rod"),
     SHOVEL_TOOL_ROD("shovel_tool_rod", "Shovel Tool Rod"),
-    /*HILT("hilt", "Hilt"),
-    POMMEL("pommel", "Pommel"),
-   GRIP("grip", "Grip"),
+    // Weapon Blades
+    KATANA_BLADE("katana_blade_head", "Katana Blade"),
+    KATANA_HILT("katana_hilt_rod", "Katana Hilt"),
 
-     */
+
 
      //Attachments/Bindings
     CORE("core", "Core");
@@ -56,4 +56,5 @@ public enum ToolComponentType {
     public boolean isRod() {
         return this.id.contains("rod");
     }
+
 }

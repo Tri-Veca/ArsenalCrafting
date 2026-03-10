@@ -8,12 +8,7 @@ import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.core.augments.AugmentHandler;
 import com.arsenalcrafting.mod.core.augments.AugmentHandlers;
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
-import com.arsenalcrafting.mod.items.augments.EfficiencyAugmentItem;
 import com.arsenalcrafting.mod.items.tool.powers.CoreManager;
-import com.arsenalcrafting.mod.items.tool.powers.Momentum;
-import com.arsenalcrafting.mod.registry.ModComponents;
-import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.tags.BlockTags;
@@ -25,6 +20,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -66,6 +62,21 @@ public class ArsenalAxeItem extends AxeItem implements ArsenalTool {
     @Override
     public ToolComponentType getRodType() {
         return ToolComponentType.TOOL_ROD;
+    }
+
+    @Override
+    public ItemAttributeModifiers getAttributeModifiers(ItemStack stack) {
+        return null;
+    }
+
+    @Override
+    public float getAssembledDamage(ItemStack stack) {
+        return 0;
+    }
+
+    @Override
+    public float getAssembledAttackSpeed(ItemStack stack) {
+        return 0;
     }
 
 

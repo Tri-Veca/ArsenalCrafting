@@ -10,10 +10,10 @@ import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.Nullable;
 
 public enum AlloyMaterial {
-/**
- * Lists all Materials. Crucial Class, is the backbone for the entire mod!
+    /**
+     * Lists all Materials. Crucial Class, is the backbone for the entire mod!
 
- */
+     */
     COPPER(
             "Copper",   //Name
             1,             //maps tier to Incorrect tool for block BlockTag
@@ -24,6 +24,9 @@ public enum AlloyMaterial {
             0f,      // 0 extra dmg. Correct for Copper
             1.0f,      // how many can we swing?
             4,       //max aug slots
+            0.05f,   //crit chance
+            1.30f,   //crit damage multiplier
+            3.0f,    //weapon damage (shown in attack indicator, base 1 added by vanilla)
             ChatFormatting.RED,   //tooltip color
             0xFFe77c56,          //tint color
             false            //allow alloy to be created automatically. We don't use for vanilla materials
@@ -38,6 +41,9 @@ public enum AlloyMaterial {
             0f,
             1.0f,
             4,
+            0.10f,   //crit chance
+            1.40f,   //crit damage multiplier
+            3.5f,    //weapon damage
             ChatFormatting.GRAY,
             0xFFeddfdb,
             true
@@ -52,6 +58,9 @@ public enum AlloyMaterial {
             2.0f,
             1.0f,
             4,
+            0.08f,   //crit chance
+            1.35f,   //crit damage multiplier
+            4.0f,    //weapon damage
             ChatFormatting.WHITE,
             0xFFFFFFFF,
             false
@@ -66,6 +75,9 @@ public enum AlloyMaterial {
             0f,
             1.0f,
             4,
+            0.15f,   //crit chance — high crit, low multiplier (gambler)
+            1.25f,   //crit damage multiplier
+            3.5f,    //weapon damage — fast and crits often, not raw power
             ChatFormatting.YELLOW,
             0xFFfdf55f,
             false
@@ -80,6 +92,9 @@ public enum AlloyMaterial {
             3.0f,
             1.0f,
             4,
+            0.12f,   //crit chance
+            1.75f,   //crit damage multiplier — sweet spot of both
+            6.0f,    //weapon damage
             ChatFormatting.AQUA,
             0xFF4aedd9,
             false
@@ -94,6 +109,9 @@ public enum AlloyMaterial {
             4.0f,
             1.0f,
             4,
+            0.10f,   //crit chance
+            1.60f,   //crit damage multiplier
+            7.0f,    //weapon damage
             ChatFormatting.DARK_GRAY,
             0xFF706770,
             false
@@ -109,6 +127,9 @@ public enum AlloyMaterial {
             1.5f,
             1.0f,
             4,
+            0.07f,   //crit chance
+            1.45f,   //crit damage multiplier
+            4.5f,    //weapon damage — slightly above iron, alloy payoff
             ChatFormatting.GOLD,
             0xFFcb9580,
             true
@@ -123,6 +144,9 @@ public enum AlloyMaterial {
             5.0f,
             1.2f,
             4,
+            0.06f,   //crit chance
+            1.55f,   //crit damage multiplier
+            8.0f,    //weapon damage — high damage, slower speed
             ChatFormatting.GRAY,
             0xFFC0C0C0,
             true
@@ -137,6 +161,9 @@ public enum AlloyMaterial {
             4.0f,
             1.5f,
             4,
+            0.08f,   //crit chance — rare but brutal
+            1.80f,   //crit damage multiplier
+            7.5f,    //weapon damage — fast + heavy crits, mid base
             ChatFormatting.DARK_AQUA,
             0xFFA0E4FF,
             true
@@ -152,12 +179,16 @@ public enum AlloyMaterial {
     private final float damage;
     private final float arc;
     private final int toolAugmentSlots;
+    private final float critChance;
+    private final float critDamage;
+    private final float weaponDamage; // Separate from tool damage — used by weapons via getAssembledDamage()
     private final ChatFormatting color;
     private final int itemColor;
     private final boolean allowAlloy;
 
 
     AlloyMaterial(String name, int tier, int durability, float efficiency, float modifier, float attackSpeed, float damage, float arc, int toolAugmentSlots,
+                  float critChance, float critDamage, float weaponDamage,
                   ChatFormatting color, int itemColor, boolean allowAlloy) {
         this.name = name;
         this.tier = tier;
@@ -168,6 +199,9 @@ public enum AlloyMaterial {
         this.damage = damage;
         this.arc = arc;
         this.toolAugmentSlots = toolAugmentSlots;
+        this.critChance = critChance;
+        this.critDamage = critDamage;
+        this.weaponDamage = weaponDamage;
         this.color = color;
         this.itemColor = itemColor;
         this.allowAlloy = allowAlloy;
@@ -182,8 +216,11 @@ public enum AlloyMaterial {
     public float getModifier() { return modifier; }
     public float getAttackSpeed() { return attackSpeed; }
     public float getDamage() { return damage; }
+    public float getWeaponDamage() { return weaponDamage; }
     public float getArc() { return arc; }
     public int getToolAugmentSlots() { return toolAugmentSlots; }
+    public float getCritChance() { return critChance; }
+    public float getCritDamage() { return critDamage; }
     public ChatFormatting getColor() { return color; }
     public int getTier() { return tier; }
     public boolean allowsAlloy() { return allowAlloy; }

@@ -15,10 +15,14 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.level.Level;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
@@ -278,7 +282,7 @@ public interface ArsenalTool extends IItemExtension {
                         usedSlots + "/" + getTotalAugmentSlots())
                 .withStyle(net.minecraft.ChatFormatting.LIGHT_PURPLE));
 
-         ToolAssemblyData assemblyData = stack.get(TOOL_ASSEMBLY_DATA.get());
+        ToolAssemblyData assemblyData = stack.get(TOOL_ASSEMBLY_DATA.get());
         if (assemblyData != null && !assemblyData.isEmpty()) {
             tooltip.add(Component.literal(""));
             tooltip.add(Component.translatable("item.arsenalcrafting.tool_parts").withStyle(ChatFormatting.DARK_AQUA));
@@ -334,6 +338,44 @@ public interface ArsenalTool extends IItemExtension {
 
     }
 
+
+
+    // Add this method to your ArsenalTool interface
+    default ItemAttributeModifiers getToolAttributes(ItemStack stack) {
+        float damage = getAssembledDamage(stack);
+        float attackSpeed = getAssembledAttackSpeed(stack);
+
+        return ItemAttributeModifiers.builder()
+                .add(
+                        Attributes.ATTACK_DAMAGE,
+                        new AttributeModifier(
+                                Item.BASE_ATTACK_DAMAGE_ID,
+                                damage,
+                                AttributeModifier.Operation.ADD_VALUE
+                        ),
+                        EquipmentSlotGroup.MAINHAND
+                )
+                .add(
+                        Attributes.ATTACK_SPEED,
+                        new AttributeModifier(
+                                Item.BASE_ATTACK_SPEED_ID,
+                                attackSpeed - 4.0,
+                                AttributeModifier.Operation.ADD_VALUE
+                        ),
+                        EquipmentSlotGroup.MAINHAND
+                )
+                .build();
+    }
+
+    // ==================== WEAPON ATTRIBUTES ====================
+    // Default implementations return 0 — weapons override these with blade material values.
+    // Tools (Pickaxe, Shovel, Axe) never call getToolAttributes() so these are never used.
+
+    ItemAttributeModifiers getAttributeModifiers(ItemStack stack);
+
+    default float getAssembledDamage(ItemStack stack) { return 0f; }
+    default float getAssembledAttackSpeed(ItemStack stack) { return 4.0f; }
+
     // ==================== BURN PROTECTION ====================
 
     @Override
@@ -343,4 +385,57 @@ public interface ArsenalTool extends IItemExtension {
         }
         return IItemExtension.super.canBeHurtBy(stack, source);
     }
+
+    // ==================== CRIT SYSTEM ====================
+
+    /**
+     * Weapon class crit chance multiplier.
+     * Override in each weapon class to define its identity.
+     *
+     * Broadsword: 1.0x  Katana: 1.1x  Dagger: 1.5x  Chakram: 1.2x
+     */
+    default float getCritChanceMultiplier() { return 1.0f; }
+
+    /**
+     * Weapon class crit damage multiplier.
+     * Override in each weapon class to define its identity.
+     *
+     * Broadsword: 1.0x  Katana: 1.15x  Dagger: 0.9x  Chakram: 1.05x
+     */
+    default float getCritDamageMultiplier() { return 1.0f; }
+
+    /**
+     * Main crit entry point. Call this from hurtEnemy() AFTER UnifiedProcessor.processEntityHit().
+     *
+     * Returns the final damage value — same as baseDamage if no crit landed.
+     * Also handles armor durability damage automatically if a crit lands.
+     *
+     * Usage:
+     *   UnifiedProcessor.processEntityHit(stack, attacker, target, baseDamage);
+     *   float finalDamage = rollCrit(stack, target, baseDamage);
+     *
+     * @param weapon     The weapon ItemStack
+     * @param target     The entity being hit
+     * @param baseDamage Damage value before crit
+     * @return           Final damage (modified if crit, unchanged if not)
+     */
+    default float rollCrit(ItemStack weapon, net.minecraft.world.entity.LivingEntity target, float baseDamage) {
+        com.arsenalcrafting.mod.core.CritProcessor.CritResult result =
+                com.arsenalcrafting.mod.core.CritProcessor.processCrit(
+                        weapon,
+                        baseDamage,
+                        getCritChanceMultiplier(),
+                        getCritDamageMultiplier(),
+                        0f  // flatBonuses — wire in Tin core bonus and helmet skill here when implemented
+                );
+
+        if (result.isCrit()) {
+            com.arsenalcrafting.mod.core.CritProcessor.applyArmorDurabilityDamage(target, result.armorDurabilityDamage());
+        }
+
+        return result.finalDamage();
+    }
+
+
+
 }

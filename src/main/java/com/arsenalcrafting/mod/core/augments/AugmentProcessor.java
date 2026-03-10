@@ -312,4 +312,77 @@ public class AugmentProcessor {
             System.out.println("  - " + aug.id + " (tier " + aug.tier + ", priority " + aug.handler.priority() + ")");
         }
     }
+
+    /**
+     * Process entity hit with augments (on-hit effects: fire, freeze, bleed, etc.)
+     * Called from UnifiedProcessor.processEntityHit() BEFORE crit is rolled.
+     * Returns true if any augment handled the hit.
+     */
+    public static boolean processEntityHit(ItemStack tool, LivingEntity attacker,
+                                           Entity target, float damage) {
+        if (!(tool.getItem() instanceof ArsenalTool arsenalTool)) {
+            return false;
+        }
+
+        List<ActiveAugment> augments = getActiveAugments(tool, arsenalTool.getToolType());
+        if (augments.isEmpty()) {
+            return false;
+        }
+
+        augments.sort(Comparator.comparingInt(a -> a.handler.priority()));
+
+        boolean anyHandled = false;
+
+        for (ActiveAugment augment : augments) {
+            if (!augment.handler.canHandleEntity(target, tool)) {
+                continue;
+            }
+
+            // Routes to AugmentHandler.handleEntityAttack — weapon augments implement this
+            // for on-hit effects. Rename to handleEntityHit in AugmentHandler when
+            // weapon augments are added, for now reuses the existing hook.
+            boolean handled = augment.handler.handleEntityAttack(tool, attacker, target, damage);
+
+            if (handled) {
+                anyHandled = true;
+
+                if (augment.handler.isExclusive()) {
+                    System.out.println("[AugmentProcessor] Exclusive augment '" + augment.id + "' handled entity hit, stopping chain");
+                    break;
+                }
+            }
+        }
+
+        return anyHandled;
+    }
+
+    /**
+     * Process entity kill with augments (on-kill effects: looting, soul harvest, etc.)
+     * Called from UnifiedProcessor.processEntityKill().
+     */
+    public static void processEntityKill(ItemStack tool, LivingEntity attacker,
+                                         LivingEntity killed) {
+        if (!(tool.getItem() instanceof ArsenalTool arsenalTool)) {
+            return;
+        }
+
+        List<ActiveAugment> augments = getActiveAugments(tool, arsenalTool.getToolType());
+        if (augments.isEmpty()) {
+            return;
+        }
+
+        augments.sort(Comparator.comparingInt(a -> a.handler.priority()));
+
+        for (ActiveAugment augment : augments) {
+            try {
+                // On-kill hook — add onEntityKill() to AugmentHandler interface
+                // when weapon augments are implemented. Stub here is safe to call.
+                augment.handler.onEntityKill(tool, attacker, killed);
+            } catch (Exception e) {
+                System.err.println("[AugmentProcessor] Error processing kill for augment '"
+                        + augment.id + "': " + e.getMessage());
+            }
+        }
+    }
+
 }

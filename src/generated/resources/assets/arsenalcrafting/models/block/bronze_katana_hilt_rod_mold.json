@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/carpet",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "wool": "arsenalcrafting:item/bronze_katana_hilt_rod_mold"
+  }
+}

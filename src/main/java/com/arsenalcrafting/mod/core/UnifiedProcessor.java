@@ -54,4 +54,31 @@ public class UnifiedProcessor {
         CoreProcessor.processToolTick(tool, player);
         AugmentProcessor.processToolTick(tool, player);
     }
+    /**
+     * Call from ArsenalTool.hurtEnemy() BEFORE rollCrit().
+     * Handles core on-hit effects and augment on-hit effects (fire, freeze, etc.)
+     */
+    public static boolean processEntityHit(ItemStack weapon, LivingEntity attacker,
+                                           Entity target, float damage) {
+        // Step 1: Core on-hit effects (bleed, elemental cores, etc.)
+        CoreProcessor.onEntityHit(weapon, attacker, target, damage);
+
+        // Step 2: Augment on-hit effects (fire aspect, freeze, lightning, looting, etc.)
+        if (AugmentProcessor.processEntityHit(weapon, attacker, target, damage)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Call from ArsenalTool on kill event.
+     * Handles Gambler diamond core drops, looting augments, etc.
+     */
+    public static void processEntityKill(ItemStack weapon, LivingEntity attacker,
+                                         LivingEntity killed) {
+        CoreProcessor.onEntityKill(weapon, attacker, killed);
+        AugmentProcessor.processEntityKill(weapon, attacker, killed);
+    }
 }
+

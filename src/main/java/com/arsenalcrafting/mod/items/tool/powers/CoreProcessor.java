@@ -94,4 +94,26 @@ public class CoreProcessor {
             core.onToolUpdate(tool, player);
         }
     }
+
+    /**
+     * Called from UnifiedProcessor.processEntityHit().
+     * Runs core on-hit effects before crit is rolled.
+     */
+    public static void onEntityHit(ItemStack weapon, LivingEntity attacker,
+                                   net.minecraft.world.entity.Entity target, float damage) {
+        CoreHandler core = getActiveCore(weapon);
+        if (core == null) return;
+        core.onEntityHit(weapon, attacker, target, damage);
+    }
+
+    /**
+     * Called from UnifiedProcessor.processEntityKill().
+     * Runs core on-kill effects (Gambler drop table, etc.)
+     */
+    public static void onEntityKill(ItemStack weapon, LivingEntity attacker,
+                                    LivingEntity killed) {
+        CoreHandler core = getActiveCore(weapon);
+        if (core == null) return;
+        core.onEntityKill(weapon, attacker, killed);
+    }
 }

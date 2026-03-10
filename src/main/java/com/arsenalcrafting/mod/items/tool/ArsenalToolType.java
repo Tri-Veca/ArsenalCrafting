@@ -9,7 +9,7 @@ public enum ArsenalToolType {
     HOE,
 
     // Combat weapons
-    SWORD, //probably not gonna use
+    CHAKRAM, //probably not gonna use
     KATANA,
     DAGGER,
     BROADSWORD;
@@ -21,6 +21,6 @@ public enum ArsenalToolType {
     }
 
     public boolean isWeapon() {
-        return this == SWORD || this == KATANA || this == DAGGER || this == BROADSWORD;
+        return this == CHAKRAM || this == KATANA || this == DAGGER || this == BROADSWORD;
     }
 }

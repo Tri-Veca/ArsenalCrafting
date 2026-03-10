@@ -48,6 +48,13 @@ public interface AugmentHandler {
                                     Entity target, HitResult hit) {
         return false;
     }
+    /**
+     * Called when the weapon kills a living entity.
+     * Implement in weapon augments for on-kill effects (soul harvest, looting, etc.)
+     */
+    default void onEntityKill(ItemStack weapon, LivingEntity attacker, LivingEntity killed) {
+        // Default: do nothing
+    }
 
     // ============= TOOL USAGE =============
     default void onToolUpdate(ItemStack tool, Player player) {

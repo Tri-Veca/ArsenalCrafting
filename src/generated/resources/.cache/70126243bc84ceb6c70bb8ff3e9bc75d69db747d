@@ -1,3 +1,3 @@
-// 1.21.1	2026-01-04T03:49:07.4956296	Tags for minecraft:block mod id arsenalcrafting
-2921f574cb63ae7300c0aa8fad0e5f2859bf76db data/minecraft/tags/block/mineable/pickaxe.json
-2921f574cb63ae7300c0aa8fad0e5f2859bf76db data/minecraft/tags/block/needs_stone_tool.json
+// 1.21.1	2026-03-10T03:02:52.6633477	Tags for minecraft:block mod id arsenalcrafting
+ccb077d2a7fdf8e4f0d04088a9edd3b2fa3a8441 data/minecraft/tags/block/mineable/pickaxe.json
+ccb077d2a7fdf8e4f0d04088a9edd3b2fa3a8441 data/minecraft/tags/block/needs_stone_tool.json

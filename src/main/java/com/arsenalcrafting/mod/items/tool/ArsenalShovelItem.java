@@ -25,6 +25,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -66,6 +67,21 @@ public class ArsenalShovelItem extends ShovelItem implements ArsenalTool {
     @Override
     public ToolComponentType getRodType() {
         return ToolComponentType.SHOVEL_TOOL_ROD;
+    }
+
+    @Override
+    public ItemAttributeModifiers getAttributeModifiers(ItemStack stack) {
+        return null;
+    }
+
+    @Override
+    public float getAssembledDamage(ItemStack stack) {
+        return 0;
+    }
+
+    @Override
+    public float getAssembledAttackSpeed(ItemStack stack) {
+        return 0;
     }
 
 

@@ -104,6 +104,7 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
             case SHOVEL_HEAD -> ModItems.ARSENAL_SHOVEL.get();
             case AXE_HEAD    -> ModItems.ARSENAL_AXE.get();
             case PICKAXE_HEAD -> ModItems.ARSENAL_PICKAXE.get();
+            case KATANA_BLADE -> ModItems.ARSENAL_KATANA.get();
             default           -> ModItems.ARSENAL_PICKAXE.get();
         };
     }
@@ -161,6 +162,7 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
             case PICKAXE_HEAD -> rodType == ToolComponentType.TOOL_ROD; // Generic rod for pickaxe
             case SHOVEL_HEAD -> rodType == ToolComponentType.SHOVEL_TOOL_ROD; // Shovel-specific rod
             case AXE_HEAD -> rodType == ToolComponentType.TOOL_ROD;
+            case KATANA_BLADE -> rodType == ToolComponentType.KATANA_HILT;
             default -> false;
         };
     }
@@ -169,7 +171,7 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
      * Sync augments from tool to GUI slots
      */
     public void syncAugmentsFromTool() {
-        if (isSyncing) return; // Guard against recursive loops
+        if (isSyncing) return; // Guard against recursive loopsF
         isSyncing = true;
 
         try {
