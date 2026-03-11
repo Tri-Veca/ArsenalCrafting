@@ -53,8 +53,7 @@ public class ArsenalClientExtensions {
                 float swing = (float) Math.sin(Math.sqrt(swingProcess) * Math.PI);
                 poseStack.mulPose(Axis.XP.rotationDegrees(swing * -20F));
 
-                // Move down more to hide hilt, nudge right slightly
-                poseStack.translate(dir * -0.42F, 0.00F, 0.3F);
+                poseStack.translate(dir * -0.56F, 0.01F, 0.3F);
                 poseStack.translate(dir * 0.3F, 0.0F, 0.0F);
 
                 poseStack.mulPose(Axis.YP.rotationDegrees(dir * 35F));
