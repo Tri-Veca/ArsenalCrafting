@@ -37,6 +37,7 @@ public class ModCreativeTabs {
                         output.accept(ModItems.ARSENAL_SHOVEL.get());
                         output.accept(ModItems.ARSENAL_AXE.get());
                         output.accept(ModItems.ARSENAL_KATANA.get());
+                        output.accept(ModItems.ARSENAL_BROADSWORD.get());
                         output.accept(ModItems.REPAIR_KIT.get());
                     })
                     .build());

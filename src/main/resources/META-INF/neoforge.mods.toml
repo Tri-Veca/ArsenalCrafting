@@ -11,6 +11,7 @@ displayName="Arsenal Crafting"
 authors="ArsenalCrafting Team"
 description='''Forge modular tools & weapons, upgrade armor using skill points, and wield gadgets.
 '''
+enumExtensions="META-INF/enumextensions.json"
 
 [[dependencies.arsenalcrafting]]
 modId="neoforge"

@@ -1,11 +1,11 @@
 package com.arsenalcrafting.mod;
-
 import com.arsenalcrafting.mod.config.TestModeConfig;
 import com.arsenalcrafting.mod.core.alloy.AlloyRecipeType;
 import com.arsenalcrafting.mod.registry.*;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.client.event.RenderPlayerEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.level.LevelEvent;
 
@@ -25,6 +25,7 @@ public class ArsenalCrafting {
         ModComponents.register(modEventBus);
         AlloyRecipeType.register(modEventBus);
         ModRecipeSerializers.register(modEventBus);
+
         TestModeConfig.setTestMode(false);
         System.out.println("[ArsenalCrafting] Constructor completed - Test Mode should be OFF");
 

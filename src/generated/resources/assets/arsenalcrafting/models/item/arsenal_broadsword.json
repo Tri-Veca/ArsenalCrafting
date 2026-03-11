@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "arsenalcrafting:item/broadsword_blade_base",
+    "layer1": "arsenalcrafting:item/broadsword_hilt_base",
+    "layer2": "arsenalcrafting:item/core_base_broadsword"
+  }
+}

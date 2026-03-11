@@ -105,6 +105,7 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
             case AXE_HEAD    -> ModItems.ARSENAL_AXE.get();
             case PICKAXE_HEAD -> ModItems.ARSENAL_PICKAXE.get();
             case KATANA_BLADE -> ModItems.ARSENAL_KATANA.get();
+            case BROADSWORD_BLADE-> ModItems.ARSENAL_BROADSWORD.get();
             default           -> ModItems.ARSENAL_PICKAXE.get();
         };
     }
@@ -163,6 +164,7 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
             case SHOVEL_HEAD -> rodType == ToolComponentType.SHOVEL_TOOL_ROD; // Shovel-specific rod
             case AXE_HEAD -> rodType == ToolComponentType.TOOL_ROD;
             case KATANA_BLADE -> rodType == ToolComponentType.KATANA_HILT;
+            case BROADSWORD_BLADE -> rodType == ToolComponentType.BROADSWORD_HILT;
             default -> false;
         };
     }

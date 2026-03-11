@@ -9,6 +9,7 @@ public enum ToolComponentType {
     PICKAXE_HEAD("pickaxe_head", "Pickaxe Head"),
     AXE_HEAD("axe_head", "Axe Head"),
     SHOVEL_HEAD("shovel_head", "Shovel Head"),
+    BROADSWORD_BLADE("broadsword_blade_head", "Broadsword Blade"),
 
 
     // Handles/Rods
@@ -17,7 +18,7 @@ public enum ToolComponentType {
     // Weapon Blades
     KATANA_BLADE("katana_blade_head", "Katana Blade"),
     KATANA_HILT("katana_hilt_rod", "Katana Hilt"),
-
+    BROADSWORD_HILT("broadsword_hilt_rod", "Broadsword Hilt"),
 
 
      //Attachments/Bindings

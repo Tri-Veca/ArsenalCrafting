@@ -38,6 +38,7 @@ public class ArsenalItemModelProvider extends ItemModelProvider {
         generateArsenalShovelModel();
         generateArsenalAxeModel();
         generateArsenalKatanaModel();
+        generateArsenalBroadswordModel();
         generateToolPartModels();
         generateAlloyItemModels();
         generateAugmentModels();
@@ -87,6 +88,29 @@ public class ArsenalItemModelProvider extends ItemModelProvider {
                 .texture("layer0", modLoc("item/katana_blade_base"))
                 .texture("layer1", modLoc("item/katana_hilt_base"))
                 .texture("layer2", modLoc("item/core_base_katana"));
+    }
+
+    /**
+     * Item model for the assembled Arsenal Broadsword.
+     *
+     * Layers:
+     *  - layer0: blade (tintIndex 0) — broadsword_blade_base.png
+     *  - layer1: hilt  (tintIndex 1) — broadsword_hilt_base.png
+     *  - layer2: core  (tintIndex 2) — core_base_broadsword.png
+     *
+     * Textures needed:
+     *   broadsword_blade_base.png       assembled blade layer
+     *   broadsword_hilt_base.png        assembled hilt layer
+     *   core_base_broadsword.png        assembled core layer
+     *   broadsword_blade_item_base.png  component tab blade icon
+     *   broadsword_hilt_item_base.png   component tab hilt icon
+     */
+    private void generateArsenalBroadswordModel() {
+        getBuilder("arsenal_broadsword")
+                .parent(new ModelFile.UncheckedModelFile(mcLoc("item/handheld")))
+                .texture("layer0", modLoc("item/broadsword_blade_base"))
+                .texture("layer1", modLoc("item/broadsword_hilt_base"))
+                .texture("layer2", modLoc("item/core_base_broadsword"));
     }
 
     /**
@@ -152,6 +176,16 @@ public class ArsenalItemModelProvider extends ItemModelProvider {
             getBuilder(key + "_katana_hilt_rod")
                     .parent(new ModelFile.UncheckedModelFile(mcLoc("item/generated")))
                     .texture("layer0", modLoc("item/katana_hilt_item_base"));
+
+            // BROADSWORD BLADE
+            getBuilder(key + "_broadsword_blade_head")
+                    .parent(new ModelFile.UncheckedModelFile(mcLoc("item/generated")))
+                    .texture("layer0", modLoc("item/broadsword_blade_item_base"));
+
+            // BROADSWORD hilt
+            getBuilder(key + "_broadsword_hilt_rod")
+                    .parent(new ModelFile.UncheckedModelFile(mcLoc("item/generated")))
+                    .texture("layer0", modLoc("item/broadsword_hilt_item_base"));
         }
     }
 

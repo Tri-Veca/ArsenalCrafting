@@ -32,7 +32,8 @@ public class ModItemColors {
                     ModItems.ARSENAL_PICKAXE.get(),
                     ModItems.ARSENAL_SHOVEL.get(),
                     ModItems.ARSENAL_AXE.get(),
-                    ModItems.ARSENAL_KATANA.get()
+                    ModItems.ARSENAL_KATANA.get(),
+                    ModItems.ARSENAL_BROADSWORD.get()
             );
 
             // 2) Tool Components

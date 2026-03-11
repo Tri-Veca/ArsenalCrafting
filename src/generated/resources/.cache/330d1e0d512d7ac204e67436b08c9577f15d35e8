@@ -1,6 +1,10 @@
-// 1.21.1	2026-03-10T02:52:37.6856669	Block Models: arsenalcrafting
+// 1.21.1	2026-03-10T15:18:27.6040535	Block Models: arsenalcrafting
 aa263bded9437125446f9a25dba13dcdb5ce88ce assets/arsenalcrafting/models/block/axe_head_mold.json
+0c6a18bf5dfe4ecca57cd15b362419011775f0e5 assets/arsenalcrafting/models/block/broadsword_blade_head_mold.json
+1bd552210bb0c33dafbdf1b63cedccf38d08b0a0 assets/arsenalcrafting/models/block/broadsword_hilt_rod_mold.json
 14d146d1ba2b0ee1af414fd33d65cf1fab8ed719 assets/arsenalcrafting/models/block/bronze_axe_head_mold.json
+1363957f42f77950fbb35fb088b00ae45c0e8945 assets/arsenalcrafting/models/block/bronze_broadsword_blade_head_mold.json
+7cfcc08a68ebbd293ae05ce179d517c2924c39d1 assets/arsenalcrafting/models/block/bronze_broadsword_hilt_rod_mold.json
 8a46c8460f41221a3cf745e84cfa2974e3980ddb assets/arsenalcrafting/models/block/bronze_core_mold.json
 a2f4775996a41ae016279dc4ee4743a47bf22162 assets/arsenalcrafting/models/block/bronze_katana_blade_head_mold.json
 b3d272ca533dd9da94f105c022492ffad342d650 assets/arsenalcrafting/models/block/bronze_katana_hilt_rod_mold.json

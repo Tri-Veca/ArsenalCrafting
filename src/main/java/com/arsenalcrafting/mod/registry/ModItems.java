@@ -6,11 +6,8 @@ import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
 import com.arsenalcrafting.mod.items.RepairKitItem;
 import com.arsenalcrafting.mod.items.augments.UniversalAugmentItem;
-import com.arsenalcrafting.mod.items.tool.ArsenalAxeItem;
-import com.arsenalcrafting.mod.items.tool.ArsenalKatanaItem;
-import com.arsenalcrafting.mod.items.tool.ArsenalPickaxeItem;
+import com.arsenalcrafting.mod.items.tool.*;
 import com.arsenalcrafting.mod.component.ToolComponentType;
-import com.arsenalcrafting.mod.items.tool.ArsenalShovelItem;
 import com.arsenalcrafting.mod.items.tool.toolparts.ToolComponentItem;
 
 import net.minecraft.core.registries.Registries;
@@ -57,6 +54,8 @@ public class ModItems {
 
     public static final DeferredHolder<Item, ArsenalKatanaItem> ARSENAL_KATANA = ITEMS.register("arsenal_katana",
             () -> new ArsenalKatanaItem(AlloyMaterial.BRONZE, new Item.Properties().durability(1000)));
+    public static final DeferredHolder<Item, ArsenalBroadSwordItem> ARSENAL_BROADSWORD = ITEMS.register("arsenal_broadsword",
+            () -> new ArsenalBroadSwordItem(AlloyMaterial.BRONZE, new Item.Properties().durability(1000)));
     // --- UNIVERSAL AUGMENT ITEMS (Auto-generated from AugmentManager) ---
     // These are registered in a static block to ensure AugmentManager is initialized first
     static {

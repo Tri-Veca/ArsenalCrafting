@@ -1,0 +1,13 @@
+{
+  "entries": [
+    {
+      "enum": "net/minecraft/client/model/HumanoidModel$ArmPose",
+      "name": "ARSENALCRAFTING_BROADSWORD_BLOCK",
+      "constructor": "(ZLnet/neoforged/neoforge/client/IArmPoseTransformer;)V",
+      "parameters": {
+        "class": "com/arsenalcrafting/mod/client/ArsenalArmPoses",
+        "field": "BROADSWORD_BLOCK_POSE"
+      }
+    }
+  ]
+}
