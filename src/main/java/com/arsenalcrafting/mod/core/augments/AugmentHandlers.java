@@ -421,4 +421,90 @@ public class AugmentHandlers {
             return false;
         }
     }
+
+    // ============= WEAPON AUGMENTS =============
+
+    /**
+     * Sharpness — weapons only.
+     * Tier 1: +1.5 bonus damage  Tier 2: +3.0  Tier 3: +5.0
+     * Applies flat bonus damage on top of assembled damage + crits.
+     */
+    public static class Sharpness implements AugmentHandler {
+        @Override
+        public int priority() { return 20; }
+
+        @Override
+        public boolean isExclusive() { return false; }
+
+        @Override
+        public boolean supportsToolType(ArsenalToolType type) {
+            return type.isWeapon();
+        }
+
+        @Override
+        public boolean canHandleEntity(Entity target, ItemStack tool) {
+            return target instanceof LivingEntity;
+        }
+
+        @Override
+        public boolean handleEntityAttack(ItemStack tool, LivingEntity attacker,
+                                          Entity target, float damage) {
+            if (!(target instanceof LivingEntity livingTarget)) return false;
+            return SharpnessAugmentItem.applySharpness(tool, attacker, livingTarget);
+        }
+    }
+
+    /**
+     * Looting — weapons only.
+     * Tier 1: Looting I  Tier 2: Looting II  Tier 3: Looting III
+     * Works via LootingLevelEvent in ArsenalLootingEvent — no handleEntityAttack needed.
+     */
+    public static class Looting implements AugmentHandler {
+        @Override
+        public int priority() { return 10; }
+
+        @Override
+        public boolean isExclusive() { return false; }
+
+        @Override
+        public boolean supportsToolType(ArsenalToolType type) {
+            return type.isWeapon();
+        }
+
+        public static int getLootingLevel(int tier) {
+            return LootingAugmentItem.getLootingLevel(tier);
+        }
+    }
+
+    /**
+     * Knockback — weapons only.
+     * Tier 1: ~vanilla sword knockback  Tier 2: sprint-attack level  Tier 3: above vanilla max
+     * Pushes target away from attacker on hit.
+     */
+    public static class Knockback implements AugmentHandler {
+        private static final float[] STRENGTH = { 0f, 0.4f, 0.7f, 1.1f };
+
+        @Override
+        public int priority() { return 30; }
+
+        @Override
+        public boolean isExclusive() { return false; }
+
+        @Override
+        public boolean supportsToolType(ArsenalToolType type) {
+            return type.isWeapon();
+        }
+
+        @Override
+        public boolean canHandleEntity(Entity target, ItemStack tool) {
+            return target instanceof LivingEntity;
+        }
+
+        @Override
+        public boolean handleEntityAttack(ItemStack tool, LivingEntity attacker,
+                                          Entity target, float damage) {
+            if (!(target instanceof LivingEntity livingTarget)) return false;
+            return KnockbackAugmentItem.applyKnockback(tool, attacker, livingTarget);
+        }
+    }
 }

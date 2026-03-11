@@ -60,6 +60,21 @@ public class AugmentManager {
                 AugmentHandlers.Efficiency.class, true, 3
         ));
 
+        register(new AugmentDefinition(
+                "sharpness", "Sharpness", "Increases weapon damage",
+                AugmentHandlers.Sharpness.class, true, 3
+        ));
+
+        register(new AugmentDefinition(
+                "looting", "Looting", "Increases mob drops",
+                AugmentHandlers.Looting.class, true, 3
+        ));
+
+        register(new AugmentDefinition(
+                "knockback", "Knockback", "Knocks enemies back on hit",
+                AugmentHandlers.Knockback.class, true, 3
+        ));
+
         // Future augments go here ONLY
     }
 
