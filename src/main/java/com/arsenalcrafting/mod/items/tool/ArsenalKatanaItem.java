@@ -54,16 +54,28 @@ import static com.arsenalcrafting.mod.registry.ModComponents.TOOL_ASSEMBLY_DATA;
 public class ArsenalKatanaItem extends SwordItem implements ArsenalTool {
 
     // ── CRIT IDENTITY ────────────────────────────────────────────────────────
-    // Middle ground — crits slightly more than Broadsword and each one hits harder.
-    // Broadsword baseline: 1.0 / 1.0
-    private static final float CRIT_CHANCE_MULT  = 1.1f;
-    private static final float CRIT_DAMAGE_MULT  = 1.15f;
+    private static final float CRIT_CHANCE_MULT  = 0.9f;
+    private static final float CRIT_DAMAGE_MULT  = 1.1f;
+
+    // ── KATANA IDENTITY ───────────────────────────────────────────────────────
+    // Slightly weaker per-hit than broadsword — compensated by arc + reach
+    private static final float DAMAGE_PENALTY    = 0.5f;
+    private static final float DURABILITY_MULT   = 0.85f;
+    // Always hits at least MIN_ARC_EXTRAS+1 targets total (material arc can increase this)
+    private static final int   MIN_ARC_EXTRAS    = 2;
+    private static final float ARC_DAMAGE_FRACTION = 0.75f;
+    private static final double ARC_RADIUS       = 3.0;
+    // Public so ArsenalAttributeEvents can reference it
+    public  static final double REACH_BONUS      = 1.0;
 
     private final ArsenalToolType toolType = ArsenalToolType.KATANA;
     private final AlloyMaterial baseMaterial;
 
     public ArsenalKatanaItem(AlloyMaterial material, Properties properties) {
-        super(new DummyWeaponTier(material), properties);
+        super(new DummyWeaponTier(material), properties.component(
+                net.minecraft.core.component.DataComponents.ATTRIBUTE_MODIFIERS,
+                net.minecraft.world.item.component.ItemAttributeModifiers.EMPTY.withTooltip(false)
+        ));
         this.baseMaterial = material;
     }
 
@@ -87,6 +99,16 @@ public class ArsenalKatanaItem extends SwordItem implements ArsenalTool {
     @Override
     public ToolComponentType getRodType() {
         return ToolComponentType.KATANA_HILT;  // hilt = rod slot in ToolAssemblyData
+    }
+
+    @Override
+    public ToolComponentType getHeadComponentType() {
+        return null;
+    }
+
+    @Override
+    public ToolComponentType getRodComponentType() {
+        return null;
     }
 
     // ── CRIT MULTIPLIERS ─────────────────────────────────────────────────────
@@ -170,10 +192,10 @@ public class ArsenalKatanaItem extends SwordItem implements ArsenalTool {
                         durability = def.handler().modifyMaxDurability(stack, durability);
                     }
                 }
-                return (int) durability;
+                return (int) (durability * DURABILITY_MULT);
             }
         }
-        return baseMaterial.getDurability();
+        return (int) (baseMaterial.getDurability() * DURABILITY_MULT);
     }
 
     // ── DAMAGE ATTRIBUTES ─────────────────────────────────────────────────────
@@ -208,47 +230,76 @@ public class ArsenalKatanaItem extends SwordItem implements ArsenalTool {
 
         float baseDamage = getAssembledDamage(stack);
 
-        // Step 1: Cores + augments on-hit
+        // Step 1: Cores + augments on primary target
         UnifiedProcessor.processEntityHit(stack, attacker, target, baseDamage);
 
         // Step 2: Roll crit
         float finalDamage = rollCrit(stack, target, baseDamage);
 
-        // Step 3: Apply full final damage ourselves.
-        // Returning true cancels vanilla's attribute-based damage, so we apply ALL damage here.
+        // Step 3: Apply damage to primary target
         net.minecraft.world.damagesource.DamageSource source = attacker instanceof Player p
                 ? target.level().damageSources().playerAttack(p)
                 : target.level().damageSources().mobAttack(attacker);
-
         target.hurt(source, finalDamage);
 
-        if (finalDamage > baseDamage) {
-            float critBonus = finalDamage - baseDamage;
-            System.out.println("[ArsenalKatana] ★ CRIT!"
-                    + " blade=" + getAssembledBladeName(stack)
-                    + " base=" + String.format("%.2f", baseDamage)
-                    + " bonus=" + String.format("%.2f", critBonus)
-                    + " total=" + String.format("%.2f", finalDamage)
-                    + " critChance=" + String.format("%.1f%%",
-                    com.arsenalcrafting.mod.core.CritProcessor.calcCritChance(
-                            com.arsenalcrafting.mod.core.alloy.AlloyMaterial.fromName(
-                                    stack.get(TOOL_ASSEMBLY_DATA.get()) != null
-                                            ? stack.get(TOOL_ASSEMBLY_DATA.get()).headMaterial() : ""),
-                            CRIT_CHANCE_MULT, 0f) * 100f)
-                    + " critMult=" + String.format("%.2fx", finalDamage / baseDamage));
-        } else {
-            System.out.println("[ArsenalKatana] hit"
-                    + " blade=" + getAssembledBladeName(stack)
-                    + " base=" + String.format("%.2f", baseDamage)
-                    + " no crit");
+        // Step 4: Arc multi-hit
+        int arcExtras = getArcCount(stack);
+        int arcHits = 0;
+        float arcDmg = 0f;
+        if (arcExtras > 0) {
+            arcDmg = finalDamage * ARC_DAMAGE_FRACTION;
+            java.util.List<LivingEntity> nearby = getNearbyArcTargets(target, attacker, arcExtras);
+            arcHits = nearby.size();
+            for (LivingEntity arcTarget : nearby) {
+                UnifiedProcessor.processEntityHit(stack, attacker, arcTarget, baseDamage);
+                arcTarget.hurt(source, arcDmg);
+            }
         }
 
-        // Step 4: Durability
+        // Step 5: Hit summary debug
+        float sharpnessBonus = 0f;
+        if (com.arsenalcrafting.mod.core.augments.AugmentManager.isInstalled("sharpness", stack)) {
+            int sharpTier = com.arsenalcrafting.mod.core.augments.AugmentManager.getTier("sharpness", stack);
+            sharpnessBonus = com.arsenalcrafting.mod.items.augments.SharpnessAugmentItem.getBonusDamage(sharpTier);
+        }
+        float totalDamage = finalDamage + sharpnessBonus + (arcHits * arcDmg);
+        boolean isCrit = finalDamage > baseDamage;
+        System.out.println("[ArsenalKatana] ──── HIT SUMMARY ────"
+                + " | base=" + String.format("%.2f", baseDamage)
+                + (isCrit ? " | ★CRIT bonus=" + String.format("%.2f", finalDamage - baseDamage) : " | no crit")
+                + (sharpnessBonus > 0 ? " | sharpness=" + String.format("%.2f", sharpnessBonus) : "")
+                + (arcHits > 0 ? " | arc=" + arcHits + "x" + String.format("%.2f", arcDmg) : "")
+                + " | TOTAL=" + String.format("%.2f", totalDamage)
+                + " | blade=" + getAssembledBladeName(stack));
+
+        // Step 6: Durability
         EquipmentSlot slot = attacker.getMainHandItem() == stack
                 ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND;
         stack.hurtAndBreak(1, attacker, slot);
 
         return true;
+    }
+
+    /** Returns number of ADDITIONAL arc targets beyond primary. Minimum MIN_ARC_EXTRAS. */
+    private int getArcCount(ItemStack stack) {
+        ToolAssemblyData data = stack.get(TOOL_ASSEMBLY_DATA.get());
+        if (data != null && !data.isEmpty()) {
+            AlloyMaterial bladeMat = AlloyMaterial.fromName(data.headMaterial());
+            if (bladeMat != null) {
+                int fromMaterial = Math.max(0, (int) bladeMat.getArc() - 1);
+                return Math.max(fromMaterial, MIN_ARC_EXTRAS);
+            }
+        }
+        return MIN_ARC_EXTRAS;
+    }
+
+    /** Finds nearby living entities for arc hits, excluding primary target and attacker. */
+    private java.util.List<LivingEntity> getNearbyArcTargets(LivingEntity primary,
+                                                             LivingEntity attacker, int max) {
+        net.minecraft.world.phys.AABB box = primary.getBoundingBox().inflate(ARC_RADIUS);
+        return primary.level().getEntitiesOfClass(LivingEntity.class, box, e ->
+                e != primary && e != attacker && e.isAlive()
+        ).stream().limit(max).toList();
     }
 
     /**
@@ -332,18 +383,10 @@ public class ArsenalKatanaItem extends SwordItem implements ArsenalTool {
                                 List<Component> tooltip, TooltipFlag flag) {
         appendArsenalTooltip(stack, context, tooltip, flag);
 
-        // Weapon-specific stats
         ToolAssemblyData assemblyData = stack.get(TOOL_ASSEMBLY_DATA.get());
         if (assemblyData != null && !assemblyData.isEmpty()) {
             AlloyMaterial bladeMat = AlloyMaterial.fromName(assemblyData.headMaterial());
             if (bladeMat != null) {
-                tooltip.add(Component.literal(""));
-                tooltip.add(Component.literal("⚔ Weapon Stats").withStyle(ChatFormatting.DARK_AQUA));
-
-                float damage = getAssembledDamage(stack);
-                tooltip.add(Component.literal("  Damage: " + String.format("%.1f", damage))
-                        .withStyle(bladeMat.getColor()));
-
                 float critChance = com.arsenalcrafting.mod.core.CritProcessor.calcCritChance(
                         bladeMat, CRIT_CHANCE_MULT, 0f) * 100f;
                 tooltip.add(Component.literal("  Crit Chance: " + String.format("%.1f", critChance) + "%")
@@ -352,11 +395,6 @@ public class ArsenalKatanaItem extends SwordItem implements ArsenalTool {
                 float critDamage = bladeMat.getCritDamage() * CRIT_DAMAGE_MULT;
                 tooltip.add(Component.literal("  Crit Multiplier: " + String.format("%.2f", critDamage) + "x")
                         .withStyle(ChatFormatting.RED));
-
-                if (Screen.hasShiftDown()) {
-                    tooltip.add(Component.literal("  Hold Shift to see core details")
-                            .withStyle(ChatFormatting.DARK_GRAY));
-                }
             }
         }
     }
@@ -372,9 +410,9 @@ public class ArsenalKatanaItem extends SwordItem implements ArsenalTool {
         ToolAssemblyData data = stack.get(TOOL_ASSEMBLY_DATA.get());
         if (data != null && !data.isEmpty()) {
             AlloyMaterial bladeMat = AlloyMaterial.fromName(data.headMaterial());
-            if (bladeMat != null) return bladeMat.getWeaponDamage();
+            if (bladeMat != null) return bladeMat.getWeaponDamage() - DAMAGE_PENALTY;
         }
-        return baseMaterial.getWeaponDamage();
+        return baseMaterial.getWeaponDamage() - DAMAGE_PENALTY;
     }
 
     /**

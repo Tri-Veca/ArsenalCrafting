@@ -19,8 +19,8 @@ public enum ToolComponentType {
     KATANA_BLADE("katana_blade_head", "Katana Blade"),
     KATANA_HILT("katana_hilt_rod", "Katana Hilt"),
     BROADSWORD_HILT("broadsword_hilt_rod", "Broadsword Hilt"),
-
-
+    DAGGER_HILT("dagger_hilt_rod", "Dagger Hilt"),
+    DAGGER_BLADE("dagger_blade_head", "Dagger Blade"),
      //Attachments/Bindings
     CORE("core", "Core");
 

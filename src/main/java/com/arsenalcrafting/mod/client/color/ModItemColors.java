@@ -33,7 +33,8 @@ public class ModItemColors {
                     ModItems.ARSENAL_SHOVEL.get(),
                     ModItems.ARSENAL_AXE.get(),
                     ModItems.ARSENAL_KATANA.get(),
-                    ModItems.ARSENAL_BROADSWORD.get()
+                    ModItems.ARSENAL_BROADSWORD.get(),
+                    ModItems.ARSENAL_DAGGER.get()
             );
 
             // 2) Tool Components

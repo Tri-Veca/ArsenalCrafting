@@ -298,39 +298,67 @@ public interface ArsenalTool extends IItemExtension {
             if (headMat != null && rodMat != null && coreMat != null) {
                 tooltip.add(Component.literal(""));
 
-                // --- DYNAMIC STATS ---
-                float finalDurability = (float) rodMat.getDurability();
-                float finalEfficiency = headMat.getEfficiency();
+                boolean isWeapon = getToolType().isWeapon();
 
+                // --- DURABILITY (shared) ---
+                float finalDurability = (float) rodMat.getDurability();
                 CoreManager.CoreDefinition coreDef = CoreManager.getForMaterial(coreMat);
                 if (coreDef != null) {
                     finalDurability = coreDef.handler().modifyMaxDurability(stack, finalDurability);
-                    finalEfficiency = coreDef.handler().modifyMiningSpeed(stack, finalEfficiency);
-                }
-
-                if (isAugmentEnabled(stack, "efficiency")) {
-                    finalEfficiency += EfficiencyAugmentItem.getSpeedBonus(stack, finalEfficiency);
                 }
 
                 tooltip.add(Component.translatable("item.arsenalcrafting.repairability", headMat.getName())
                         .withStyle(headMat.getColor()));
-
                 tooltip.add(Component.translatable("item.arsenalcrafting.durability")
                         .append(": " + (int) finalDurability)
                         .withStyle(rodMat.getColor()));
 
-                tooltip.add(Component.translatable("item.arsenalcrafting.efficiency")
-                        .append(": " + String.format("%.1f", finalEfficiency))
-                        .withStyle(headMat.getColor()));
+                if (isWeapon) {
+                    // --- WEAPON STATS ---
+                    float finalDamage = getAssembledDamage(stack);
+                    float finalAttackSpeed = getAssembledAttackSpeed(stack);
+                    if (coreDef != null) {
+                        finalDamage = coreDef.handler().modifyAttackDamage(stack, finalDamage);
+                        finalAttackSpeed = coreDef.handler().modifyAttackSpeed(stack, finalAttackSpeed);
+                    }
+                    if (isAugmentEnabled(stack, "sharpness")) {
+                        int sharpTier = AugmentManager.getTier("sharpness", stack);
+                        finalDamage += com.arsenalcrafting.mod.items.augments.SharpnessAugmentItem.getBonusDamage(sharpTier);
+                    }
+                    tooltip.add(Component.literal("  Damage: " + String.format("%.1f", finalDamage))
+                            .withStyle(headMat.getColor()));
+                    tooltip.add(Component.literal("  Attack Speed: " + String.format("%.2f", finalAttackSpeed))
+                            .withStyle(ChatFormatting.YELLOW));
+                    if (coreDef != null) {
+                        tooltip.add(Component.literal("• ")
+                                .append(Component.translatable("core.arsenalcrafting." + coreDef.id())
+                                        .withStyle(coreMat.getColor())));
+                        if (Screen.hasShiftDown()) {
+                            tooltip.add(Component.translatable("core.arsenalcrafting." + coreDef.id() + ".desc")
+                                    .withStyle(ChatFormatting.DARK_GRAY));
+                        }
 
-                if (coreDef != null) {
-                    tooltip.add(Component.literal("• ")
-                            .append(Component.translatable("core.arsenalcrafting." + coreDef.id())
-                                    .withStyle(coreMat.getColor())));
-
-                    if (Screen.hasShiftDown()) {
-                        tooltip.add(Component.translatable("core.arsenalcrafting." + coreDef.id() + ".desc")
-                                .withStyle(ChatFormatting.DARK_GRAY));
+                    }
+                } else {
+                    // --- TOOL STATS ---
+                    float finalEfficiency = headMat.getEfficiency();
+                    if (coreDef != null) {
+                        finalEfficiency = coreDef.handler().modifyMiningSpeed(stack, finalEfficiency);
+                    }
+                    if (isAugmentEnabled(stack, "efficiency")) {
+                        finalEfficiency += EfficiencyAugmentItem.getSpeedBonus(stack, finalEfficiency);
+                    }
+                    tooltip.add(Component.translatable("item.arsenalcrafting.efficiency")
+                            .append(": " + String.format("%.1f", finalEfficiency))
+                            .withStyle(headMat.getColor()));
+                    if (coreDef != null) {
+                        tooltip.add(Component.literal("• ")
+                                .append(Component.translatable("core.arsenalcrafting." + coreDef.id())
+                                        .withStyle(coreMat.getColor())));
+                        if (Screen.hasShiftDown()) {
+                            tooltip.add(Component.translatable("core.arsenalcrafting." + coreDef.id() + ".desc")
+                                    .withStyle(ChatFormatting.DARK_GRAY));
+                        }
                     }
                 }
             }
@@ -364,12 +392,17 @@ public interface ArsenalTool extends IItemExtension {
                         ),
                         EquipmentSlotGroup.MAINHAND
                 )
-                .build();
+                .build()
+                .withTooltip(false);
     }
 
     // ==================== WEAPON ATTRIBUTES ====================
     // Default implementations return 0 — weapons override these with blade material values.
     // Tools (Pickaxe, Shovel, Axe) never call getToolAttributes() so these are never used.
+
+    ToolComponentType getHeadComponentType();
+
+    ToolComponentType getRodComponentType();
 
     ItemAttributeModifiers getAttributeModifiers(ItemStack stack);
 
@@ -431,6 +464,7 @@ public interface ArsenalTool extends IItemExtension {
 
         if (result.isCrit()) {
             com.arsenalcrafting.mod.core.CritProcessor.applyArmorDurabilityDamage(target, result.armorDurabilityDamage());
+            com.arsenalcrafting.mod.events.ArsenalCombatEvents.spawnRedCritParticles(target);
         }
 
         return result.finalDamage();

@@ -6,6 +6,8 @@ import com.arsenalcrafting.mod.blocks.LavaTankBlock;
 import com.arsenalcrafting.mod.blocks.MoldBlock;
 import com.arsenalcrafting.mod.blocks.ToolkitBlock;
 import com.arsenalcrafting.mod.component.ToolComponentType;
+import com.arsenalcrafting.mod.power.PowerTier;
+import com.arsenalcrafting.mod.power.generator.SolarGeneratorBlock;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -56,11 +58,22 @@ public class ModBlocks {
     public static final DeferredHolder<Block, ToolkitBlock> TOOLKIT = registerBlock("toolkit",
             () -> new ToolkitBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.SMITHING_TABLE).noOcclusion()));
 
+    public static final DeferredHolder<Block, SolarGeneratorBlock> COPPER_SOLAR_PANEL =
+            registerBlock("copper_solar_panel",
+                    () -> new SolarGeneratorBlock(
+                            BlockBehaviour.Properties.of()
+                                    .strength(3f)
+                                    .requiresCorrectToolForDrops(),
+                            PowerTier.COPPER
+                    ));
+
     // --- Multiblock/Casing Blocks ---
     public static final DeferredHolder<Block, Block> VOID_CASING = registerBlock("void_casing",
             () -> new Block(BlockBehaviour.Properties.ofFullCopy(Blocks.END_STONE).sound(SoundType.GLASS).strength(2.0f)));
     public static final DeferredHolder<Block, Block> IRON_CASING = registerBlock("iron_casing",
             () -> new Block(BlockBehaviour.Properties.ofFullCopy(Blocks.IRON_BLOCK).strength(5.0f)));
+
+
 
     /*public static final DeferredHolder<Block, MoldBlock> PICKAXE_HEAD_MOLD =
             registerBlock("pickaxe_head_mold", MoldBlock::new);

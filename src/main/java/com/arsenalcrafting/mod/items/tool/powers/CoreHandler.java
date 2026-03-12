@@ -18,30 +18,40 @@ public interface CoreHandler {
 
     // ============= BLOCK INTERACTIONS =============
     default boolean canHandleBlock(BlockState state, ItemStack tool) {
-        return false; // Default: doesn't handle blocks
+        return false;
     }
 
     default boolean handleBlockBreak(ItemStack tool, Level level, BlockState state,
                                      BlockPos pos, LivingEntity miner) {
-        return false; // Default: doesn't handle block breaks
+        return false;
     }
 
     default boolean handleBlockPlace(ItemStack tool, Level level, BlockPos pos,
                                      Player player) {
         return false;
     }
+
     default float modifyMiningSpeed(ItemStack tool, float baseSpeed) {
         return baseSpeed;
     }
+
     default float modifyMaxDurability(ItemStack tool, float currentMax) {
-        return currentMax; // Default: no change
+        return currentMax;
     }
 
+    // ── WEAPON STAT MODIFIERS ─────────────────────────────────────────────────
+    // Override in weapon cores (Gold: +dmg/-dur, Steel: +dmg vs armored, etc.)
+
+    default float modifyAttackDamage(ItemStack tool, float baseDamage) {
+        return baseDamage;
+    }
+
+    default float modifyAttackSpeed(ItemStack tool, float baseSpeed) {
+        return baseSpeed;
+    }
 
     default void onBlockDestroyed(ItemStack stack, Level level, BlockState state, BlockPos pos, LivingEntity entity) {
-        // Default: Do nothing
     }
-
 
     // ============= ENTITY INTERACTIONS =============
     default boolean canHandleEntity(Entity target, ItemStack tool) {
@@ -57,13 +67,13 @@ public interface CoreHandler {
                                     Entity target, HitResult hit) {
         return false;
     }
+
     /**
      * Called when the weapon hits a living entity.
      * Runs before crit is rolled. Use for on-hit cores (bleed, elemental, etc.)
      */
     default void onEntityHit(ItemStack weapon, LivingEntity attacker,
                              Entity target, float damage) {
-        // Default: do nothing
     }
 
     /**
@@ -72,27 +82,19 @@ public interface CoreHandler {
      */
     default void onEntityKill(ItemStack weapon, LivingEntity attacker,
                               LivingEntity killed) {
-        // Default: do nothing
     }
 
     // ============= TOOL USAGE =============
     default void onToolUpdate(ItemStack tool, Player player) {
-        // Called each tick while holding the tool
-
-
     }
 
     default void onToolEquip(ItemStack tool, Player player) {
-        // When tool is equipped
     }
 
     default void onToolUnequip(ItemStack tool, Player player) {
-        // When tool is unequipped
     }
 
     // ============= POST-PROCESSING =============
     default void postProcess(ItemStack tool, Level level, BlockPos pos) {
-        // After block break/place
     }
-
 }

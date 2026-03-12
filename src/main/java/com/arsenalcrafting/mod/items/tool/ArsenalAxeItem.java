@@ -65,6 +65,16 @@ public class ArsenalAxeItem extends AxeItem implements ArsenalTool {
     }
 
     @Override
+    public ToolComponentType getHeadComponentType() {
+        return null;
+    }
+
+    @Override
+    public ToolComponentType getRodComponentType() {
+        return null;
+    }
+
+    @Override
     public ItemAttributeModifiers getAttributeModifiers(ItemStack stack) {
         return null;
     }

@@ -56,6 +56,8 @@ public class ModItems {
             () -> new ArsenalKatanaItem(AlloyMaterial.BRONZE, new Item.Properties().durability(1000)));
     public static final DeferredHolder<Item, ArsenalBroadSwordItem> ARSENAL_BROADSWORD = ITEMS.register("arsenal_broadsword",
             () -> new ArsenalBroadSwordItem(AlloyMaterial.BRONZE, new Item.Properties().durability(1000)));
+    public static final DeferredHolder<Item, ArsenalDaggerItem> ARSENAL_DAGGER = ITEMS.register("arsenal_dagger",
+            () -> new ArsenalDaggerItem(AlloyMaterial.BRONZE, new Item.Properties().durability(1000)));
     // --- UNIVERSAL AUGMENT ITEMS (Auto-generated from AugmentManager) ---
     // These are registered in a static block to ensure AugmentManager is initialized first
     static {

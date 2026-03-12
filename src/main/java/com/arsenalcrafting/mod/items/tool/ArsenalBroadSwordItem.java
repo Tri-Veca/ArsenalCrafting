@@ -65,7 +65,10 @@ public class ArsenalBroadSwordItem extends SwordItem implements ArsenalTool {
     private final AlloyMaterial baseMaterial;
 
     public ArsenalBroadSwordItem(AlloyMaterial material, Properties properties) {
-        super(new DummyWeaponTier(material), properties);
+        super(new DummyWeaponTier(material), properties.component(
+                net.minecraft.core.component.DataComponents.ATTRIBUTE_MODIFIERS,
+                net.minecraft.world.item.component.ItemAttributeModifiers.EMPTY.withTooltip(false)
+        ));
         this.baseMaterial = material;
     }
 
@@ -89,6 +92,16 @@ public class ArsenalBroadSwordItem extends SwordItem implements ArsenalTool {
     @Override
     public ToolComponentType getRodType() {
         return ToolComponentType.BROADSWORD_HILT;
+    }
+
+    @Override
+    public ToolComponentType getHeadComponentType() {
+        return null;
+    }
+
+    @Override
+    public ToolComponentType getRodComponentType() {
+        return null;
     }
 
     // ── CRIT MULTIPLIERS ─────────────────────────────────────────────────────
@@ -250,19 +263,20 @@ public class ArsenalBroadSwordItem extends SwordItem implements ArsenalTool {
 
         target.hurt(source, finalDamage);
 
-        if (finalDamage > baseDamage) {
-            float critBonus = finalDamage - baseDamage;
-            System.out.println("[ArsenalBroadsword] ★ CRIT!"
-                    + " blade=" + getAssembledBladeName(stack)
-                    + " base=" + String.format("%.2f", baseDamage)
-                    + " bonus=" + String.format("%.2f", critBonus)
-                    + " total=" + String.format("%.2f", finalDamage));
-        } else {
-            System.out.println("[ArsenalBroadsword] hit"
-                    + " blade=" + getAssembledBladeName(stack)
-                    + " base=" + String.format("%.2f", baseDamage)
-                    + " no crit");
+        // Step 4: Hit summary
+        float sharpnessBonus = 0f;
+        if (com.arsenalcrafting.mod.core.augments.AugmentManager.isInstalled("sharpness", stack)) {
+            int sharpTier = com.arsenalcrafting.mod.core.augments.AugmentManager.getTier("sharpness", stack);
+            sharpnessBonus = com.arsenalcrafting.mod.items.augments.SharpnessAugmentItem.getBonusDamage(sharpTier);
         }
+        float totalDamage = finalDamage + sharpnessBonus;
+        boolean isCrit = finalDamage > baseDamage;
+        System.out.println("[ArsenalBroadsword] ──── HIT SUMMARY ────"
+                + " | base=" + String.format("%.2f", baseDamage)
+                + (isCrit ? " | ★CRIT bonus=" + String.format("%.2f", finalDamage - baseDamage) : " | no crit")
+                + (sharpnessBonus > 0 ? " | sharpness=" + String.format("%.2f", sharpnessBonus) : "")
+                + " | TOTAL=" + String.format("%.2f", totalDamage)
+                + " | blade=" + getAssembledBladeName(stack));
 
         // Step 4: Durability
         EquipmentSlot slot = attacker.getMainHandItem() == stack
@@ -344,13 +358,6 @@ public class ArsenalBroadSwordItem extends SwordItem implements ArsenalTool {
         if (assemblyData != null && !assemblyData.isEmpty()) {
             AlloyMaterial bladeMat = AlloyMaterial.fromName(assemblyData.headMaterial());
             if (bladeMat != null) {
-                tooltip.add(Component.literal(""));
-                tooltip.add(Component.literal("⚔ Weapon Stats").withStyle(ChatFormatting.DARK_AQUA));
-
-                float damage = getAssembledDamage(stack);
-                tooltip.add(Component.literal("  Damage: " + String.format("%.1f", damage))
-                        .withStyle(bladeMat.getColor()));
-
                 float critChance = com.arsenalcrafting.mod.core.CritProcessor.calcCritChance(
                         bladeMat, CRIT_CHANCE_MULT, 0f) * 100f;
                 tooltip.add(Component.literal("  Crit Chance: " + String.format("%.1f", critChance) + "%")
@@ -362,11 +369,6 @@ public class ArsenalBroadSwordItem extends SwordItem implements ArsenalTool {
 
                 tooltip.add(Component.literal("  ⛨ Right-click to Block (50% damage reduction)")
                         .withStyle(ChatFormatting.BLUE));
-
-                if (Screen.hasShiftDown()) {
-                    tooltip.add(Component.literal("  Hold Shift to see core details")
-                            .withStyle(ChatFormatting.DARK_GRAY));
-                }
             }
         }
     }

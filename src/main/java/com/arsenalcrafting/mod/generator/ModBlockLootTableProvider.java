@@ -30,6 +30,7 @@ public class ModBlockLootTableProvider extends BlockLootSubProvider {
         dropSelf(ModBlocks.IRON_CASING.get());
         dropSelf(ModBlocks.VOID_CASING.get());
         dropSelf(ModBlocks.ALLOY_SMELTER.get());
+        dropSelf(ModBlocks.COPPER_SOLAR_PANEL.get());
 
         ModBlocks.MOLD_BLOCKS.values().forEach(holder -> dropSelf(holder.get()));
         ModBlocks.BRONZE_MOLD_BLOCKS.values().forEach(holder -> dropSelf(holder.get()));

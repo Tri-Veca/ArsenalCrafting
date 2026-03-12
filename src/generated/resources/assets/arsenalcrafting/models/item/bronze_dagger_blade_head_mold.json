@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "arsenalcrafting:item/bronze_dagger_blade_head_mold"
+  }
+}

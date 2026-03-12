@@ -65,8 +65,10 @@ public class LangGenerator implements DataProvider {
             entries.put("item.arsenalcrafting." + materialId + "_core", materialName + " Core");
             entries.put("item.arsenalcrafting." + materialId + "_katana_blade_head", materialName + " Katana Blade");
             entries.put("item.arsenalcrafting." + materialId + "_katana_hilt_rod", materialName + " Katana Hilt");
-            entries.put("item.arsenalcrafting." + materialId + "_broadsword_blade_head", materialName + " BroadSword Blade");
-            entries.put("item.arsenalcrafting." + materialId + "_broadsword_hilt_rod", materialName + " BroadSword Hilt");
+            entries.put("item.arsenalcrafting." + materialId + "_broadsword_blade_head", materialName + " Broadsword Blade");
+            entries.put("item.arsenalcrafting." + materialId + "_broadsword_hilt_rod", materialName + " Broadsword Hilt");
+            entries.put("item.arsenalcrafting." + materialId + "_dagger_blade_head", materialName + " Dagger Blade");
+            entries.put("item.arsenalcrafting." + materialId + "_dagger_hilt_rod", materialName + " Dagger Hilt");
         }
 
         // Other items
@@ -75,7 +77,8 @@ public class LangGenerator implements DataProvider {
         entries.put("item.arsenalcrafting.arsenal_shovel", "Arsenal Shovel");
         entries.put("item.arsenalcrafting.arsenal_axe", "Arsenal Axe");
         entries.put("item.arsenalcrafting.arsenal_katana", "Arsenal Katana");
-        entries.put("item.arsenalcrafting.arsenal_broadsword", "Arsenal BroadSword");
+        entries.put("item.arsenalcrafting.arsenal_broadsword", "Arsenal Broadsword");
+        entries.put("item.arsenalcrafting.arsenal_dagger", "Arsenal Dagger");
         entries.put("item.arsenalcrafting.repair_kit", "Tool Repair Kit");
         // TODO add seperate gadgets section
         entries.put("item.arsenalcrafting.drill", "Drill");
