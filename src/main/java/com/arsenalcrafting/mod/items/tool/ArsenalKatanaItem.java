@@ -395,6 +395,9 @@ public class ArsenalKatanaItem extends SwordItem implements ArsenalTool {
                 float critDamage = bladeMat.getCritDamage() * CRIT_DAMAGE_MULT;
                 tooltip.add(Component.literal("  Crit Multiplier: " + String.format("%.2f", critDamage) + "x")
                         .withStyle(ChatFormatting.RED));
+
+                tooltip.add(Component.literal("  ⚔ Gain extra interaction range and allows multi-hit attacks")
+                        .withStyle(ChatFormatting.DARK_RED));
             }
         }
     }

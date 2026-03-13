@@ -45,7 +45,7 @@ import static com.arsenalcrafting.mod.registry.ModComponents.TOOL_ASSEMBLY_DATA;
  *   Damage:    -1.5 flat (lowest of all weapons)
  *   Durability: -25% (cheap material, quick to break)
  *   Crit:      +8% flat additive on top of blade material crit chance
- *   Unique:    Momentum — consecutive hits buff movement speed + attack speed
+ *   Unique:    Rush — consecutive hits buff movement speed + attack speed
  *
  * Parts: DAGGER_BLADE (head), DAGGER_HILT (rod), CORE (core)
  */
@@ -61,18 +61,18 @@ public class ArsenalDaggerItem extends SwordItem implements ArsenalTool {
     private static final float  DAMAGE_PENALTY   = 1.5f;
     private static final float  DURABILITY_MULT  = 0.75f;
 
-    // ── MOMENTUM ──────────────────────────────────────────────────────────────
-    // Each consecutive hit within MOMENTUM_WINDOW_TICKS adds one stack (max MAX_STACKS)
+    // ── RUSH ──────────────────────────────────────────────────────────────
+    // Each consecutive hit within RUSH_WINDOW_TICKS adds one stack (max MAX_STACKS)
     // Stacks decay if player doesn't land a hit within the window
     public  static final int    MAX_STACKS            = 5;
-    private static final int    MOMENTUM_WINDOW_TICKS = 60; // 3 seconds
+    private static final int    RUSH_WINDOW_TICKS = 60; // 3 seconds
     private static final float  MOVE_SPEED_PER_STACK  = 0.03f; // +3% per stack
     private static final float  ATTACK_SPEED_PER_STACK = 0.15f; // +0.15 per stack
     // ResourceLocations for the attribute modifiers so we can remove/re-add cleanly
-    private static final net.minecraft.resources.ResourceLocation MOMENTUM_MOVE_ID =
-            net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("arsenalcrafting", "dagger_momentum_move");
-    private static final net.minecraft.resources.ResourceLocation MOMENTUM_ATTACK_ID =
-            net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("arsenalcrafting", "dagger_momentum_attack");
+    private static final net.minecraft.resources.ResourceLocation RUSH_MOVE_ID =
+            net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("arsenalcrafting", "dagger_rush_move");
+    private static final net.minecraft.resources.ResourceLocation RUSH_ATTACK_ID =
+            net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("arsenalcrafting", "dagger_rush_attack");
 
     private final ArsenalToolType toolType = ArsenalToolType.DAGGER;
     private final AlloyMaterial baseMaterial;
@@ -189,9 +189,9 @@ public class ArsenalDaggerItem extends SwordItem implements ArsenalTool {
                 : target.level().damageSources().mobAttack(attacker);
         target.hurt(source, finalDamage);
 
-        // Step 4: Momentum — add a stack on every hit
+        // Step 4: Rush — add a stack on every hit
         if (attacker instanceof Player player) {
-            applyMomentumStack(stack, player);
+            applyRushStack(stack, player);
         }
 
         // Step 5: Hit summary
@@ -199,14 +199,14 @@ public class ArsenalDaggerItem extends SwordItem implements ArsenalTool {
         if (AugmentManager.isInstalled("sharpness", stack)) {
             sharpnessBonus = SharpnessAugmentItem.getBonusDamage(AugmentManager.getTier("sharpness", stack));
         }
-        int stacks = getMomentumStacks(stack);
+        int stacks = getRushStacks(stack);
         boolean isCrit = finalDamage > baseDamage;
         System.out.println("[ArsenalDagger] ──── HIT SUMMARY ────"
                 + " | base=" + String.format("%.2f", baseDamage)
                 + (isCrit ? " | ★CRIT bonus=" + String.format("%.2f", finalDamage - baseDamage) : " | no crit")
                 + (sharpnessBonus > 0 ? " | sharpness=" + String.format("%.2f", sharpnessBonus) : "")
                 + " | TOTAL=" + String.format("%.2f", finalDamage + sharpnessBonus)
-                + " | momentum=" + stacks + "/" + MAX_STACKS
+                + " | rush=" + stacks + "/" + MAX_STACKS
                 + " | blade=" + getAssembledBladeName(stack));
 
         // Step 6: Durability
@@ -225,24 +225,24 @@ public class ArsenalDaggerItem extends SwordItem implements ArsenalTool {
         return super.onLeftClickEntity(stack, player, entity);
     }
 
-    // ── MOMENTUM SYSTEM ───────────────────────────────────────────────────────
+    // ── RUSH SYSTEM ───────────────────────────────────────────────────────
 
     /**
-     * NBT keys stored on the stack (not the player) so momentum is weapon-specific.
-     * momentum_stacks: int 0-5
-     * momentum_timer:  long — game tick when last hit landed
+     * NBT keys stored on the stack (not the player) so rush is weapon-specific.
+     * rush_stacks: int 0-5
+     * rush_timer:  long — game tick when last hit landed
      */
-    private static final String NBT_STACKS = "arsenal_momentum_stacks";
-    private static final String NBT_TIMER  = "arsenal_momentum_timer";
+    private static final String NBT_STACKS = "arsenal_rush_stacks";
+    private static final String NBT_TIMER  = "arsenal_rush_timer";
 
-    private int getMomentumStacks(ItemStack stack) {
+    private int getRushStacks(ItemStack stack) {
         var tag = stack.get(net.minecraft.core.component.DataComponents.CUSTOM_DATA);
         if (tag == null) return 0;
         var nbt = tag.copyTag();
         return nbt.contains(NBT_STACKS) ? nbt.getInt(NBT_STACKS) : 0;
     }
 
-    private void setMomentumStacks(ItemStack stack, int stacks, long gameTick) {
+    private void setRushStacks(ItemStack stack, int stacks, long gameTick) {
         var existing = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
                 net.minecraft.world.item.component.CustomData.EMPTY);
         var nbt = existing.copyTag();
@@ -252,7 +252,7 @@ public class ArsenalDaggerItem extends SwordItem implements ArsenalTool {
                 net.minecraft.world.item.component.CustomData.of(nbt));
     }
 
-    private void applyMomentumStack(ItemStack stack, Player player) {
+    private void applyRushStack(ItemStack stack, Player player) {
         long now = player.level().getGameTime();
         var tag = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
                 net.minecraft.world.item.component.CustomData.EMPTY);
@@ -262,22 +262,22 @@ public class ArsenalDaggerItem extends SwordItem implements ArsenalTool {
         int current  = nbt.contains(NBT_STACKS) ? nbt.getInt(NBT_STACKS) : 0;
 
         // Reset if outside window
-        if (now - lastHit > MOMENTUM_WINDOW_TICKS) current = 0;
+        if (now - lastHit > RUSH_WINDOW_TICKS) current = 0;
 
         int newStacks = Math.min(current + 1, MAX_STACKS);
-        setMomentumStacks(stack, newStacks, now);
-        updateMomentumAttributes(player, newStacks);
-        System.out.println("[DaggerMomentum] stacks=" + newStacks + "/" + MAX_STACKS);
+        setRushStacks(stack, newStacks, now);
+        updateRushAttributes(player, newStacks);
+        System.out.println("[DaggerRush] stacks=" + newStacks + "/" + MAX_STACKS);
     }
 
-    private void updateMomentumAttributes(Player player, int stacks) {
+    private void updateRushAttributes(Player player, int stacks) {
         // Movement speed
         var moveAttr = player.getAttribute(Attributes.MOVEMENT_SPEED);
         if (moveAttr != null) {
-            moveAttr.removeModifier(MOMENTUM_MOVE_ID);
+            moveAttr.removeModifier(RUSH_MOVE_ID);
             if (stacks > 0) {
                 moveAttr.addTransientModifier(new AttributeModifier(
-                        MOMENTUM_MOVE_ID,
+                        RUSH_MOVE_ID,
                         stacks * MOVE_SPEED_PER_STACK,
                         AttributeModifier.Operation.ADD_MULTIPLIED_BASE
                 ));
@@ -286,10 +286,10 @@ public class ArsenalDaggerItem extends SwordItem implements ArsenalTool {
         // Attack speed
         var attackAttr = player.getAttribute(Attributes.ATTACK_SPEED);
         if (attackAttr != null) {
-            attackAttr.removeModifier(MOMENTUM_ATTACK_ID);
+            attackAttr.removeModifier(RUSH_ATTACK_ID);
             if (stacks > 0) {
                 attackAttr.addTransientModifier(new AttributeModifier(
-                        MOMENTUM_ATTACK_ID,
+                        RUSH_ATTACK_ID,
                         stacks * ATTACK_SPEED_PER_STACK,
                         AttributeModifier.Operation.ADD_VALUE
                 ));
@@ -297,7 +297,7 @@ public class ArsenalDaggerItem extends SwordItem implements ArsenalTool {
         }
     }
 
-    // ── TICK — decay momentum if window expires ────────────────────────────────
+    // ── TICK — decay rush if window expires ────────────────────────────────
 
     @Override
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean selected) {
@@ -308,9 +308,9 @@ public class ArsenalDaggerItem extends SwordItem implements ArsenalTool {
 
         if (!selected) {
             // Not holding — clear all stacks
-            if (getMomentumStacks(stack) > 0) {
-                setMomentumStacks(stack, 0, 0L);
-                updateMomentumAttributes(player, 0);
+            if (getRushStacks(stack) > 0) {
+                setRushStacks(stack, 0, 0L);
+                updateRushAttributes(player, 0);
             }
             return;
         }
@@ -322,10 +322,10 @@ public class ArsenalDaggerItem extends SwordItem implements ArsenalTool {
         long lastHit = nbt.contains(NBT_TIMER) ? nbt.getLong(NBT_TIMER) : 0L;
         long now = level.getGameTime();
 
-        if (now - lastHit > MOMENTUM_WINDOW_TICKS && getMomentumStacks(stack) > 0) {
-            setMomentumStacks(stack, 0, 0L);
-            updateMomentumAttributes(player, 0);
-            System.out.println("[DaggerMomentum] decayed — no hit within window");
+        if (now - lastHit > RUSH_WINDOW_TICKS && getRushStacks(stack) > 0) {
+            setRushStacks(stack, 0, 0L);
+            updateRushAttributes(player, 0);
+            System.out.println("[DaggerRush] decayed — no hit within window");
         }
     }
 
@@ -372,9 +372,9 @@ public class ArsenalDaggerItem extends SwordItem implements ArsenalTool {
                 tooltip.add(Component.literal("  Crit Multiplier: " + String.format("%.2f", critDmg) + "x")
                         .withStyle(ChatFormatting.RED));
 
-                // Momentum info
-                int stacks = getMomentumStacks(stack);
-                tooltip.add(Component.literal("  ⚡ Momentum: " + stacks + "/" + MAX_STACKS + " stacks")
+                // Rush info
+                int stacks = getRushStacks(stack);
+                tooltip.add(Component.literal("  ⚡ Rush: " + stacks + "/" + MAX_STACKS + " stacks")
                         .withStyle(stacks == MAX_STACKS ? ChatFormatting.GOLD : ChatFormatting.YELLOW));
                 if (Screen.hasShiftDown()) {
                     tooltip.add(Component.literal("    Each consecutive hit within 3s adds a stack")
