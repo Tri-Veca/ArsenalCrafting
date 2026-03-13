@@ -1,4 +1,4 @@
-package com.arsenalcrafting.mod.power.generator;
+package com.arsenalcrafting.mod.power;
 
 public enum GeneratorType {
 

@@ -1,24 +1,18 @@
 package com.arsenalcrafting.mod.registry;
 
 import com.arsenalcrafting.mod.ArsenalCrafting;
-import com.arsenalcrafting.mod.blocks.AlloySmelterBlock;
-import com.arsenalcrafting.mod.blocks.LavaTankBlock;
-import com.arsenalcrafting.mod.blocks.MoldBlock;
-import com.arsenalcrafting.mod.blocks.ToolkitBlock;
+import com.arsenalcrafting.mod.blocks.*;
 import com.arsenalcrafting.mod.component.ToolComponentType;
 import com.arsenalcrafting.mod.power.PowerTier;
-import com.arsenalcrafting.mod.power.generator.SolarGeneratorBlock;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.LightBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -58,20 +52,92 @@ public class ModBlocks {
     public static final DeferredHolder<Block, ToolkitBlock> TOOLKIT = registerBlock("toolkit",
             () -> new ToolkitBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.SMITHING_TABLE).noOcclusion()));
 
-    public static final DeferredHolder<Block, SolarGeneratorBlock> COPPER_SOLAR_PANEL =
-            registerBlock("copper_solar_panel",
-                    () -> new SolarGeneratorBlock(
-                            BlockBehaviour.Properties.of()
-                                    .strength(3f)
-                                    .requiresCorrectToolForDrops(),
-                            PowerTier.COPPER
-                    ));
+    // ── CASINGS ───────────────────────────────────────────────────────────────
 
-    // --- Multiblock/Casing Blocks ---
     public static final DeferredHolder<Block, Block> VOID_CASING = registerBlock("void_casing",
-            () -> new Block(BlockBehaviour.Properties.ofFullCopy(Blocks.END_STONE).sound(SoundType.GLASS).strength(2.0f)));
+            () -> new Block(BlockBehaviour.Properties.ofFullCopy(Blocks.END_STONE)
+                    .sound(SoundType.GLASS).strength(2.0f)));
+
     public static final DeferredHolder<Block, Block> IRON_CASING = registerBlock("iron_casing",
             () -> new Block(BlockBehaviour.Properties.ofFullCopy(Blocks.IRON_BLOCK).strength(5.0f)));
+
+    // ── CABLE ─────────────────────────────────────────────────────────────────
+    // No BlockEntity — pure graph node. One universal type.
+
+    public static final DeferredHolder<Block, CableBlock> POWER_CABLE =
+            registerBlock("power_cable",
+                    () -> new CableBlock(BlockBehaviour.Properties.of()
+                            .strength(1.5f)
+                            .requiresCorrectToolForDrops()
+                            .sound(SoundType.METAL)
+                            .noOcclusion()));
+
+    // ── POWER BANKS ───────────────────────────────────────────────────────────
+    // Tiered storage. Capacity and transfer rate from PowerTier.bankCapacity().
+
+    public static final DeferredHolder<Block, PowerBankBlock> COPPER_POWER_BANK =
+            registerBlock("copper_power_bank",
+                    () -> new PowerBankBlock(generatorProps().mapColor(MapColor.COLOR_ORANGE), PowerTier.COPPER));
+
+    public static final DeferredHolder<Block, PowerBankBlock> IRON_POWER_BANK =
+            registerBlock("iron_power_bank",
+                    () -> new PowerBankBlock(generatorProps().mapColor(MapColor.METAL), PowerTier.IRON));
+
+    public static final DeferredHolder<Block, PowerBankBlock> VOID_POWER_BANK =
+            registerBlock("void_power_bank",
+                    () -> new PowerBankBlock(generatorProps().mapColor(MapColor.COLOR_BLACK), PowerTier.TITANIUM));
+
+
+    // Burns coal/charcoal/coal blocks. Tier scales output rate.
+
+    private static BlockBehaviour.Properties generatorProps() {
+        return BlockBehaviour.Properties.of()
+                .strength(3.5f)
+                .requiresCorrectToolForDrops()
+                .sound(SoundType.METAL);
+    }
+
+    public static final DeferredHolder<Block, FossilGeneratorBlock> COPPER_FOSSIL_GENERATOR =
+            registerBlock("copper_fossil_generator",
+                    () -> new FossilGeneratorBlock(generatorProps().mapColor(MapColor.COLOR_ORANGE), PowerTier.COPPER));
+
+    public static final DeferredHolder<Block, FossilGeneratorBlock> IRON_FOSSIL_GENERATOR =
+            registerBlock("iron_fossil_generator",
+                    () -> new FossilGeneratorBlock(generatorProps().mapColor(MapColor.METAL), PowerTier.IRON));
+
+    public static final DeferredHolder<Block, FossilGeneratorBlock> VOID_FOSSIL_GENERATOR =
+            registerBlock("void_fossil_generator",
+                    () -> new FossilGeneratorBlock(generatorProps().mapColor(MapColor.COLOR_BLACK), PowerTier.TITANIUM));
+
+    // ── GENERATORS: SOLAR PANEL ───────────────────────────────────────────────
+    // Generates FE during daylight. No fuel. Stops in rain/thunder.
+
+    public static final DeferredHolder<Block, SolarGeneratorBlock> COPPER_SOLAR_PANEL =
+            registerBlock("copper_solar_panel",
+                    () -> new SolarGeneratorBlock(generatorProps().mapColor(MapColor.COLOR_ORANGE), PowerTier.COPPER));
+
+    public static final DeferredHolder<Block, SolarGeneratorBlock> IRON_SOLAR_PANEL =
+            registerBlock("iron_solar_panel",
+                    () -> new SolarGeneratorBlock(generatorProps().mapColor(MapColor.METAL), PowerTier.IRON));
+
+    public static final DeferredHolder<Block, SolarGeneratorBlock> VOID_SOLAR_PANEL =
+            registerBlock("void_solar_panel",
+                    () -> new SolarGeneratorBlock(generatorProps().mapColor(MapColor.COLOR_BLACK), PowerTier.TITANIUM));
+
+    // ── GENERATORS: BIO MASHER ────────────────────────────────────────────────
+    // Burns seeds, saplings, crops, and other organic items.
+
+    public static final DeferredHolder<Block, BioGeneratorBlock> COPPER_BIO_GENERATOR =
+            registerBlock("copper_bio_generator",
+                    () -> new BioGeneratorBlock(generatorProps().mapColor(MapColor.COLOR_ORANGE), PowerTier.COPPER));
+
+    public static final DeferredHolder<Block, BioGeneratorBlock> IRON_BIO_GENERATOR =
+            registerBlock("iron_bio_generator",
+                    () -> new BioGeneratorBlock(generatorProps().mapColor(MapColor.METAL), PowerTier.IRON));
+
+    public static final DeferredHolder<Block, BioGeneratorBlock> VOID_BIO_GENERATOR =
+            registerBlock("void_bio_generator",
+                    () -> new BioGeneratorBlock(generatorProps().mapColor(MapColor.COLOR_BLACK), PowerTier.TITANIUM));
 
 
 

@@ -32,6 +32,21 @@ public class ModBlockLootTableProvider extends BlockLootSubProvider {
         dropSelf(ModBlocks.ALLOY_SMELTER.get());
         dropSelf(ModBlocks.COPPER_SOLAR_PANEL.get());
 
+        // Fossil generators
+        dropSelf(ModBlocks.COPPER_FOSSIL_GENERATOR.get());
+        dropSelf(ModBlocks.IRON_FOSSIL_GENERATOR.get());
+        dropSelf(ModBlocks.VOID_FOSSIL_GENERATOR.get());
+
+        // Solar panels
+        dropSelf(ModBlocks.COPPER_SOLAR_PANEL.get());
+        dropSelf(ModBlocks.IRON_SOLAR_PANEL.get());
+        dropSelf(ModBlocks.VOID_SOLAR_PANEL.get());
+
+        // Bio generators
+        dropSelf(ModBlocks.COPPER_BIO_GENERATOR.get());
+        dropSelf(ModBlocks.IRON_BIO_GENERATOR.get());
+        dropSelf(ModBlocks.VOID_BIO_GENERATOR.get());
+
         ModBlocks.MOLD_BLOCKS.values().forEach(holder -> dropSelf(holder.get()));
         ModBlocks.BRONZE_MOLD_BLOCKS.values().forEach(holder -> dropSelf(holder.get()));
         /*dropSelf(ModBlocks.PICKAXE_HEAD_MOLD.get());

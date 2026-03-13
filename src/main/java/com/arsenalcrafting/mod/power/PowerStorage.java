@@ -1,4 +1,4 @@
-package com.arsenalcrafting.mod.power.storage;
+package com.arsenalcrafting.mod.power;
 
 import net.neoforged.neoforge.energy.IEnergyStorage;
 

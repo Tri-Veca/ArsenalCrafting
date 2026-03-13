@@ -2,10 +2,12 @@ package com.arsenalcrafting.mod;
 import com.arsenalcrafting.mod.config.TestModeConfig;
 import com.arsenalcrafting.mod.core.alloy.AlloyRecipeType;
 import com.arsenalcrafting.mod.events.ArsenalAttributeEvents;
+import com.arsenalcrafting.mod.power.PowerNetworkEvents;
 import com.arsenalcrafting.mod.registry.*;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.event.RenderPlayerEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.level.LevelEvent;
@@ -27,6 +29,7 @@ public class ArsenalCrafting {
         AlloyRecipeType.register(modEventBus);
         ModRecipeSerializers.register(modEventBus);
         NeoForge.EVENT_BUS.register(ArsenalAttributeEvents.class);
+        NeoForge.EVENT_BUS.register(PowerNetworkEvents.class);
 
         TestModeConfig.setTestMode(false);
         System.out.println("[ArsenalCrafting] Constructor completed - Test Mode should be OFF");
@@ -53,5 +56,9 @@ public class ArsenalCrafting {
 
         // Here you would register networking packets, capabilities, etc.
         // This is always safe to run on both client and server.
+    }
+
+    private void registerCapabilities(final RegisterCapabilitiesEvent event) {
+        ModBlockEntities.registerCapabilities(event);
     }
 }
