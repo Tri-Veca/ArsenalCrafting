@@ -301,16 +301,15 @@ public interface ArsenalTool extends IItemExtension {
                 boolean isWeapon = getToolType().isWeapon();
 
                 // --- DURABILITY (shared) ---
-                float finalDurability = (float) rodMat.getDurability();
-                CoreManager.CoreDefinition coreDef = CoreManager.getForMaterial(coreMat);
-                if (coreDef != null) {
-                    finalDurability = coreDef.handler().modifyMaxDurability(stack, finalDurability);
-                }
+                // Use stack.getMaxDamage() so weapon-specific multipliers (katana -15%,
+                // dagger -25%) and core modifyMaxDurability are all already applied.
+                int finalDurability = stack.getMaxDamage();
+                CoreManager.CoreDefinition coreDef = CoreManager.getForMaterial(coreMat, getToolType());
 
                 tooltip.add(Component.translatable("item.arsenalcrafting.repairability", headMat.getName())
                         .withStyle(headMat.getColor()));
                 tooltip.add(Component.translatable("item.arsenalcrafting.durability")
-                        .append(": " + (int) finalDurability)
+                        .append(": " + finalDurability)
                         .withStyle(rodMat.getColor()));
 
                 if (isWeapon) {

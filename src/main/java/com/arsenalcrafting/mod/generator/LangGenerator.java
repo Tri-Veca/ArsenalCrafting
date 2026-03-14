@@ -132,7 +132,14 @@ public class LangGenerator implements DataProvider {
         for (var coreDef : com.arsenalcrafting.mod.items.tool.powers.CoreManager.getAll()) {
             entries.put("core.arsenalcrafting." + coreDef.id(), coreDef.name());
 
-            entries.put("core.arsenalcrafting." + coreDef.id() + ".desc", coreDef.description());
+            entries.put("core.arsenalcrafting." + coreDef.id() + ".desc", coreDef.toolDescription());
+            entries.put("core.arsenalcrafting." + coreDef.id() + ".desc.weapon", coreDef.weaponDescription());
+
+        }
+        for (var coreDef : com.arsenalcrafting.mod.items.tool.powers.CoreManager.getAllSteelVariants()) {
+            entries.put("core.arsenalcrafting." + coreDef.id(), coreDef.name());
+            entries.put("core.arsenalcrafting." + coreDef.id() + ".desc", coreDef.toolDescription());
+            entries.put("core.arsenalcrafting." + coreDef.id() + ".desc.weapon", coreDef.weaponDescription());
         }
 
         entries.put("item.arsenalcrafting.current_durability", "Remaining: %s Max: %s");
