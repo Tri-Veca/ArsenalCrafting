@@ -249,7 +249,7 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
     @Override
     public boolean mineBlock(@NotNull ItemStack stack, @NotNull Level level, @NotNull BlockState state,
                              @NotNull BlockPos pos, @NotNull LivingEntity entity) {
-
+        if (BrokenToolHandler.isBroken(stack)) return false;
 
         // Process block break through UnifiedProcessor (handles cores + augments)
         if (UnifiedProcessor.processBlockBreak(stack, level, state, pos, entity)) {
@@ -274,6 +274,7 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
 
     @Override
     public <T extends LivingEntity> int damageItem(ItemStack stack, int amount, @Nullable T entity, Consumer<Item> onBroken) {
+        if (BrokenToolHandler.interceptDamage(stack, amount, entity)) return 0;
         // Check for Sturdy core
         if (entity != null) {
             if (UnifiedProcessor.shouldSaveDurability(stack, entity.getRandom())) {

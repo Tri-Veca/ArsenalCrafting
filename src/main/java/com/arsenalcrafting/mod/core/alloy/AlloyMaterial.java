@@ -25,7 +25,7 @@ public enum AlloyMaterial {
             1.0f,      // how many can we swing?
             4,       //max aug slots
             0.05f,   //crit chance
-            1.30f,   //crit damage multiplier
+            1.25f,   //crit damage multiplier
             3.0f,    //weapon damage (shown in attack indicator, base 1 added by vanilla)
             ChatFormatting.RED,   //tooltip color
             0xFFe77c56,          //tint color
@@ -42,7 +42,7 @@ public enum AlloyMaterial {
             1.0f,
             4,
             0.10f,   //crit chance
-            1.40f,   //crit damage multiplier
+            1.35f,   //crit damage multiplier
             3.5f,    //weapon damage
             ChatFormatting.GRAY,
             0xFFeddfdb,
@@ -59,7 +59,7 @@ public enum AlloyMaterial {
             1.0f,
             4,
             0.08f,   //crit chance
-            1.35f,   //crit damage multiplier
+            1.30f,   //crit damage multiplier
             4.0f,    //weapon damage
             ChatFormatting.WHITE,
             0xFFFFFFFF,
@@ -75,8 +75,8 @@ public enum AlloyMaterial {
             0f,
             1.0f,
             4,
-            0.15f,   //crit chance — high crit, low multiplier (gambler)
-            1.25f,   //crit damage multiplier
+            0.14f,   //crit chance — high crit, low multiplier (gambler)
+            1.9f,   //crit damage multiplier
             3.5f,    //weapon damage — fast and crits often, not raw power
             ChatFormatting.YELLOW,
             0xFFfdf55f,
@@ -93,7 +93,7 @@ public enum AlloyMaterial {
             1.0f,
             4,
             0.12f,   //crit chance
-            1.75f,   //crit damage multiplier — sweet spot of both
+            1.60f,   //crit damage multiplier — sweet spot of both
             6.0f,    //weapon damage
             ChatFormatting.AQUA,
             0xFF4aedd9,
@@ -127,9 +127,9 @@ public enum AlloyMaterial {
             1.5f,
             1.0f,
             4,
-            0.07f,   //crit chance
-            1.45f,   //crit damage multiplier
-            4.5f,    //weapon damage — slightly above iron, alloy payoff
+            0.08f,   //crit chance
+            1.25f,   //crit damage multiplier
+            4.0f,    //weapon damage — slightly above iron, alloy payoff
             ChatFormatting.GOLD,
             0xFFcb9580,
             true
@@ -144,8 +144,8 @@ public enum AlloyMaterial {
             5.0f,
             1.2f,
             4,
-            0.06f,   //crit chance
-            1.55f,   //crit damage multiplier
+            0.05f,   //crit chance
+            1.50f,   //crit damage multiplier
             8.0f,    //weapon damage — high damage, slower speed
             ChatFormatting.GRAY,
             0xFFC0C0C0,
@@ -161,8 +161,8 @@ public enum AlloyMaterial {
             4.0f,
             1.5f,
             4,
-            0.08f,   //crit chance — rare but brutal
-            1.80f,   //crit damage multiplier
+            0.09f,   //crit chance — rare but brutal
+            1.70f,   //crit damage multiplier
             7.5f,    //weapon damage — fast + heavy crits, mid base
             ChatFormatting.DARK_AQUA,
             0xFFA0E4FF,

@@ -1,4 +1,5 @@
 package com.arsenalcrafting.mod;
+import com.arsenalcrafting.mod.commands.ArsenalCommands;
 import com.arsenalcrafting.mod.config.TestModeConfig;
 import com.arsenalcrafting.mod.core.alloy.AlloyRecipeType;
 import com.arsenalcrafting.mod.events.ArsenalAttributeEvents;
@@ -30,6 +31,7 @@ public class ArsenalCrafting {
         ModRecipeSerializers.register(modEventBus);
         NeoForge.EVENT_BUS.register(ArsenalAttributeEvents.class);
         NeoForge.EVENT_BUS.register(PowerNetworkEvents.class);
+        NeoForge.EVENT_BUS.register(ArsenalCommands.class);
 
         TestModeConfig.setTestMode(false);
         System.out.println("[ArsenalCrafting] Constructor completed - Test Mode should be OFF");

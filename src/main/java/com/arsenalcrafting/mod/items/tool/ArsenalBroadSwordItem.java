@@ -247,6 +247,7 @@ public class ArsenalBroadSwordItem extends SwordItem implements ArsenalTool {
      */
     @Override
     public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+        if (BrokenToolHandler.isBroken(stack)) return false;
 
         float baseDamage = getAssembledDamage(stack);
 
@@ -303,6 +304,7 @@ public class ArsenalBroadSwordItem extends SwordItem implements ArsenalTool {
     public <T extends LivingEntity> int damageItem(ItemStack stack, int amount,
                                                    @Nullable T entity,
                                                    Consumer<Item> onBroken) {
+        if (BrokenToolHandler.interceptDamage(stack, amount, entity)) return 0;
         if (entity != null) {
             if (UnifiedProcessor.shouldSaveDurability(stack, entity.getRandom())) {
                 return 0;

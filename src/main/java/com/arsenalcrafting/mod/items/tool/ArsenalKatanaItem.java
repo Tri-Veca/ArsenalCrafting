@@ -55,7 +55,7 @@ public class ArsenalKatanaItem extends SwordItem implements ArsenalTool {
 
     // ── CRIT IDENTITY ────────────────────────────────────────────────────────
     private static final float CRIT_CHANCE_MULT  = 0.9f;
-    private static final float CRIT_DAMAGE_MULT  = 1.1f;
+    private static final float CRIT_DAMAGE_MULT  = 1.05f;
 
     // ── KATANA IDENTITY ───────────────────────────────────────────────────────
     // Slightly weaker per-hit than broadsword — compensated by arc + reach
@@ -227,6 +227,7 @@ public class ArsenalKatanaItem extends SwordItem implements ArsenalTool {
      */
     @Override
     public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+        if (BrokenToolHandler.isBroken(stack)) return false;
 
         float baseDamage = getAssembledDamage(stack);
 
@@ -320,6 +321,7 @@ public class ArsenalKatanaItem extends SwordItem implements ArsenalTool {
     public <T extends LivingEntity> int damageItem(ItemStack stack, int amount,
                                                    @Nullable T entity,
                                                    Consumer<Item> onBroken) {
+        if (BrokenToolHandler.interceptDamage(stack, amount, entity)) return 0;
         if (entity != null) {
             if (UnifiedProcessor.shouldSaveDurability(stack, entity.getRandom())) {
                 return 0;
