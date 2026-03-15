@@ -16,7 +16,7 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
                     "textures/gui/container/alloy_smelter_gui.png");
 
     public AlloySmelterScreen(AlloySmelterMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title);
+        super(menu, playerInventory, Component.literal("Alloy Smelter"));
         this.imageHeight = 166;
         this.inventoryLabelY = this.imageHeight - 94;
     }

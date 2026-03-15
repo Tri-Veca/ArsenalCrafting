@@ -43,12 +43,12 @@ public class AlloySmelterMenu extends AbstractContainerMenu {
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 3; col++) {
                 int index = row * 3 + col;
-                this.addSlot(new SlotItemHandler(handler, index, 8 + col * 18, 17 + row * 18));
+                this.addSlot(new SlotItemHandler(handler, index, 10 + col * 18, 19 + row * 18));
             }
         }
 
         // Fuel slot - slot 9
-        this.addSlot(new SlotItemHandler(handler, 9, 89, 53));
+        // this.addSlot(new SlotItemHandler(handler, 9, 89, 53));
 
         // Output slot - slot 10
         this.addSlot(new SlotItemHandler(handler, 10, 143, 35) {
