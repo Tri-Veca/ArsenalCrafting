@@ -189,6 +189,7 @@ public class ArsenalAxeItem extends AxeItem implements ArsenalTool {
 
     @Override
     public boolean isCorrectToolForDrops(ItemStack stack, BlockState state) {
+        if (BrokenToolHandler.isBroken(stack)) return false;
         // FIRST: Must be mineable with axe
         if (!state.is(BlockTags.MINEABLE_WITH_AXE)) {
             return false;
@@ -218,6 +219,9 @@ public class ArsenalAxeItem extends AxeItem implements ArsenalTool {
     //Efficiency Stuff
     @Override
     public float getDestroySpeed(ItemStack stack, BlockState state) {
+        // Broken tools mine at hand speed
+        if (BrokenToolHandler.isBroken(stack)) return 1.0f;
+
         // Check if we can mine this block at all
         if (!isCorrectToolForDrops(stack, state)) {
             return 1.0f;
@@ -248,6 +252,14 @@ public class ArsenalAxeItem extends AxeItem implements ArsenalTool {
                 }
             }
         }
+    }
+
+
+    @Override
+    public boolean canAttackBlock(BlockState state, net.minecraft.world.level.Level level,
+                                  BlockPos pos, net.minecraft.world.entity.player.Player player) {
+        if (BrokenToolHandler.isBroken(player.getMainHandItem())) return false;
+        return super.canAttackBlock(state, level, pos, player);
     }
 
     //We now use Unified Processor here!

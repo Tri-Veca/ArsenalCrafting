@@ -183,6 +183,7 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
 
     @Override
     public boolean isCorrectToolForDrops(ItemStack stack, BlockState state) {
+        if (BrokenToolHandler.isBroken(stack)) return false;
         // FIRST: Must be mineable with pickaxe
         if (!state.is(BlockTags.MINEABLE_WITH_PICKAXE)) {
             return false;
@@ -212,6 +213,9 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
     //Efficiency Stuff
     @Override
     public float getDestroySpeed(ItemStack stack, BlockState state) {
+        // Broken tools mine at hand speed
+        if (BrokenToolHandler.isBroken(stack)) return 1.0f;
+
         // Check if we can mine this block at all
         if (!isCorrectToolForDrops(stack, state)) {
             return 1.0f;

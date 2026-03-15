@@ -3,6 +3,7 @@ package com.arsenalcrafting.mod.commands;
 import com.arsenalcrafting.mod.ArsenalCrafting;
 import com.arsenalcrafting.mod.component.ToolAssemblyData;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
+import com.arsenalcrafting.mod.items.tool.BrokenToolHandler;
 import com.arsenalcrafting.mod.registry.ModItems;
 import com.arsenalcrafting.mod.registry.ModComponents;
 import com.mojang.brigadier.Command;
@@ -95,6 +96,16 @@ public class ArsenalCommands {
                                 .executes(ArsenalCommands::clearAssembly)
                         )
 
+                        // /arsenal break — marks held tool as broken for testing
+                        .then(Commands.literal("break")
+                                .executes(ArsenalCommands::breakTool)
+                        )
+
+                        // /arsenal repair — repairs held tool to full and clears broken state
+                        .then(Commands.literal("repair")
+                                .executes(ArsenalCommands::repairTool)
+                        )
+
                         // /arsenal info
                         .then(Commands.literal("info")
                                 .executes(ArsenalCommands::printInfo)
@@ -164,6 +175,51 @@ public class ArsenalCommands {
                         + "§7 | Rod: §e" + data.rodMaterial()
                         + "§7 | Core: §e" + data.coreMaterial() + "§7]"), false);
 
+        return Command.SINGLE_SUCCESS;
+    }
+
+    // ── BREAK (debug) ─────────────────────────────────────────────────────────
+
+    private static int breakTool(CommandContext<CommandSourceStack> ctx) {
+        ServerPlayer player;
+        try { player = ctx.getSource().getPlayerOrException(); }
+        catch (Exception e) { return 0; }
+
+        ItemStack held = player.getMainHandItem();
+        if (!(held.getItem() instanceof com.arsenalcrafting.mod.items.tool.ArsenalTool)) {
+            ctx.getSource().sendFailure(Component.literal("Hold an Arsenal tool or weapon first."));
+            return 0;
+        }
+
+        // Set durability to max-1 and mark broken
+        held.setDamageValue(held.getMaxDamage() - 1);
+        BrokenToolHandler.markBroken(held, player);
+
+        ctx.getSource().sendSuccess(() ->
+                        Component.literal("§c⚠ " + held.getHoverName().getString() + " is now BROKEN."),
+                false);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    // ── REPAIR (debug) ────────────────────────────────────────────────────────
+
+    private static int repairTool(CommandContext<CommandSourceStack> ctx) {
+        ServerPlayer player;
+        try { player = ctx.getSource().getPlayerOrException(); }
+        catch (Exception e) { return 0; }
+
+        ItemStack held = player.getMainHandItem();
+        if (!(held.getItem() instanceof com.arsenalcrafting.mod.items.tool.ArsenalTool)) {
+            ctx.getSource().sendFailure(Component.literal("Hold an Arsenal tool or weapon first."));
+            return 0;
+        }
+
+        held.setDamageValue(0);
+        BrokenToolHandler.markRepaired(held);
+
+        ctx.getSource().sendSuccess(() ->
+                        Component.literal("§a✓ " + held.getHoverName().getString() + " fully repaired."),
+                false);
         return Command.SINGLE_SUCCESS;
     }
 
