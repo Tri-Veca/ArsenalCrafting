@@ -12,6 +12,20 @@ tasks.named('wrapper', Wrapper).configure {
 version = project.mod_version
 group = project.mod_group_id
 
+repositories {
+    mavenLocal()
+    maven {
+        // location of the maven that hosts JEI files since January 2023
+        name = "Jared's maven"
+        url = "https://maven.blamejared.com/"
+    }
+    maven {
+        // location of a maven mirror for JEI files, as a fallback
+        name = "ModMaven"
+        url = "https://modmaven.dev"
+    }
+}
+
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 neoForge {
@@ -35,6 +49,8 @@ neoForge {
     }
 }
 
+
+
 sourceSets.main.resources.srcDir 'src/generated/resources'
 
 configurations {
@@ -42,7 +58,12 @@ configurations {
 }
 
 dependencies {
-    // optional mod dependencies can go here
+    /* other minecraft dependencies are here */
+
+    // compile against the JEI API but do not include it at runtime
+    compileOnly("mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}")
+    // at runtime, use the full JEI jar for NeoForge
+    runtimeOnly("mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}")
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
