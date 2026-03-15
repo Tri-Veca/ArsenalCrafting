@@ -412,6 +412,9 @@ public class RepairKitMenu extends AbstractContainerMenu {
 
         tool.setDamageValue(currentDamage - actualRepair);
 
+        // Clear broken state — tool is now usable again
+        com.arsenalcrafting.mod.items.tool.BrokenToolHandler.markRepaired(tool);
+
         float percentActuallyRepaired = (actualRepair * 100.0f) / maxDurability;
         int valueUsed;
 
