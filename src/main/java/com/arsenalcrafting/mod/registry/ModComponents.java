@@ -1,9 +1,11 @@
 package com.arsenalcrafting.mod.registry;
 
 import com.arsenalcrafting.mod.ArsenalCrafting;
+import com.arsenalcrafting.mod.component.BrokenState;
 import com.arsenalcrafting.mod.component.DynamicComponents;
 import com.arsenalcrafting.mod.component.RepairKitData;
 import com.arsenalcrafting.mod.component.ToolAssemblyData;
+import com.arsenalcrafting.mod.items.tool.BrokenToolHandler;
 import com.arsenalcrafting.mod.items.tool.ToolAugmentSlots;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.component.DataComponentType;
@@ -35,6 +37,15 @@ public class ModComponents {
                     () -> DataComponentType.<RepairKitData>builder()
                             .persistent(RepairKitData.CODEC)
                             .build());
+    
+    // Broken state — marks tool as broken, survives at 1 durability until repaired
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<BrokenState>> BROKEN_STATE =
+            COMPONENTS.register("broken_state",
+                    () -> DataComponentType.<BrokenState>builder()
+                            .persistent(BrokenState.CODEC)
+                            .networkSynchronized(ByteBufCodecs.BOOL.map(BrokenState::new, BrokenState::broken))
+                            .build());
+
 
     /**
      * Data component for storing the ON/OFF state of the Auto Smelt augment.

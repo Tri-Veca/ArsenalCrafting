@@ -178,6 +178,12 @@ public interface ArsenalTool extends IItemExtension {
 
     default InteractionResultHolder<ItemStack> onToolUse(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
+
+        // Broken tools can't be used
+        if (com.arsenalcrafting.mod.items.tool.BrokenToolHandler.isBroken(stack)) {
+            return InteractionResultHolder.fail(stack);
+        }
+
         if (player.isShiftKeyDown() && hand == InteractionHand.MAIN_HAND) {
             if (!level.isClientSide) {
                 openToolGui(player, stack);
@@ -232,6 +238,14 @@ public interface ArsenalTool extends IItemExtension {
     @OnlyIn(Dist.CLIENT)
     default void appendArsenalTooltip(ItemStack stack, Item.TooltipContext context,
                                       List<Component> tooltip, TooltipFlag flag) {
+
+        // ── BROKEN STATE ──────────────────────────────────────────────────────
+        if (com.arsenalcrafting.mod.items.tool.BrokenToolHandler.isBroken(stack)) {
+            tooltip.add(Component.literal("⚠ BROKEN! Repair to use.")
+                    .withStyle(net.minecraft.ChatFormatting.RED)
+                    .withStyle(net.minecraft.ChatFormatting.BOLD));
+        }
+
         ToolAugmentSlots slots = getAugmentSlots(stack);
         int usedSlots = slots.getUsedSlotCount();
 
@@ -333,7 +347,7 @@ public interface ArsenalTool extends IItemExtension {
                                 .append(Component.translatable("core.arsenalcrafting." + coreDef.id())
                                         .withStyle(coreMat.getColor())));
                         if (Screen.hasShiftDown()) {
-                            tooltip.add(Component.translatable("core.arsenalcrafting." + coreDef.id() + ".desc")
+                            tooltip.add(Component.literal(coreDef.descriptionFor(true))
                                     .withStyle(ChatFormatting.DARK_GRAY));
                         }
 
@@ -355,7 +369,7 @@ public interface ArsenalTool extends IItemExtension {
                                 .append(Component.translatable("core.arsenalcrafting." + coreDef.id())
                                         .withStyle(coreMat.getColor())));
                         if (Screen.hasShiftDown()) {
-                            tooltip.add(Component.translatable("core.arsenalcrafting." + coreDef.id() + ".desc")
+                            tooltip.add(Component.literal(coreDef.descriptionFor(false))
                                     .withStyle(ChatFormatting.DARK_GRAY));
                         }
                     }
@@ -418,6 +432,37 @@ public interface ArsenalTool extends IItemExtension {
         return IItemExtension.super.canBeHurtBy(stack, source);
     }
 
+    // ==================== DURABILITY / BROKEN STATE ====================
+
+    /**
+     * Central durability intercept — inherited by ALL Arsenal tools and weapons.
+     * Prevents item destruction at 0 durability by marking broken instead.
+     *
+     * Each tool still has its own damageItem for Sturdy core checks etc,
+     * but they should call super (this default) or replicate this logic.
+     *
+     * Since this is an interface default, tools that DON'T override damageItem
+     * get this behavior for free.
+     */
+    @Override
+    default <T extends net.minecraft.world.entity.LivingEntity> int damageItem(
+            ItemStack stack, int amount, @Nullable T entity,
+            java.util.function.Consumer<net.minecraft.world.item.Item> onBroken) {
+
+        // Already broken — swallow all damage
+        if (BrokenToolHandler.isBroken(stack)) return 0;
+
+        // Would hit max — mark broken instead of destroying
+        if (entity instanceof net.minecraft.world.entity.player.Player player) {
+            if (stack.getDamageValue() + amount >= stack.getMaxDamage()) {
+                BrokenToolHandler.checkAndBreak(stack, player);
+                return 0;
+            }
+        }
+
+        return amount; // let vanilla apply the damage normally
+    }
+
     // ==================== CRIT SYSTEM ====================
 
     /**
@@ -452,6 +497,11 @@ public interface ArsenalTool extends IItemExtension {
      * @return           Final damage (modified if crit, unchanged if not)
      */
     default float rollCrit(ItemStack weapon, net.minecraft.world.entity.LivingEntity target, float baseDamage) {
+        // Broken weapons don't crit
+        if (com.arsenalcrafting.mod.items.tool.BrokenToolHandler.isBroken(weapon)) {
+            return 0f; // broken = no damage
+        }
+
         com.arsenalcrafting.mod.core.CritProcessor.CritResult result =
                 com.arsenalcrafting.mod.core.CritProcessor.processCrit(
                         weapon,

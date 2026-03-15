@@ -53,7 +53,7 @@ public class ArsenalDaggerItem extends SwordItem implements ArsenalTool {
 
     // ── CRIT IDENTITY ────────────────────────────────────────────────────────
     private static final float CRIT_CHANCE_MULT  = 1.0f;
-    private static final float CRIT_DAMAGE_MULT  = 1.0f;
+    private static final float CRIT_DAMAGE_MULT  = 1.15f;
     // Flat additive bonus on top of material crit chance — dagger's signature
     public  static final float CRIT_CHANCE_BONUS = 0.08f;
 
@@ -175,6 +175,7 @@ public class ArsenalDaggerItem extends SwordItem implements ArsenalTool {
 
     @Override
     public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+        if (BrokenToolHandler.isBroken(stack)) return false;
         float baseDamage = getAssembledDamage(stack);
 
         // Step 1: Cores + augments on-hit
@@ -335,6 +336,7 @@ public class ArsenalDaggerItem extends SwordItem implements ArsenalTool {
     public <T extends LivingEntity> int damageItem(ItemStack stack, int amount,
                                                    @Nullable T entity,
                                                    Consumer<Item> onBroken) {
+        if (BrokenToolHandler.interceptDamage(stack, amount, entity)) return 0;
         if (entity != null && UnifiedProcessor.shouldSaveDurability(stack, entity.getRandom())) return 0;
         return super.damageItem(stack, amount, entity, onBroken);
     }
