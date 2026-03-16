@@ -61,23 +61,23 @@ public final class CoreHandlers {
     }
 
 
-        /**
-         * Repair Reduction core handler
-         */
-        public static final class RepairReductionCore implements CoreHandler {
-            @Override public boolean supportsToolType(ArsenalToolType type) {
-                return type != null && (type.isMiningTool() || type.isWeapon());
-            }
-
-            // Helper methods for repair kit
-            public static float getRepairBonus() {
-                return RepairReduction.getBonusMultiplier();
-            }
-
-            public static String getBonusText() {
-                return String.format("+%.0f%% repair", RepairReduction.getBonusPercentage());
-            }
+    /**
+     * Repair Reduction core handler
+     */
+    public static final class RepairReductionCore implements CoreHandler {
+        @Override public boolean supportsToolType(ArsenalToolType type) {
+            return type != null && (type.isMiningTool() || type.isWeapon());
         }
+
+        // Helper methods for repair kit
+        public static float getRepairBonus() {
+            return RepairReduction.getBonusMultiplier();
+        }
+
+        public static String getBonusText() {
+            return String.format("+%.0f%% repair", RepairReduction.getBonusPercentage());
+        }
+    }
 
 
 
@@ -123,6 +123,19 @@ public final class CoreHandlers {
         @Override
         public boolean supportsToolType(ArsenalToolType type) {
             return type != null && (type.isMiningTool() || type.isWeapon());
+        }
+
+        /**
+         * On weapon hit: 40% chance to not consume durability.
+         * Offsets the 1 durability point spent on attack by repairing it back.
+         */
+        @Override
+        public void onEntityHit(ItemStack weapon, LivingEntity attacker,
+                                Entity target, float damage) {
+            if (attacker.level().isClientSide) return;
+            if (Sturdy.trySaveDurability(attacker.level().getRandom())) {
+                weapon.setDamageValue(Math.max(0, weapon.getDamageValue() - 1));
+            }
         }
     }
 
@@ -194,6 +207,11 @@ public final class CoreHandlers {
             return false;
         }
 
+        @Override
+        public void onEntityKill(ItemStack weapon, LivingEntity attacker, LivingEntity killed) {
+            System.out.println("[GamblerCore] onEntityKill fired for: " + killed.getName().getString());
+            Gambler.tryProcKilling(killed, attacker.level().getRandom());
+        }
+
     }
 }
-

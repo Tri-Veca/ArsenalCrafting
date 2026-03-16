@@ -247,7 +247,12 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
             }
         }
     }
-
+    @Override
+    public boolean canAttackBlock(BlockState state, net.minecraft.world.level.Level level,
+                                  BlockPos pos, net.minecraft.world.entity.player.Player player) {
+        if (BrokenToolHandler.isBroken(player.getMainHandItem())) return false;
+        return super.canAttackBlock(state, level, pos, player);
+    }
     //We now use Unified Processor here!
     //Controls what happens when the player mines a block
     @Override
