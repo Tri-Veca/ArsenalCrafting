@@ -108,6 +108,8 @@ public final class CoreHandlers {
 
         @Override
         public void onBlockDestroyed(ItemStack stack, Level level, BlockState state, BlockPos pos, LivingEntity entity) {
+            // Only count the origin block the player directly mined — not vein mine extras (#22)
+            if (!Momentum.isOriginBlock()) return;
             Momentum.onBlockMined(stack, entity);
         }
     }
@@ -123,19 +125,6 @@ public final class CoreHandlers {
         @Override
         public boolean supportsToolType(ArsenalToolType type) {
             return type != null && (type.isMiningTool() || type.isWeapon());
-        }
-
-        /**
-         * On weapon hit: 40% chance to not consume durability.
-         * Offsets the 1 durability point spent on attack by repairing it back.
-         */
-        @Override
-        public void onEntityHit(ItemStack weapon, LivingEntity attacker,
-                                Entity target, float damage) {
-            if (attacker.level().isClientSide) return;
-            if (Sturdy.trySaveDurability(attacker.level().getRandom())) {
-                weapon.setDamageValue(Math.max(0, weapon.getDamageValue() - 1));
-            }
         }
     }
 
@@ -205,12 +194,6 @@ public final class CoreHandlers {
                                         BlockState state, BlockPos pos,
                                         LivingEntity miner) {
             return false;
-        }
-
-        @Override
-        public void onEntityKill(ItemStack weapon, LivingEntity attacker, LivingEntity killed) {
-            System.out.println("[GamblerCore] onEntityKill fired for: " + killed.getName().getString());
-            Gambler.tryProcKilling(killed, attacker.level().getRandom());
         }
 
     }

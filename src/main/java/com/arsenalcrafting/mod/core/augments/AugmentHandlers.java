@@ -178,6 +178,9 @@ public class AugmentHandlers {
         private static final Map<UUID, BlockPos> PLAYER_LIGHT_POS = new HashMap<>();
         // Track all light blocks we've placed
         private static final Set<BlockPos> ALL_LIGHT_BLOCKS = new HashSet<>();
+        // Track which item stack ID placed the light — prevents multi-tool flicker (#19)
+        // Key = player UUID, Value = System.identityHashCode of the stack that owns the light
+        private static final Map<UUID, Integer> LIGHT_OWNER = new HashMap<>();
 
         @Override
         public int priority() {
@@ -199,8 +202,19 @@ public class AugmentHandlers {
             Level level = player.level();
             if (level.isClientSide) return;
 
+            UUID uuid = player.getUUID();
+            int stackId = System.identityHashCode(stack);
+
+            // Only the currently held tool manages the light.
+            // If another stack owns it, this one steps back. (#19 multi-tool flicker fix)
+            Integer owner = LIGHT_OWNER.get(uuid);
+            if (owner != null && owner != stackId) {
+                // This is not the owning tool — don't touch the light
+                return;
+            }
+
             BlockPos currentPos = player.blockPosition().above();
-            BlockPos lastPos = PLAYER_LIGHT_POS.get(player.getUUID());
+            BlockPos lastPos = PLAYER_LIGHT_POS.get(uuid);
 
             // Check if we need to move the light
             boolean needsMove = false;
@@ -216,15 +230,24 @@ public class AugmentHandlers {
             }
 
             if (needsMove) {
-                // Remove old light
+                // Remove old light — also scan nearby in case fast movement left orphans
                 if (lastPos != null) {
                     removeLightBlock(level, lastPos);
+                    // Clean up any orphaned lights within 3 blocks of last pos (#19 fast movement fix)
+                    for (BlockPos nearby : BlockPos.betweenClosed(
+                            lastPos.offset(-2, -1, -2), lastPos.offset(2, 2, 2))) {
+                        if (ALL_LIGHT_BLOCKS.contains(nearby.immutable())
+                                && level.getBlockState(nearby).getBlock() instanceof LightBlock) {
+                            removeLightBlock(level, nearby.immutable());
+                        }
+                    }
                 }
 
                 // Try to place new light
                 if (canPlaceLight(level, currentPos)) {
                     placeLightBlock(level, currentPos);
-                    PLAYER_LIGHT_POS.put(player.getUUID(), currentPos);
+                    PLAYER_LIGHT_POS.put(uuid, currentPos);
+                    LIGHT_OWNER.put(uuid, stackId);
                     markAsTemporaryLight(level, currentPos);
                 } else {
                     // Try positions around the player
@@ -237,7 +260,8 @@ public class AugmentHandlers {
                     }) {
                         if (canPlaceLight(level, offset)) {
                             placeLightBlock(level, offset);
-                            PLAYER_LIGHT_POS.put(player.getUUID(), offset);
+                            PLAYER_LIGHT_POS.put(uuid, offset);
+                            LIGHT_OWNER.put(uuid, stackId);
                             markAsTemporaryLight(level, offset);
                             break;
                         }
@@ -248,6 +272,13 @@ public class AugmentHandlers {
 
         @Override
         public void onToolUnequip(ItemStack stack, Player player) {
+            // #19: Always clean up on unequip — handles multi-tool scenario
+            removePlayerLight(player);
+        }
+
+        @Override
+        public void onToolEquip(ItemStack stack, Player player) {
+            // #19: Clear any stale light from a previous tool before placing new one
             removePlayerLight(player);
         }
 
@@ -286,7 +317,9 @@ public class AugmentHandlers {
         }
 
         public void removePlayerLight(Player player) {
-            BlockPos pos = PLAYER_LIGHT_POS.remove(player.getUUID());
+            UUID uuid = player.getUUID();
+            BlockPos pos = PLAYER_LIGHT_POS.remove(uuid);
+            LIGHT_OWNER.remove(uuid);
             if (pos != null) {
                 removeLightBlock(player.level(), pos);
             }
@@ -295,6 +328,7 @@ public class AugmentHandlers {
         public static void cleanupOnWorldLoad(Level level) {
             PLAYER_LIGHT_POS.clear();
             ALL_LIGHT_BLOCKS.clear();
+            LIGHT_OWNER.clear();
             System.out.println("[ArsenalCrafting] Light augment: Cleared memory tracking on world load");
 
             // Clean up any light blocks around players

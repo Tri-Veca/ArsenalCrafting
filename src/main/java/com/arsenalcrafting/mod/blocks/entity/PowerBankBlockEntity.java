@@ -68,6 +68,10 @@ public class PowerBankBlockEntity extends BlockEntity {
                     dir.getOpposite()
             );
 
+            // Skip cable blocks — cable network handles distribution
+            if (level.getBlockState(neighborPos).getBlock()
+                    instanceof com.arsenalcrafting.mod.blocks.CableBlock) continue;
+
             if (neighbor == null || !neighbor.canReceive()) continue;
 
             int toSend = Math.min(energy.getEnergyStored(), tier.transferRate());

@@ -89,18 +89,21 @@ public class ModBlockEntities {
                             ModBlocks.VOID_POWER_BANK.get()
                     ).build(null));
 
-    /** Resolves the correct BlockEntityType for a given power bank tier. */
+    /**
+     * Resolves the correct BlockEntityType for a given power bank tier.
+     */
     public static BlockEntityType<PowerBankBlockEntity> getPowerBankType(PowerTier tier) {
         return switch (tier) {
-            case IRON     -> IRON_POWER_BANK.get();
+            case IRON -> IRON_POWER_BANK.get();
             case TITANIUM -> VOID_POWER_BANK.get();
-            default       -> COPPER_POWER_BANK.get();
+            default -> COPPER_POWER_BANK.get();
         };
     }
 
     // ── CAPABILITY REGISTRATION ───────────────────────────────────────────────
 
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
+        System.out.println("[ModBlockEntities] Registering energy capabilities...");
         event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK,
                 FOSSIL_GENERATOR.get(), (be, side) -> be.getEnergyStorage());
         event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK,
@@ -114,9 +117,10 @@ public class ModBlockEntities {
                 IRON_POWER_BANK.get(), (be, side) -> side != null ? be.getEnergyForSide(side) : be.getEnergyStorage());
         event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK,
                 VOID_POWER_BANK.get(), (be, side) -> side != null ? be.getEnergyForSide(side) : be.getEnergyStorage());
+        System.out.println("[ModBlockEntities] Capabilities registered.");
     }
 
-    public static void register(IEventBus eventBus) {
-        BLOCK_ENTITIES.register(eventBus);
+        public static void register (IEventBus eventBus){
+            BLOCK_ENTITIES.register(eventBus);
+        }
     }
-}

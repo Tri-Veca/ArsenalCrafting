@@ -24,10 +24,22 @@ public class PacketHandler {
                 SyncRepairKitPreviewPacket.STREAM_CODEC,
                 SyncRepairKitPreviewPacket::handle
         );
+
+        // Power bank face mode
+        registrar.playToServer(
+                SetFaceModePacket.TYPE,
+                SetFaceModePacket.STREAM_CODEC,
+                SetFaceModePacket::handle
+        );
     }
+
     public static void sendToPlayer(ServerPlayer player, CustomPacketPayload packet) {
         player.connection.send(packet);
     }
 
-        // You can register more packets here as needed
+    public static void sendToServer(CustomPacketPayload packet) {
+        net.neoforged.neoforge.network.PacketDistributor.sendToServer(packet);
     }
+
+    // You can register more packets here as needed
+}

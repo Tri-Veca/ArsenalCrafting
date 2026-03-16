@@ -12,6 +12,21 @@ import net.minecraft.world.item.ItemStack;
 public final class Momentum {
     private Momentum() {}
 
+    /**
+     * Thread-local flag — true when the block being processed is the origin block
+     * the player directly mined, false for vein mine extras.
+     * Set by ArsenalPickaxeItem.mineBlock() before calling processBlockBreak.
+     */
+    private static final ThreadLocal<Boolean> IS_ORIGIN_BLOCK = ThreadLocal.withInitial(() -> true);
+
+    public static void setOriginBlock(boolean isOrigin) {
+        IS_ORIGIN_BLOCK.set(isOrigin);
+    }
+
+    public static boolean isOriginBlock() {
+        return IS_ORIGIN_BLOCK.get();
+    }
+
     private static final int TIER_1 = 10;
     private static final int TIER_2 = 30;
     private static final int TIER_3 = 60;

@@ -258,6 +258,7 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
     @Override
     public boolean mineBlock(@NotNull ItemStack stack, @NotNull Level level, @NotNull BlockState state,
                              @NotNull BlockPos pos, @NotNull LivingEntity entity) {
+        Momentum.setOriginBlock(true);
         if (BrokenToolHandler.isBroken(stack)) return false;
 
         // Process block break through UnifiedProcessor (handles cores + augments)

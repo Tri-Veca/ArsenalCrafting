@@ -1,9 +1,6 @@
 package com.arsenalcrafting.mod.registry;
 
-import com.arsenalcrafting.mod.client.gui.AlloySmelterScreen;
-import com.arsenalcrafting.mod.client.gui.RepairKitScreen;
-import com.arsenalcrafting.mod.client.gui.ToolScreen;
-import com.arsenalcrafting.mod.client.gui.ToolkitScreen;
+import com.arsenalcrafting.mod.client.gui.*;
 import com.arsenalcrafting.mod.registry.ModMenus;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.neoforged.api.distmarker.Dist;
@@ -29,5 +26,7 @@ public class ModScreens {
         event.register(ModMenus.TOOL.get(), ToolScreen::new);
         event.register(ModMenus.REPAIRKIT.get(), RepairKitScreen::new);
         event.register(ModMenus.ALLOY_SMELTER_MENU.get(), AlloySmelterScreen::new);
+        event.register(ModMenus.POWER_BANK.get(), PowerBankScreen::new);
+        event.register(ModMenus.FOSSIL_GENERATOR.get(), FossilGeneratorScreen::new);
     }
 }
