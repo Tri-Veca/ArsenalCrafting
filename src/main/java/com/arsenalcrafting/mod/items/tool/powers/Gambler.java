@@ -39,6 +39,23 @@ public class Gambler {
             new ItemStack(Items.AMETHYST_SHARD, 1)
     );
 
+    // Kill loot tables
+    private static final List<ItemStack> KILL_COMMON = List.of(
+            new ItemStack(Items.BONE, 1),
+            new ItemStack(Items.ARROW, 2),
+            new ItemStack(Items.ROTTEN_FLESH, 1)
+    );
+    private static final List<ItemStack> KILL_UNCOMMON = List.of(
+            new ItemStack(Items.GOLD_NUGGET, 2),
+            new ItemStack(Items.GUNPOWDER, 1),
+            new ItemStack(Items.SPIDER_EYE, 1)
+    );
+    private static final List<ItemStack> KILL_RARE = List.of(
+            new ItemStack(Items.DIAMOND, 1),
+            new ItemStack(Items.ENDER_PEARL, 1),
+            new ItemStack(Items.BLAZE_ROD, 1)
+    );
+
     // 📥 Method: Try to drop bonus loot when mining
     public static boolean tryProcMining(Level level, BlockPos pos, RandomSource random) {
         totalCalls++;
@@ -114,11 +131,26 @@ public class Gambler {
 
     // 🗡️ Method: Try to drop bonus loot when killing (for weapons)
     public static boolean tryProcKilling(LivingEntity target, RandomSource random) {
-        if (random.nextFloat() < PROC_CHANCE) {
-            // Similar loot table for mobs (you'd fill this in)
-            // ...
-            return true;
+        if (random.nextFloat() >= PROC_CHANCE) return false;
+
+        float rarityRoll = random.nextFloat();
+        List<ItemStack> loot;
+
+        if (rarityRoll < 0.02f) {
+            loot = KILL_RARE;
+            System.out.println("[Gambler] RARE kill loot!");
+        } else if (rarityRoll < 0.27f) {
+            loot = KILL_UNCOMMON;
+            System.out.println("[Gambler] UNCOMMON kill loot!");
+        } else {
+            loot = KILL_COMMON;
+            System.out.println("[Gambler] COMMON kill loot!");
         }
-        return false;
+
+        ItemStack drop = loot.get(random.nextInt(loot.size())).copy();
+        net.minecraft.world.level.block.Block.popResource(
+                target.level(), target.blockPosition(), drop);
+        System.out.println("[Gambler] Kill bonus drop: " + drop.getItem().getName(drop).getString());
+        return true;
     }
 }

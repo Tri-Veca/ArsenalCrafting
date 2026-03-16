@@ -61,23 +61,23 @@ public final class CoreHandlers {
     }
 
 
-        /**
-         * Repair Reduction core handler
-         */
-        public static final class RepairReductionCore implements CoreHandler {
-            @Override public boolean supportsToolType(ArsenalToolType type) {
-                return type != null && (type.isMiningTool() || type.isWeapon());
-            }
-
-            // Helper methods for repair kit
-            public static float getRepairBonus() {
-                return RepairReduction.getBonusMultiplier();
-            }
-
-            public static String getBonusText() {
-                return String.format("+%.0f%% repair", RepairReduction.getBonusPercentage());
-            }
+    /**
+     * Repair Reduction core handler
+     */
+    public static final class RepairReductionCore implements CoreHandler {
+        @Override public boolean supportsToolType(ArsenalToolType type) {
+            return type != null && (type.isMiningTool() || type.isWeapon());
         }
+
+        // Helper methods for repair kit
+        public static float getRepairBonus() {
+            return RepairReduction.getBonusMultiplier();
+        }
+
+        public static String getBonusText() {
+            return String.format("+%.0f%% repair", RepairReduction.getBonusPercentage());
+        }
+    }
 
 
 
@@ -108,6 +108,8 @@ public final class CoreHandlers {
 
         @Override
         public void onBlockDestroyed(ItemStack stack, Level level, BlockState state, BlockPos pos, LivingEntity entity) {
+            // Only count the origin block the player directly mined — not vein mine extras (#22)
+            if (!Momentum.isOriginBlock()) return;
             Momentum.onBlockMined(stack, entity);
         }
     }
@@ -196,4 +198,3 @@ public final class CoreHandlers {
 
     }
 }
-

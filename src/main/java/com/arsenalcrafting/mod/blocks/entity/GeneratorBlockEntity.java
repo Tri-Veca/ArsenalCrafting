@@ -2,8 +2,8 @@ package com.arsenalcrafting.mod.blocks.entity;
 
 import com.arsenalcrafting.mod.power.FuelRegistry;
 import com.arsenalcrafting.mod.power.GeneratorType;
-import com.arsenalcrafting.mod.power.PowerTier;
 import com.arsenalcrafting.mod.power.PowerStorage;
+import com.arsenalcrafting.mod.power.PowerTier;
 import com.arsenalcrafting.mod.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -176,8 +176,11 @@ public class GeneratorBlockEntity extends BlockEntity {
         for (Direction dir : Direction.values()) {
             BlockPos neighborPos = worldPosition.relative(dir);
 
-            // Skip unloaded chunks
             if (!level.isLoaded(neighborPos)) continue;
+
+            // Skip cable blocks — cable network handles distribution from generators
+            if (level.getBlockState(neighborPos).getBlock()
+                    instanceof com.arsenalcrafting.mod.blocks.CableBlock) continue;
 
             IEnergyStorage neighbor = level.getCapability(
                     Capabilities.EnergyStorage.BLOCK,

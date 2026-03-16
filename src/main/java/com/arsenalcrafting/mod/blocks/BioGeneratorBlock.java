@@ -1,5 +1,6 @@
 package com.arsenalcrafting.mod.blocks;
 
+
 import com.arsenalcrafting.mod.blocks.entity.GeneratorBlockEntity;
 import com.arsenalcrafting.mod.power.GeneratorType;
 import com.arsenalcrafting.mod.power.PowerTier;

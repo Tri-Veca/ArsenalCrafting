@@ -94,6 +94,9 @@ public class PowerNetworkSavedData extends SavedData {
                 for (BlockPos cp : network.getCables()) {
                     cableToNetwork.put(cp, network.getId());
                 }
+                System.out.println("[PowerNetwork] Built network #" + network.getId()
+                        + " cables=" + network.getCables().size()
+                        + " endpoints=" + network.getEndpoints().size());
             }
         }
 
@@ -137,6 +140,17 @@ public class PowerNetworkSavedData extends SavedData {
      * For each network: collect from producers, distribute to consumers.
      */
     public void tickNetworks(ServerLevel level) {
+        if (networks.isEmpty()) return; // skip log spam when no networks
+        // Debug every 100 ticks
+        if (level.getGameTime() % 100 == 0) {
+            System.out.println("[PowerNetwork] Networks: " + networks.size()
+                    + " | Cables: " + cableToNetwork.size());
+            for (PowerNetwork net : networks.values()) {
+                System.out.println("  Network #" + net.getId()
+                        + " cables=" + net.getCables().size()
+                        + " endpoints=" + net.getEndpoints().size());
+            }
+        }
         for (PowerNetwork network : networks.values()) {
             tickNetwork(level, network);
         }
@@ -145,17 +159,32 @@ public class PowerNetworkSavedData extends SavedData {
     private void tickNetwork(ServerLevel level, PowerNetwork network) {
         if (network.getEndpoints().isEmpty()) return;
 
-        // Phase 1: collect available energy from all endpoints that can extract
+        // Phase 1: collect available energy — only from generators (not power banks)
+        // Power banks are consumers/storage only in the cable network
         int available = 0;
         Map<BlockPos, IEnergyStorage> extractable = new HashMap<>();
 
         for (BlockPos ep : network.getEndpoints()) {
             if (!level.isLoaded(ep)) continue;
-            IEnergyStorage storage = getEnergyAt(level, ep);
+            net.minecraft.world.level.block.entity.BlockEntity be =
+                    level.getBlockEntity(ep);
+            // Extract from generators always
+            // Extract from power banks only if they have energy and can extract
+            boolean isGenerator = be instanceof com.arsenalcrafting.mod.blocks.entity.GeneratorBlockEntity;
+            boolean isPowerBank = be instanceof com.arsenalcrafting.mod.blocks.entity.PowerBankBlockEntity;
+            if (!isGenerator && !isPowerBank) continue;
+            IEnergyStorage storage = isPowerBank
+                    ? getEnergyForBank((com.arsenalcrafting.mod.blocks.entity.PowerBankBlockEntity) be, level, ep)
+                    : getEnergyAt(level, ep);
             if (storage != null && storage.canExtract() && storage.getEnergyStored() > 0) {
                 extractable.put(ep, storage);
                 available += storage.getEnergyStored();
             }
+        }
+
+        if (level.getGameTime() % 100 == 0) {
+            System.out.println("  [Network #" + network.getId() + "] available=" + available
+                    + " extractable=" + extractable.size());
         }
 
         if (available <= 0) return;
@@ -166,7 +195,10 @@ public class PowerNetworkSavedData extends SavedData {
 
         for (BlockPos ep : network.getEndpoints()) {
             if (!level.isLoaded(ep)) continue;
-            IEnergyStorage storage = getEnergyAt(level, ep);
+            net.minecraft.world.level.block.entity.BlockEntity be2 = level.getBlockEntity(ep);
+            IEnergyStorage storage = (be2 instanceof com.arsenalcrafting.mod.blocks.entity.PowerBankBlockEntity bank2)
+                    ? getEnergyForBank(bank2, level, ep)
+                    : getEnergyAt(level, ep);
             if (storage != null && storage.canReceive()) {
                 int space = storage.getMaxEnergyStored() - storage.getEnergyStored();
                 if (space > 0) {
@@ -213,7 +245,15 @@ public class PowerNetworkSavedData extends SavedData {
     }
 
     private IEnergyStorage getEnergyAt(ServerLevel level, BlockPos pos) {
-        // Try all sides — returns first non-null capability
+        // Use null side first — returns raw storage for generators
+        IEnergyStorage nullSide = level.getCapability(
+                Capabilities.EnergyStorage.BLOCK, pos,
+                level.getBlockState(pos),
+                level.getBlockEntity(pos),
+                null);
+        if (nullSide != null) return nullSide;
+
+        // Fallback: try each side
         for (Direction dir : Direction.values()) {
             IEnergyStorage storage = level.getCapability(
                     Capabilities.EnergyStorage.BLOCK, pos,
@@ -223,6 +263,27 @@ public class PowerNetworkSavedData extends SavedData {
             if (storage != null) return storage;
         }
         return null;
+    }
+
+    /**
+     * Gets energy storage for a power bank, checking face config.
+     * Returns extractable storage if any cable-facing side is OUT.
+     * Returns receivable storage if any cable-facing side is IN.
+     */
+    private IEnergyStorage getEnergyForBank(
+            com.arsenalcrafting.mod.blocks.entity.PowerBankBlockEntity bank,
+            ServerLevel level, BlockPos pos) {
+        // Check which sides face cables — use that face's mode
+        for (Direction dir : Direction.values()) {
+            BlockPos neighbor = pos.relative(dir);
+            if (!level.isLoaded(neighbor)) continue;
+            if (!(level.getBlockState(neighbor).getBlock()
+                    instanceof com.arsenalcrafting.mod.blocks.CableBlock)) continue;
+            // This side faces a cable — return the face-aware storage for that side
+            return bank.getEnergyForSide(dir);
+        }
+        // No cable adjacent — return raw storage
+        return bank.getEnergyStorage();
     }
 
     public int getNetworkCount()  { return networks.size(); }

@@ -60,6 +60,31 @@ public class ArsenalCommands {
 
     @SubscribeEvent
     public static void onRegisterCommands(RegisterCommandsEvent event) {
+        // /swap <part> <material> — top level shortcut for swapping tool parts
+        event.getDispatcher().register(
+                Commands.literal("swap")
+                        .requires(src -> src.hasPermission(2))
+                        .then(Commands.argument("part", StringArgumentType.word())
+                                .suggests((ctx, builder) -> {
+                                    builder.suggest("head");
+                                    builder.suggest("rod");
+                                    builder.suggest("core");
+                                    return builder.buildFuture();
+                                })
+                                .then(Commands.argument("material", StringArgumentType.word())
+                                        .suggests((ctx, builder) -> {
+                                            for (AlloyMaterial mat : ALL_MATERIALS) {
+                                                builder.suggest(mat.getName().toLowerCase());
+                                            }
+                                            return builder.buildFuture();
+                                        })
+                                        .executes(ctx -> swapPart(ctx,
+                                                StringArgumentType.getString(ctx, "part"),
+                                                StringArgumentType.getString(ctx, "material")))
+                                )
+                        )
+        );
+
         event.getDispatcher().register(
                 Commands.literal("arsenal")
                         .requires(src -> src.hasPermission(2))
@@ -94,6 +119,29 @@ public class ArsenalCommands {
                         // /arsenal clear
                         .then(Commands.literal("clear")
                                 .executes(ArsenalCommands::clearAssembly)
+                        )
+
+                        // /arsenal swap <part> <material> — swaps a specific part on held tool
+                        .then(Commands.literal("swap")
+                                .then(Commands.argument("part", StringArgumentType.word())
+                                        .suggests((ctx, builder) -> {
+                                            builder.suggest("head");
+                                            builder.suggest("rod");
+                                            builder.suggest("core");
+                                            return builder.buildFuture();
+                                        })
+                                        .then(Commands.argument("material", StringArgumentType.word())
+                                                .suggests((ctx, builder) -> {
+                                                    for (AlloyMaterial mat : ALL_MATERIALS) {
+                                                        builder.suggest(mat.getName().toLowerCase());
+                                                    }
+                                                    return builder.buildFuture();
+                                                })
+                                                .executes(ctx -> swapPart(ctx,
+                                                        StringArgumentType.getString(ctx, "part"),
+                                                        StringArgumentType.getString(ctx, "material")))
+                                        )
+                                )
                         )
 
                         // /arsenal break — marks held tool as broken for testing
@@ -174,6 +222,72 @@ public class ArsenalCommands {
                         + " §7[Head: §e" + data.headMaterial()
                         + "§7 | Rod: §e" + data.rodMaterial()
                         + "§7 | Core: §e" + data.coreMaterial() + "§7]"), false);
+
+        return Command.SINGLE_SUCCESS;
+    }
+
+    // ── SWAP PART ─────────────────────────────────────────────────────────────
+
+    private static int swapPart(CommandContext<CommandSourceStack> ctx,
+                                String part, String materialName) {
+        ServerPlayer player;
+        try { player = ctx.getSource().getPlayerOrException(); }
+        catch (Exception e) {
+            ctx.getSource().sendFailure(Component.literal("Must be run by a player."));
+            return 0;
+        }
+
+        ItemStack held = player.getMainHandItem();
+        if (!(held.getItem() instanceof com.arsenalcrafting.mod.items.tool.ArsenalTool)) {
+            ctx.getSource().sendFailure(Component.literal("Hold an Arsenal tool or weapon first."));
+            return 0;
+        }
+
+        // Validate part
+        String partLower = part.toLowerCase();
+        if (!partLower.equals("head") && !partLower.equals("rod") && !partLower.equals("core")) {
+            ctx.getSource().sendFailure(Component.literal(
+                    "Unknown part: " + part + ". Use: head, rod, core"));
+            return 0;
+        }
+
+        // Validate material
+        AlloyMaterial mat = null;
+        for (AlloyMaterial m : ALL_MATERIALS) {
+            if (m.getName().equalsIgnoreCase(materialName)) {
+                mat = m;
+                break;
+            }
+        }
+        if (mat == null) {
+            ctx.getSource().sendFailure(Component.literal(
+                    "Unknown material: " + materialName + ". Valid: " + getMaterialList()));
+            return 0;
+        }
+
+        // Get or create assembly data
+        ToolAssemblyData existing = held.get(ModComponents.TOOL_ASSEMBLY_DATA.get());
+        String head = existing != null ? existing.headMaterial() : "";
+        String rod  = existing != null ? existing.rodMaterial()  : "";
+        String core = existing != null ? existing.coreMaterial() : "";
+
+        // Swap the requested part
+        final AlloyMaterial finalMat = mat;
+        switch (partLower) {
+            case "head" -> head = finalMat.getName();
+            case "rod"  -> rod  = finalMat.getName();
+            case "core" -> core = finalMat.getName();
+        }
+
+        held.set(ModComponents.TOOL_ASSEMBLY_DATA.get(),
+                new ToolAssemblyData(head, rod, core));
+
+        final String fHead = head, fRod = rod, fCore = core;
+        ctx.getSource().sendSuccess(() -> Component.literal(
+                "§aSwapped §e" + partLower + " §ato §e" + finalMat.getName()
+                        + " §7| Head: §e" + fHead
+                        + " §7| Rod: §e" + fRod
+                        + " §7| Core: §e" + fCore), false);
 
         return Command.SINGLE_SUCCESS;
     }
@@ -272,5 +386,14 @@ public class ArsenalCommands {
 
     private static AlloyMaterial randomMaterial() {
         return ALL_MATERIALS.get(RANDOM.nextInt(ALL_MATERIALS.size()));
+    }
+
+    private static String getMaterialList() {
+        StringBuilder sb = new StringBuilder();
+        for (AlloyMaterial mat : ALL_MATERIALS) {
+            if (sb.length() > 0) sb.append(", ");
+            sb.append(mat.getName().toLowerCase());
+        }
+        return sb.toString();
     }
 }
