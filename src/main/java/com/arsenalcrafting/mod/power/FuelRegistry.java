@@ -21,13 +21,13 @@ public class FuelRegistry {
         if (stack.isEmpty()) return 0;
 
         // Coal block = 16000t, coal/charcoal = 1600t
-        if (stack.is(Items.COAL_BLOCK))     return 16000;
-        if (stack.is(Items.COAL))           return 1600;
-        if (stack.is(Items.CHARCOAL))       return 1600;
-        if (stack.is(net.minecraft.world.item.Items.BLAZE_ROD)) return 2400;
+        if (stack.is(Items.COAL_BLOCK))     return 1440;
+        if (stack.is(Items.COAL))           return 160;
+        if (stack.is(Items.CHARCOAL))       return 160;
+        if (stack.is(net.minecraft.world.item.Items.BLAZE_ROD)) return 1800;
 
         // Tag-based: c:coals, c:coal, minecraft:coals
-        if (stack.is(net.minecraft.tags.ItemTags.COALS)) return 1600;
+        if (stack.is(net.minecraft.tags.ItemTags.COALS)) return 160;
 
         return 0;
     }
@@ -63,7 +63,7 @@ public class FuelRegistry {
         if (stack.is(Tags.Items.CROPS))     return 300;
 
         return 0;
-    }
+    } //TODO: Make this also balanced like i did with the fossil fuels
 
     public static boolean isBioFuel(ItemStack stack) {
         return getBioBurnTime(stack) > 0;

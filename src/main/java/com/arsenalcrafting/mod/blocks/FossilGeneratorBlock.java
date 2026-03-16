@@ -19,6 +19,9 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
+
+//TODO: Fix the bug where the max capacity for a genertor changes to 80 (Bronze on all the generators)
+
 /**
  * Fossil Fuel Generator — burns coal/charcoal/coal blocks → FE.
  * One fuel slot, tier-scaled output. Priority 1 generator type.

@@ -123,6 +123,7 @@ public class LangGenerator implements DataProvider {
         entries.put("item.arsenalcrafting.augment_slots", "Augment Slots: %s");
         entries.put("item.arsenalcrafting.alloy_color", "Alloy Color: %s");
         entries.put("item.arsenalcrafting.tin_alloy", "Tin");
+        entries.put("block.arsenalcrafting.fossil_generator", "Fossil Generator");
 
 
 

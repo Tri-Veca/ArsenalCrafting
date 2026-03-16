@@ -40,14 +40,14 @@ public class FossilGeneratorScreen extends AbstractContainerScreen<FossilGenerat
     // Energy bar — empty outline in main GUI
     private static final int BAR_X       = 134; // inner left edge (x=133 is border)
     private static final int BAR_Y       = 17;  // inner top edge  (y=16 is border)
-    private static final int BAR_WIDTH   = 15;
+    private static final int BAR_WIDTH   = 16;
     private static final int BAR_HEIGHT  = 56;  // y=16 to y=72 = 56px inner
 
     // Filled bar source in texture transparent region (x=176, y=1, 15×58)
     private static final int BAR_SRC_U   = 176;
     private static final int BAR_SRC_V   = 1;
-    private static final int BAR_SRC_W   = 15;
-    private static final int BAR_SRC_H   = 58;
+    private static final int BAR_SRC_W   = 16;
+    private static final int BAR_SRC_H   = 56;
 
     // Fuel slot hover area
     private static final int FUEL_X      = 80;
