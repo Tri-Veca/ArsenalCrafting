@@ -264,6 +264,11 @@ public class ArsenalBroadSwordItem extends SwordItem implements ArsenalTool {
 
         target.hurt(source, finalDamage);
 
+        // Kill detection — must be after hurt() resolves, not in onLeftClickEntity
+        if (attacker instanceof Player player && target.isDeadOrDying()) {
+            UnifiedProcessor.processEntityKill(stack, player, target);
+        }
+
         // Step 4: Hit summary
         float sharpnessBonus = 0f;
         if (com.arsenalcrafting.mod.core.augments.AugmentManager.isInstalled("sharpness", stack)) {
@@ -288,13 +293,11 @@ public class ArsenalBroadSwordItem extends SwordItem implements ArsenalTool {
     }
 
     /**
-     * Called when this weapon kills an entity.
+     * onLeftClickEntity fires BEFORE the hit — kill detection moved to hurtEnemy
+     * after target.hurt() so isDeadOrDying() is accurate.
      */
     @Override
     public boolean onLeftClickEntity(ItemStack stack, Player player, Entity entity) {
-        if (entity instanceof LivingEntity killed && killed.isDeadOrDying()) {
-            UnifiedProcessor.processEntityKill(stack, player, killed);
-        }
         return super.onLeftClickEntity(stack, player, entity);
     }
 

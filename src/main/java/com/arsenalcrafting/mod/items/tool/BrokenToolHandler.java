@@ -49,12 +49,8 @@ public final class BrokenToolHandler {
 
         // Would reach max durability — mark broken instead
         if (entity instanceof Player player) {
-            int current = stack.getDamageValue();
-            int max = stack.getMaxDamage();
-            System.out.println("[BrokenTool] damage=" + amount + " current=" + current + " max=" + max + " wouldBreak=" + (current + amount >= max));
-            if (current + amount >= max) {
+            if (stack.getDamageValue() + amount >= stack.getMaxDamage()) {
                 checkAndBreak(stack, player);
-                System.out.println("[BrokenTool] Marked broken! isBroken=" + isBroken(stack));
                 return true;
             }
         }
