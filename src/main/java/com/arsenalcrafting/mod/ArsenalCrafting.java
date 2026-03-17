@@ -38,6 +38,7 @@ public class ArsenalCrafting {
         NeoForge.EVENT_BUS.register(ArsenalPlayerEvents.class);
         NeoForge.EVENT_BUS.register(PowerNetworkEvents.class);
         NeoForge.EVENT_BUS.register(ArsenalCommands.class);
+        modEventBus.addListener(ModCapabilities::register);
         modEventBus.addListener(this::registerCapabilities);
 
         TestModeConfig.setTestMode(false);

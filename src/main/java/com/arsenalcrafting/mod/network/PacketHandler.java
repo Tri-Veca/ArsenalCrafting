@@ -1,7 +1,10 @@
 package com.arsenalcrafting.mod.network;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -31,6 +34,13 @@ public class PacketHandler {
                 SetFaceModePacket.STREAM_CODEC,
                 SetFaceModePacket::handle
         );
+
+        // Register Fluid Sync Packet
+        registrar.playToClient(
+                SyncAlloySmelterFluidPacket.TYPE,
+                SyncAlloySmelterFluidPacket.STREAM_CODEC,
+                SyncAlloySmelterFluidPacket::handle
+        );
     }
 
     public static void sendToPlayer(ServerPlayer player, CustomPacketPayload packet) {
@@ -39,6 +49,16 @@ public class PacketHandler {
 
     public static void sendToServer(CustomPacketPayload packet) {
         net.neoforged.neoforge.network.PacketDistributor.sendToServer(packet);
+    }
+
+    public static void sendToAllTracking(CustomPacketPayload packet, Level level, BlockPos pos) {
+        if (level instanceof ServerLevel serverLevel) {
+            net.neoforged.neoforge.network.PacketDistributor.sendToPlayersTrackingChunk(
+                    serverLevel,
+                    serverLevel.getChunkAt(pos).getPos(),
+                    packet
+            );
+        }
     }
 
     // You can register more packets here as needed

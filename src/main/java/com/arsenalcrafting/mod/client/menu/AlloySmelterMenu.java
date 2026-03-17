@@ -13,7 +13,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.items.SlotItemHandler;
 
 public class AlloySmelterMenu extends AbstractContainerMenu {
-    private final AlloySmelterBlockEntity blockEntity;
+    public final AlloySmelterBlockEntity blockEntity;
     private final Level level;
     private final ContainerData data;
 
@@ -48,7 +48,7 @@ public class AlloySmelterMenu extends AbstractContainerMenu {
         }
 
         // Fuel slot - slot 9
-        // this.addSlot(new SlotItemHandler(handler, 9, 89, 53));
+         this.addSlot(new SlotItemHandler(handler, 9, 89, 53));
 
         // Output slot - slot 10
         this.addSlot(new SlotItemHandler(handler, 10, 143, 35) {
@@ -59,6 +59,14 @@ public class AlloySmelterMenu extends AbstractContainerMenu {
         });
 
         addDataSlots(data);
+    }
+
+    public int getScaledFluid() {
+        int fluidAmount = blockEntity.FLUID_TANK.getFluidAmount();
+        int capacity = blockEntity.FLUID_TANK.getCapacity();
+        int tankHeight = 60;
+
+        return capacity != 0 ? (fluidAmount * tankHeight / capacity) : 0;
     }
 
     // Progress bar helpers
