@@ -3,6 +3,7 @@ import com.arsenalcrafting.mod.commands.ArsenalCommands;
 import com.arsenalcrafting.mod.config.TestModeConfig;
 import com.arsenalcrafting.mod.core.alloy.AlloyRecipeType;
 import com.arsenalcrafting.mod.events.ArsenalAttributeEvents;
+import com.arsenalcrafting.mod.events.ArsenalPlayerEvents;
 import com.arsenalcrafting.mod.power.PowerNetworkEvents;
 import com.arsenalcrafting.mod.registry.*;
 import net.neoforged.bus.api.IEventBus;
@@ -30,6 +31,7 @@ public class ArsenalCrafting {
         AlloyRecipeType.register(modEventBus);
         ModRecipeSerializers.register(modEventBus);
         NeoForge.EVENT_BUS.register(ArsenalAttributeEvents.class);
+        NeoForge.EVENT_BUS.register(ArsenalPlayerEvents.class);
         NeoForge.EVENT_BUS.register(PowerNetworkEvents.class);
         NeoForge.EVENT_BUS.register(ArsenalCommands.class);
         modEventBus.addListener(this::registerCapabilities);

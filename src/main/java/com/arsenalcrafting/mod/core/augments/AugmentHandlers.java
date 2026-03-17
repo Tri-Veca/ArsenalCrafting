@@ -1,10 +1,15 @@
 package com.arsenalcrafting.mod.core.augments;
 
 import com.arsenalcrafting.mod.component.DynamicComponents;
+import com.arsenalcrafting.mod.component.ToolAssemblyData;
+import com.arsenalcrafting.mod.component.ToolComponentType;
+import com.arsenalcrafting.mod.core.ItemStackHelper;
 import com.arsenalcrafting.mod.items.augments.*;
 import com.arsenalcrafting.mod.items.tool.ArsenalToolType;
+import com.arsenalcrafting.mod.registry.ModComponents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -174,17 +179,13 @@ public class AugmentHandlers {
     }
 
     public static class Light implements AugmentHandler {
-        // Track current light position per player
-        private static final Map<UUID, BlockPos> PLAYER_LIGHT_POS = new HashMap<>();
-        // Track all light blocks we've placed
-        private static final Set<BlockPos> ALL_LIGHT_BLOCKS = new HashSet<>();
-        // Track which item stack ID placed the light — prevents multi-tool flicker (#19)
-        // Key = player UUID, Value = System.identityHashCode of the stack that owns the light
-        private static final Map<UUID, Integer> LIGHT_OWNER = new HashMap<>();
+
+
+        private static final Map<UUID, Integer> LAST_SELECTED_SLOT = new HashMap<>();
 
         @Override
         public int priority() {
-            return 5; // Early priority for utility
+            return 5;
         }
 
         @Override
@@ -202,69 +203,26 @@ public class AugmentHandlers {
             Level level = player.level();
             if (level.isClientSide) return;
 
-            UUID uuid = player.getUUID();
-            int stackId = System.identityHashCode(stack);
+            BlockPos center = player.blockPosition();
 
-            // Only the currently held tool manages the light.
-            // If another stack owns it, this one steps back. (#19 multi-tool flicker fix)
-            Integer owner = LIGHT_OWNER.get(uuid);
-            if (owner != null && owner != stackId) {
-                // This is not the owning tool — don't touch the light
-                return;
-            }
+            // 🔥 ALWAYS clean nearby lights first (fixes ALL ghost cases)
+            cleanupNearbyLights(level, center, 4);
 
-            BlockPos currentPos = player.blockPosition().above();
-            BlockPos lastPos = PLAYER_LIGHT_POS.get(uuid);
+            BlockPos pos = center.above();
 
-            // Check if we need to move the light
-            boolean needsMove = false;
-
-            if (lastPos == null) {
-                needsMove = true;
-            } else if (!currentPos.equals(lastPos)) {
-                needsMove = true;
-            } else if (!(level.getBlockState(lastPos).getBlock() instanceof LightBlock)) {
-                needsMove = true;
-            } else if (level.getBlockState(lastPos).getValue(LightBlock.LEVEL) < 15) {
-                needsMove = true;
-            }
-
-            if (needsMove) {
-                // Remove old light — also scan nearby in case fast movement left orphans
-                if (lastPos != null) {
-                    removeLightBlock(level, lastPos);
-                    // Clean up any orphaned lights within 3 blocks of last pos (#19 fast movement fix)
-                    for (BlockPos nearby : BlockPos.betweenClosed(
-                            lastPos.offset(-2, -1, -2), lastPos.offset(2, 2, 2))) {
-                        if (ALL_LIGHT_BLOCKS.contains(nearby.immutable())
-                                && level.getBlockState(nearby).getBlock() instanceof LightBlock) {
-                            removeLightBlock(level, nearby.immutable());
-                        }
-                    }
-                }
-
-                // Try to place new light
-                if (canPlaceLight(level, currentPos)) {
-                    placeLightBlock(level, currentPos);
-                    PLAYER_LIGHT_POS.put(uuid, currentPos);
-                    LIGHT_OWNER.put(uuid, stackId);
-                    markAsTemporaryLight(level, currentPos);
-                } else {
-                    // Try positions around the player
-                    for (BlockPos offset : new BlockPos[]{
-                            currentPos.above(),
-                            currentPos.north(),
-                            currentPos.south(),
-                            currentPos.east(),
-                            currentPos.west()
-                    }) {
-                        if (canPlaceLight(level, offset)) {
-                            placeLightBlock(level, offset);
-                            PLAYER_LIGHT_POS.put(uuid, offset);
-                            LIGHT_OWNER.put(uuid, stackId);
-                            markAsTemporaryLight(level, offset);
-                            break;
-                        }
+            if (canPlaceLight(level, pos)) {
+                placeLight(level, pos);
+            } else {
+                for (BlockPos offset : new BlockPos[]{
+                        pos.above(),
+                        pos.north(),
+                        pos.south(),
+                        pos.east(),
+                        pos.west()
+                }) {
+                    if (canPlaceLight(level, offset)) {
+                        placeLight(level, offset);
+                        break;
                     }
                 }
             }
@@ -272,35 +230,37 @@ public class AugmentHandlers {
 
         @Override
         public void onToolUnequip(ItemStack stack, Player player) {
-            // #19: Always clean up on unequip — handles multi-tool scenario
-            removePlayerLight(player);
+            Level level = player.level();
+            // ANYTHING BEFORE THIS CHECK WILL BE RAN ON THE CLIENT
+            if (level.isClientSide) return;
+            // ANYTHING AFTER THIS CHECK WILL BE RAN ON THE SERVER
+
+            cleanupAllNearby(player);
         }
 
         @Override
         public void onToolEquip(ItemStack stack, Player player) {
-            // #19: Clear any stale light from a previous tool before placing new one
-            removePlayerLight(player);
+            // Logic for equipping the tool
         }
 
-        private void markAsTemporaryLight(Level level, BlockPos pos) {
-            if (!level.isClientSide) {
-                BlockEntity blockEntity = level.getBlockEntity(pos);
-                if (blockEntity != null) {
-                    CompoundTag tag = blockEntity.getPersistentData();
-                    tag.putBoolean("arsenal_temporary_light", true);
-                    tag.putLong("arsenal_placed_time", level.getGameTime());
-                    blockEntity.setChanged();
+        // =========================
+        // CORE LOGIC
+        // =========================
+
+        private void cleanupNearbyLights(Level level, BlockPos center, int radius) {
+            for (BlockPos pos : BlockPos.betweenClosed(
+                    center.offset(-radius, -2, -radius),
+                    center.offset(radius, 3, radius))) {
+
+                BlockState state = level.getBlockState(pos);
+
+                if (state.getBlock() == Blocks.LIGHT) {
+                    level.removeBlock(pos, false);
                 }
             }
-            ALL_LIGHT_BLOCKS.add(pos);
         }
 
-        private boolean canPlaceLight(Level level, BlockPos pos) {
-            BlockState state = level.getBlockState(pos);
-            return state.isAir() || state.getBlock() == Blocks.LIGHT || state.canBeReplaced();
-        }
-
-        private void placeLightBlock(Level level, BlockPos pos) {
+        private void placeLight(Level level, BlockPos pos) {
             BlockState lightState = Blocks.LIGHT.defaultBlockState()
                     .setValue(LightBlock.LEVEL, 15)
                     .setValue(LightBlock.WATERLOGGED, false);
@@ -309,46 +269,47 @@ public class AugmentHandlers {
             level.getChunkSource().getLightEngine().checkBlock(pos);
         }
 
-        private void removeLightBlock(Level level, BlockPos pos) {
-            if (level.getBlockState(pos).getBlock() == Blocks.LIGHT) {
-                level.removeBlock(pos, false);
-                ALL_LIGHT_BLOCKS.remove(pos);
-            }
-        }
 
-        public void removePlayerLight(Player player) {
-            UUID uuid = player.getUUID();
-            BlockPos pos = PLAYER_LIGHT_POS.remove(uuid);
-            LIGHT_OWNER.remove(uuid);
-            if (pos != null) {
-                removeLightBlock(player.level(), pos);
-            }
-        }
+        public void cleanupAllNearby(Player player) {
+            Level level = player.level();
+            if (level.isClientSide) return;
 
-        public static void cleanupOnWorldLoad(Level level) {
-            PLAYER_LIGHT_POS.clear();
-            ALL_LIGHT_BLOCKS.clear();
-            LIGHT_OWNER.clear();
-            System.out.println("[ArsenalCrafting] Light augment: Cleared memory tracking on world load");
+            BlockPos center = player.blockPosition();
 
-            // Clean up any light blocks around players
-            for (Player player : level.players()) {
-                BlockPos center = player.blockPosition();
-                for (int x = -2; x <= 2; x++) {
-                    for (int y = -1; y <= 3; y++) {
-                        for (int z = -2; z <= 2; z++) {
-                            BlockPos pos = center.offset(x, y, z);
-                            if (level.getBlockState(pos).getBlock() == Blocks.LIGHT) {
-                                level.removeBlock(pos, false);
-                            }
-                        }
-                    }
+            for (BlockPos pos : BlockPos.betweenClosed(
+                    center.offset(-6, -3, -6),
+                    center.offset(6, 4, 6))) {
+
+                if (level.getBlockState(pos).getBlock() == Blocks.LIGHT) {
+                    level.removeBlock(pos, false);
                 }
             }
         }
 
-        public static void onPlayerLogout(Player player) {
-            PLAYER_LIGHT_POS.remove(player.getUUID());
+        private boolean canPlaceLight(Level level, BlockPos pos) {
+            BlockState state = level.getBlockState(pos);
+            return state.isAir() || state.getBlock() == Blocks.LIGHT || state.canBeReplaced();
+        }
+
+        // =========================
+        // WORLD CLEANUP
+        // =========================
+
+        public static void cleanupOnWorldLoad(Level level) {
+            for (Player player : level.players()) {
+                BlockPos center = player.blockPosition();
+
+                for (BlockPos pos : BlockPos.betweenClosed(
+                        center.offset(-6, -3, -6),
+                        center.offset(6, 4, 6))) {
+
+                    if (level.getBlockState(pos).getBlock() == Blocks.LIGHT) {
+                        level.removeBlock(pos, false);
+                    }
+                }
+            }
+
+            System.out.println("[ArsenalCrafting] Light augment: Cleaned all temporary lights");
         }
     }
 

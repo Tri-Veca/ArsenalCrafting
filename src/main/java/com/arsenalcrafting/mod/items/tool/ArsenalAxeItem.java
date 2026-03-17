@@ -243,14 +243,6 @@ public class ArsenalAxeItem extends AxeItem implements ArsenalTool {
 
         if (selected) {
             UnifiedProcessor.processToolTick(stack, player);
-        } else {
-            // Tool is no longer selected - clean up light
-            AugmentHandler handler = AugmentManager.getHandler("light");
-            if (handler instanceof AugmentHandlers.Light lightHandler) {
-                if (AugmentManager.isActive("light", stack)) {
-                    lightHandler.removePlayerLight(player);
-                }
-            }
         }
     }
 
