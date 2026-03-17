@@ -49,6 +49,26 @@ public class PowerBankMenu extends AbstractContainerMenu {
         this.blockEntity = blockEntity;
         this.level = playerInventory.player.level();
 
+        // Discharge slot (left, red minus) x=17,y=34 — drains energy FROM bank into item
+        addSlot(new Slot(blockEntity.getChargeInventory(), 1, 17, 34) {
+            @Override
+            public boolean mayPlace(net.minecraft.world.item.ItemStack stack) {
+                return stack.getCapability(
+                        net.neoforged.neoforge.capabilities.Capabilities.EnergyStorage.ITEM, null) != null;
+            }
+            @Override public int getMaxStackSize() { return 1; }
+        });
+
+        // Charge slot (right, green plus) x=142,y=34 — pulls energy FROM item into bank
+        addSlot(new Slot(blockEntity.getChargeInventory(), 0, 142, 34) {
+            @Override
+            public boolean mayPlace(net.minecraft.world.item.ItemStack stack) {
+                return stack.getCapability(
+                        net.neoforged.neoforge.capabilities.Capabilities.EnergyStorage.ITEM, null) != null;
+            }
+            @Override public int getMaxStackSize() { return 1; }
+        });
+
         // Player inventory slots (3 rows) — y=84,102,120 from texture analysis
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
@@ -114,7 +134,25 @@ public class PowerBankMenu extends AbstractContainerMenu {
 
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
-        return ItemStack.EMPTY; // No item slots to move
+        ItemStack result = ItemStack.EMPTY;
+        Slot slot = slots.get(index);
+        if (slot == null || !slot.hasItem()) return result;
+
+        ItemStack stack = slot.getItem();
+        result = stack.copy();
+
+        // From charge/discharge slots → player inventory
+        if (index < 2) {
+            if (!moveItemStackTo(stack, 2, 38, true)) return ItemStack.EMPTY;
+        }
+        // From player inventory → try charge slots
+        else {
+            if (!moveItemStackTo(stack, 0, 2, false)) return ItemStack.EMPTY;
+        }
+
+        if (stack.isEmpty()) slot.set(ItemStack.EMPTY);
+        else slot.setChanged();
+        return result;
     }
 
     @Override

@@ -4,14 +4,18 @@ import com.arsenalcrafting.mod.config.TestModeConfig;
 import com.arsenalcrafting.mod.core.alloy.AlloyRecipeType;
 import com.arsenalcrafting.mod.events.ArsenalAttributeEvents;
 import com.arsenalcrafting.mod.events.ArsenalPlayerEvents;
+import com.arsenalcrafting.mod.items.gadgets.ArsenalDrillItem;
+import com.arsenalcrafting.mod.items.gadgets.ArsenalSawItem;
 import com.arsenalcrafting.mod.power.PowerNetworkEvents;
 import com.arsenalcrafting.mod.registry.*;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.event.RenderPlayerEvent;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.energy.IEnergyStorage;
 import net.neoforged.neoforge.event.level.LevelEvent;
 
 @Mod(ArsenalCrafting.MOD_ID)
@@ -65,5 +69,61 @@ public class ArsenalCrafting {
 
     private void registerCapabilities(final RegisterCapabilitiesEvent event) {
         ModBlockEntities.registerCapabilities(event);
+
+        event.registerItem(Capabilities.EnergyStorage.ITEM,
+                (stack, ctx) -> new IEnergyStorage() {
+                    @Override
+                    public int receiveEnergy(int maxReceive, boolean simulate) {
+                        int current = ArsenalSawItem.getEnergy(stack);
+                        int accepted = Math.min(maxReceive,
+                                Math.min(ArsenalSawItem.TRANSFER_RATE,
+                                        ArsenalSawItem.MAX_ENERGY - current));
+                        if (!simulate && accepted > 0)
+                            ArsenalSawItem.setEnergy(stack, current + accepted);
+                        return accepted;
+                    }
+                    @Override
+                    public int extractEnergy(int maxExtract, boolean simulate) {
+                        int current = ArsenalSawItem.getEnergy(stack);
+                        int extracted = Math.min(current, Math.min(ArsenalSawItem.TRANSFER_RATE, maxExtract));
+                        if (!simulate && extracted > 0)
+                            ArsenalSawItem.setEnergy(stack, current - extracted);
+                        return extracted;
+                    }
+                    @Override public int getEnergyStored() { return ArsenalSawItem.getEnergy(stack); }
+                    @Override public int getMaxEnergyStored() { return ArsenalSawItem.MAX_ENERGY; }
+                    @Override public boolean canExtract() { return true; }
+                    @Override public boolean canReceive() { return true; }
+                },
+                ModItems.SAW.get()
+        );
+
+        event.registerItem(Capabilities.EnergyStorage.ITEM,
+                (stack, ctx) -> new IEnergyStorage() {
+                    @Override
+                    public int receiveEnergy(int maxReceive, boolean simulate) {
+                        int current = ArsenalDrillItem.getEnergy(stack);
+                        int accepted = Math.min(maxReceive,
+                                Math.min(ArsenalDrillItem.TRANSFER_RATE,
+                                        ArsenalDrillItem.MAX_ENERGY - current));
+                        if (!simulate && accepted > 0)
+                            ArsenalDrillItem.setEnergy(stack, current + accepted);
+                        return accepted;
+                    }
+                    @Override
+                    public int extractEnergy(int maxExtract, boolean simulate) {
+                        int current = ArsenalDrillItem.getEnergy(stack);
+                        int extracted = Math.min(current, Math.min(ArsenalDrillItem.TRANSFER_RATE, maxExtract));
+                        if (!simulate && extracted > 0)
+                            ArsenalDrillItem.setEnergy(stack, current - extracted);
+                        return extracted;
+                    }
+                    @Override public int getEnergyStored() { return ArsenalDrillItem.getEnergy(stack); }
+                    @Override public int getMaxEnergyStored() { return ArsenalDrillItem.MAX_ENERGY; }
+                    @Override public boolean canExtract() { return true; }
+                    @Override public boolean canReceive() { return true; }
+                },
+                ModItems.DRILL.get()
+        );
     }
 }

@@ -6,6 +6,8 @@ import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
 import com.arsenalcrafting.mod.items.RepairKitItem;
 import com.arsenalcrafting.mod.items.augments.UniversalAugmentItem;
+import com.arsenalcrafting.mod.items.gadgets.ArsenalDrillItem;
+import com.arsenalcrafting.mod.items.gadgets.ArsenalSawItem;
 import com.arsenalcrafting.mod.items.tool.*;
 import com.arsenalcrafting.mod.component.ToolComponentType;
 import com.arsenalcrafting.mod.items.tool.toolparts.ToolComponentItem;
@@ -30,10 +32,10 @@ public class ModItems {
     public static final Map<AlloyMaterial, DeferredHolder<Item, Item>> ALLOY_ITEMS = new HashMap<>();
     public static final Map<AlloyMaterial, Map<ToolComponentType, DeferredHolder<Item, ToolComponentItem>>> TOOL_COMPONENTS = new HashMap<>();
 
-    public static final DeferredHolder<Item, Item> DRILL = ITEMS.register("drill",
-            () -> new Item(new Item.Properties()));
-    public static final DeferredHolder<Item, Item> SAW = ITEMS.register("saw",
-            () -> new Item(new Item.Properties()));
+    public static final DeferredHolder<Item, ArsenalSawItem> SAW =
+            ITEMS.register("saw", () -> new ArsenalSawItem(new Item.Properties()));
+    public static final DeferredHolder<Item, ArsenalDrillItem> DRILL =
+            ITEMS.register("drill", () -> new ArsenalDrillItem(new Item.Properties()));
 
 
     public static final DeferredHolder<Item, RepairKitItem> REPAIR_KIT = ITEMS.register("repair_kit",

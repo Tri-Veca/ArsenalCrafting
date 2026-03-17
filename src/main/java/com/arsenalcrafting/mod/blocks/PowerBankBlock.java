@@ -6,6 +6,7 @@ import com.arsenalcrafting.mod.power.PowerTier;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
@@ -15,30 +16,29 @@ import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import org.jetbrains.annotations.Nullable;
 
-/**
- * Tiered power storage block.
- * Capacity and transfer rate scale with PowerTier.
- * Bar color: green (full) → yellow → red (empty).
- */
+import javax.annotation.Nullable;
+
 public class PowerBankBlock extends BaseEntityBlock {
 
     private final PowerTier tier;
 
-    public PowerBankBlock(BlockBehaviour.Properties properties, PowerTier tier) {
+    public PowerBankBlock(Properties properties, PowerTier tier) {
         super(properties);
         this.tier = tier;
     }
 
-    public PowerTier getTier() { return tier; }
-
+    @Nullable
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new PowerBankBlockEntity(tier, pos, state);
+    }
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return null;
     }
 
     @Override
@@ -59,22 +59,20 @@ public class PowerBankBlock extends BaseEntityBlock {
     }
 
     @Override
-    public InteractionResult useWithoutItem(BlockState state, Level level,
-                                            BlockPos pos, Player player, BlockHitResult hit) {
-        if (!level.isClientSide) {
-            BlockEntity be = level.getBlockEntity(pos);
-            if (be instanceof PowerBankBlockEntity bank) {
-                player.openMenu(new SimpleMenuProvider(
-                        (id, inv, p) -> new PowerBankMenu(id, inv, bank),
-                        Component.translatable("block.arsenalcrafting.power_bank")
-                ), buf -> buf.writeBlockPos(pos));
-            }
-        }
-        return InteractionResult.sidedSuccess(level.isClientSide);
-    }
+    protected InteractionResult useWithoutItem(BlockState state, Level level,
+                                               BlockPos pos, Player player, BlockHitResult hit) {
+        if (level.isClientSide) return InteractionResult.SUCCESS;
 
-    @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        return null;
+        BlockEntity be = level.getBlockEntity(pos);
+        if (be instanceof PowerBankBlockEntity bank && player instanceof ServerPlayer serverPlayer) {
+            serverPlayer.openMenu(
+                    new SimpleMenuProvider(
+                            (id, inv, p) -> new PowerBankMenu(id, inv, bank),
+                            Component.translatable("block.arsenalcrafting.power_bank")
+                    ),
+                    buf -> buf.writeBlockPos(pos)
+            );
+        }
+        return InteractionResult.CONSUME;
     }
 }
