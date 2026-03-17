@@ -52,10 +52,10 @@ public class PowerBankScreen extends AbstractContainerScreen<PowerBankMenu> {
     private static final int BATTERY_HEIGHT = 30;
 
     // Battery fill area (inside the battery border)
-    private static final int BATTERY_FILL_X      = 48;
-    private static final int BATTERY_FILL_Y      = 32;
+    private static final int BATTERY_FILL_X      = 50;
+    private static final int BATTERY_FILL_Y      = 31;
     private static final int BATTERY_FILL_WIDTH  = 76;
-    private static final int BATTERY_FILL_HEIGHT = 19;
+    private static final int BATTERY_FILL_HEIGHT = 22;
 
     // Empty bar position in main GUI (y=163-164, x=7 to ~169)
     private static final int BAR_X      = 7;
@@ -63,11 +63,18 @@ public class PowerBankScreen extends AbstractContainerScreen<PowerBankMenu> {
     private static final int BAR_WIDTH  = 60;
     private static final int BAR_HEIGHT = 8;
 
-    // Filled bar SOURCE in texture transparent region (y=180-201, x=7-79)
+    // Bottom bar SOURCE in texture transparent region (y=180, x=7-79)
     private static final int BAR_SRC_X  = 7;
-    private static final int BAR_SRC_Y  = 180;
-    private static final int BAR_SRC_W  = 72;  // full width of filled bar in texture
+    private static final int BAR_SRC_Y  = 155;
+    private static final int BAR_SRC_W  = 72;
     private static final int BAR_SRC_H  = 10;
+
+    // Battery fill SOURCE in texture transparent region (y=180-201, x=7-79)
+    // Same source region — battery fill reuses the same red graphic
+    private static final int BATT_SRC_X = 7;
+    private static final int BATT_SRC_Y = 180;
+    private static final int BATT_SRC_W = 73;
+    private static final int BATT_SRC_H = 22;
 
     // Face buttons — cross layout left of battery (x=7, y=14)
     // Each button 14x14. Cross: UP center-top, LEFT/CENTER/RIGHT middle, DOWN center-bottom
@@ -77,7 +84,7 @@ public class PowerBankScreen extends AbstractContainerScreen<PowerBankMenu> {
     // Plus North/South stacked below
     private static final int BTN_SIZE = 14;
     private static final int BTN_GAP  = 1;
-    private static final int BTN_ORIGIN_X = 7;   // left edge of cross
+    private static final int BTN_ORIGIN_X = 175;   // left edge of cross
     private static final int BTN_ORIGIN_Y = 14;  // top of cross
 
     private final Map<Direction, Button> faceButtons = new EnumMap<>(Direction.class);
@@ -173,26 +180,16 @@ public class PowerBankScreen extends AbstractContainerScreen<PowerBankMenu> {
 
         if (max <= 0) return;
 
-        // Get tier color from the block entity
-        int color = getTierColor();
-        float r = ((color >> 16) & 0xFF) / 255.0f;
-        float g = ((color >> 8)  & 0xFF) / 255.0f;
-        float b = ((color)       & 0xFF) / 255.0f;
-
-        // ── BATTERY ICON FILL (colored rect, drawn over texture) ────────────
-        // Only draw if there is actually stored energy
-        int fillWidth = (int) (BATTERY_FILL_WIDTH * fill);
+        // ── BATTERY ICON FILL — blit from texture transparent region ────────
+        int fillWidth = (int) (BATT_SRC_W * fill);
         if (fillWidth > 0 && energy > 0) {
-            int argb = (0xCC << 24)
-                    | (((int)(r * 255)) << 16)
-                    | (((int)(g * 255)) << 8)
-                    |  ((int)(b * 255));
-            gfx.fill(
-                    leftPos + BATTERY_FILL_X,
-                    topPos  + BATTERY_FILL_Y,
-                    leftPos + BATTERY_FILL_X + fillWidth,
-                    topPos  + BATTERY_FILL_Y + BATTERY_FILL_HEIGHT,
-                    argb
+            gfx.blit(TEXTURE,
+                    leftPos + BATTERY_FILL_X,   // dest x
+                    topPos  + BATTERY_FILL_Y,   // dest y
+                    BATT_SRC_X,                 // src u
+                    BATT_SRC_Y,                 // src v
+                    fillWidth,                  // scaled width
+                    BATT_SRC_H                  // height
             );
         }
 
