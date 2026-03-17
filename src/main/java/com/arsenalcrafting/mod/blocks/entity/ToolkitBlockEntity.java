@@ -74,9 +74,40 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
             if (slot >= AUGMENT_SLOT_START && slot < AUGMENT_SLOT_END) {
-                // Only allow empty or augment items in augment slots
-                // When a tool is in output, we populate these automatically
-                return stack.isEmpty() || stack.getItem() instanceof InstallableAugmentItem;
+
+                if (stack.isEmpty()) return true;
+
+                if (!(stack.getItem() instanceof InstallableAugmentItem installable)) {
+                    return false;
+                }
+
+                ItemStack tool = getStackInSlot(OUTPUT_SLOT);
+                if (tool.isEmpty() || !(tool.getItem() instanceof ArsenalTool arsenalTool)) {
+                    return true; // allow placing augment before tool exists
+                }
+
+                // Get augment ID from the item
+                String newAugmentId = "";
+                if (installable instanceof UniversalAugmentItem uni) {
+                    newAugmentId = uni.getAugmentId();
+                }
+
+                if (newAugmentId.isEmpty()) return false;
+
+                if(!AugmentManager.canInstallOnToolType(newAugmentId, arsenalTool.getToolType()))
+                    return false;
+
+                ToolAugmentSlots slots = arsenalTool.getAugmentSlots(tool);
+
+                // Prevent duplicates
+                for (int i = 0; i < 4; i++) {
+                    String existing = slots.getAugmentInSlot(i);
+                    if (newAugmentId.equals(existing)) {
+                        return false; // already installed
+                    }
+                }
+
+                return true;
             }
             if (switch (slot) {
                 case HEAD_SLOT -> isToolHead(stack.getItem()); // Slot 0: Head
