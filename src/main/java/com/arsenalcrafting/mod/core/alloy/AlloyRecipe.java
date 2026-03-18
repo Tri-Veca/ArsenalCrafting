@@ -1,9 +1,11 @@
 package com.arsenalcrafting.mod.core.alloy;
 
+import com.arsenalcrafting.mod.registry.ModRecipeSerializers;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
@@ -14,12 +16,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AlloyRecipe implements Recipe<AlloyRecipeInput> {
-    private final List<Ingredient> ingredients;
+    private final NonNullList<Ingredient> ingredients;
     private final ItemStack result;
+    private final int lavaCost;
+    private final int craftTime;
 
-    public AlloyRecipe(List<Ingredient> ingredients, ItemStack result) {
-        this.ingredients = ingredients;
+    public AlloyRecipe(List<Ingredient> ingredients, ItemStack result, int lavaCost, int craftTime) {
+        // Convert List to NonNullList
+        this.ingredients = NonNullList.create();
+        this.ingredients.addAll(ingredients);
         this.result = result;
+        this.lavaCost = lavaCost;
+        this.craftTime = craftTime;
+    }
+
+    public int getLavaCost() { return lavaCost; }
+    public int getCraftTime() { return craftTime; }
+
+    @Override
+    public NonNullList<Ingredient> getIngredients() {
+        return ingredients;
     }
 
     @Override
@@ -80,7 +96,7 @@ public class AlloyRecipe implements Recipe<AlloyRecipeInput> {
 
     @Override
     public RecipeSerializer<?> getSerializer() {
-        return AlloyRecipeSerializer.INSTANCE;
+        return ModRecipeSerializers.ALLOY_SMELTING.get();
     }
 
     @Override
@@ -88,38 +104,41 @@ public class AlloyRecipe implements Recipe<AlloyRecipeInput> {
         return AlloyRecipeType.ALLOY_SMELTING.get();
     }
 
-    public static class AlloyRecipeSerializer implements RecipeSerializer<AlloyRecipe> {
-        public static final AlloyRecipeSerializer INSTANCE = new AlloyRecipeSerializer();
+    public static class Serializer implements RecipeSerializer<AlloyRecipe> {
+        public static final Serializer INSTANCE = new Serializer();
 
         private static final MapCodec<AlloyRecipe> CODEC = RecordCodecBuilder.mapCodec(instance ->
                 instance.group(
-                        Ingredient.CODEC.listOf().fieldOf("ingredients").forGetter(recipe -> recipe.ingredients),
-                        ItemStack.CODEC.fieldOf("result").forGetter(recipe -> recipe.result)
+                        Ingredient.CODEC.listOf().fieldOf("ingredients").forGetter(recipe -> recipe.ingredients.stream().toList()),
+                        ItemStack.CODEC.fieldOf("result").forGetter(recipe -> recipe.result),
+                        Codec.INT.optionalFieldOf("lavaCost", 1000).forGetter(recipe -> recipe.lavaCost),
+                        Codec.INT.optionalFieldOf("craftTime", 200).forGetter(recipe -> recipe.craftTime)
                 ).apply(instance, AlloyRecipe::new)
         );
 
         private static final StreamCodec<RegistryFriendlyByteBuf, AlloyRecipe> STREAM_CODEC =
-                new StreamCodec<>() {
-                    @Override
-                    public AlloyRecipe decode(RegistryFriendlyByteBuf buf) {
-                        int size = buf.readVarInt();
-                        List<Ingredient> ingredients = new ArrayList<>();
-                        for (int i = 0; i < size; i++) {
-                            ingredients.add(Ingredient.CONTENTS_STREAM_CODEC.decode(buf));
+                StreamCodec.of(
+                        (buf, recipe) -> {
+                            buf.writeVarInt(recipe.ingredients.size());
+                            for (Ingredient ingredient : recipe.ingredients) {
+                                Ingredient.CONTENTS_STREAM_CODEC.encode(buf, ingredient);
+                            }
+                            ItemStack.STREAM_CODEC.encode(buf, recipe.result);
+                            buf.writeVarInt(recipe.lavaCost);
+                            buf.writeVarInt(recipe.craftTime);
+                        },
+                        (buf) -> {
+                            int size = buf.readVarInt();
+                            List<Ingredient> ingredients = new ArrayList<>();
+                            for (int i = 0; i < size; i++) {
+                                ingredients.add(Ingredient.CONTENTS_STREAM_CODEC.decode(buf));
+                            }
+                            ItemStack result = ItemStack.STREAM_CODEC.decode(buf);
+                            int lavaCost = buf.readVarInt();
+                            int craftTime = buf.readVarInt();
+                            return new AlloyRecipe(ingredients, result, lavaCost, craftTime);
                         }
-                        ItemStack result = ItemStack.STREAM_CODEC.decode(buf);
-                        return new AlloyRecipe(ingredients, result);
-                    }
-
-                    @Override
-                    public void encode(RegistryFriendlyByteBuf buf, AlloyRecipe recipe) {
-                        buf.writeVarInt(recipe.ingredients.size());
-                        for (Ingredient ingredient : recipe.ingredients) {
-                            Ingredient.CONTENTS_STREAM_CODEC.encode(buf, ingredient);
-                        }
-                        ItemStack.STREAM_CODEC.encode(buf, recipe.result);
-                    }
-                };
+                );
 
         @Override
         public MapCodec<AlloyRecipe> codec() {

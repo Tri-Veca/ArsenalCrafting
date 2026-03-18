@@ -14,5 +14,7 @@
   "result": {
     "id": "arsenalcrafting:bronze_alloy",
     "count": 1
-  }
+  },
+  "lavaCost": 10000,
+  "craftTime": 1000
 }

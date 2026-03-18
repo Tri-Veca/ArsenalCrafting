@@ -23,5 +23,7 @@
   "result": {
     "id": "arsenalcrafting:steel_alloy",
     "count": 2
-  }
+  },
+  "lavaCost": 5000,
+  "craftTime": 40
 }

@@ -10,6 +10,7 @@ import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.items.SlotItemHandler;
 
 public class AlloySmelterMenu extends AbstractContainerMenu {
@@ -88,6 +89,22 @@ public class AlloySmelterMenu extends AbstractContainerMenu {
         int fuelBarSize = 14; // Pixel height of fuel bar
 
         return maxFuelTime != 0 ? (fuelTime * fuelBarSize / maxFuelTime) : 0;
+    }
+
+    public int getFluidAmount() {
+        return blockEntity.FLUID_TANK.getFluidAmount();
+    }
+
+    public int getFluidCapacity() {
+        return blockEntity.FLUID_TANK.getCapacity();
+    }
+
+    public boolean hasFluid() {
+        return !blockEntity.FLUID_TANK.isEmpty();
+    }
+
+    public FluidStack getFluid() {
+        return blockEntity.FLUID_TANK.getFluid();
     }
 
     // CREDIT GOES TO: diesieben07 | https://github.com/diesieben07/SevenCommons

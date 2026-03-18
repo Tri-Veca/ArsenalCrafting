@@ -25,6 +25,7 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.material.Fluids;
 
 import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.fluids.FluidUtil;
 import net.neoforged.neoforge.items.ItemStackHandler;
@@ -208,37 +209,56 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
 
 
 
+    // In AlloySmelterBlockEntity.java - Update the tick method
+
     public static void tick(Level level, BlockPos pos, BlockState state, AlloySmelterBlockEntity be) {
         if (level.isClientSide) return;
 
-
-        // 🔥 FIRST: handle bucket → tank
+        // Handle bucket → tank
         be.handleFluidInput();
 
-        if (hasRecipe(be)) {
+        // Get current recipe if exists
+        SimpleContainer inv = new SimpleContainer(be.itemHandler.getSlots());
+        for (int i = 0; i < be.itemHandler.getSlots(); i++) {
+            inv.setItem(i, be.itemHandler.getStackInSlot(i));
+        }
 
-            // 🔥 USE LAVA AS FUEL FIRST
-            if (be.fuelTime <= 0) {
-                if (be.FLUID_TANK.getFluidAmount() >= 100) {
-                    be.FLUID_TANK.drain(100, net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction.EXECUTE);
-                    be.fuelTime = 200;
-                    be.maxFuelTime = 200;
-                } else if (hasFuel(be)) {
-                    consumeFuel(be);
-                } else {
-                    be.progress = 0;
-                    return;
-                }
+        var recipeOpt = level.getRecipeManager().getRecipeFor(
+                AlloyRecipeType.ALLOY_SMELTING.get(),
+                new AlloyRecipeInput(inv), level
+        );
+
+        if (recipeOpt.isPresent()) {
+            var recipe = recipeOpt.get().value();
+
+            // Set max progress from recipe
+            be.maxProgress = recipe.getCraftTime();
+
+            // Calculate lava needed per tick
+            int lavaPerTick = (int) Math.ceil((double) recipe.getLavaCost() / recipe.getCraftTime());
+
+            // CHECK WHEN STARTING NEW CRAFT: Do we have enough lava for the ENTIRE recipe?
+            if (be.progress == 0 && be.FLUID_TANK.getFluidAmount() < recipe.getLavaCost()) {
+                // Not enough lava to start - do nothing
+                return;
             }
 
-            be.fuelTime--;
+            // If we're in the middle of crafting (progress > 0), we already passed the initial check
+            // so just check if we have enough for this tick
+            if (be.FLUID_TANK.getFluidAmount() < lavaPerTick) {
+                // Out of lava mid-craft - reset progress
+                be.progress = 0;
+                return;
+            }
+
+            // Consume lava for this tick
+            be.FLUID_TANK.drain(lavaPerTick, IFluidHandler.FluidAction.EXECUTE);
             be.progress++;
 
             if (be.progress >= be.maxProgress) {
                 craftItem(be);
                 be.progress = 0;
             }
-
         } else {
             be.progress = 0;
         }

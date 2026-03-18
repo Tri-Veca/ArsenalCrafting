@@ -324,5 +324,11 @@
   "tooltip.arsenalcrafting.tin_efficiency": "Mining Speed: 5.0",
   "tooltip.arsenalcrafting.titanium_damage": "Attack Damage: 4.0",
   "tooltip.arsenalcrafting.titanium_durability": "Base Durability: 1800",
-  "tooltip.arsenalcrafting.titanium_efficiency": "Mining Speed: 10.0"
+  "tooltip.arsenalcrafting.titanium_efficiency": "Mining Speed: 10.0",
+  "tooltip.arsenalcrafting.fluid_tank.empty": "Empty",
+  "tooltip.arsenalcrafting.fluid_tank.capacity": "Capacity: %s mb",
+  "tooltip.arsenalcrafting.fluid_tank.amount": "%s / %s mb (%s%%)",
+  "tooltip.arsenalcrafting.fluid_tank.lava_temperature": "§cBurning hot! §7Used as fuel",
+  "tooltip.arsenalcrafting.fluid_tank.burn_time": "§cFuel: §7%s seconds (%s cycles)"
+
 }

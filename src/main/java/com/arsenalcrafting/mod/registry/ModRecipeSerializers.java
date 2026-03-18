@@ -13,7 +13,7 @@ public class ModRecipeSerializers {
             DeferredRegister.create(Registries.RECIPE_SERIALIZER, ArsenalCrafting.MOD_ID);
 
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<AlloyRecipe>> ALLOY_SMELTING =
-            RECIPE_SERIALIZERS.register("alloy_smelting", () -> AlloyRecipe.AlloyRecipeSerializer.INSTANCE);
+            RECIPE_SERIALIZERS.register("alloy_smelting", () -> AlloyRecipe.Serializer.INSTANCE);
 
     public static void register(IEventBus eventBus) {
         RECIPE_SERIALIZERS.register(eventBus);

@@ -3,6 +3,7 @@ package com.arsenalcrafting.mod.client.gui;
 import com.arsenalcrafting.mod.ArsenalCrafting;
 import com.arsenalcrafting.mod.client.menu.AlloySmelterMenu;
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -12,12 +13,25 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.fluids.FluidStack;
+
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu> {
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ArsenalCrafting.MOD_ID,
                     "textures/gui/container/alloy_smelter_gui.png");
+
+    // Fluid tank area coordinates
+    private static final int FLUID_TANK_X = 151;
+    private static final int FLUID_TANK_Y = 17;
+    private static final int FLUID_TANK_WIDTH = 16;
+    private static final int FLUID_TANK_HEIGHT = 60;
 
     public AlloySmelterScreen(AlloySmelterMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, Component.literal("Alloy Smelter"));
@@ -37,29 +51,8 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
         // Draw main background
         guiGraphics.blit(TEXTURE, x, y, 0, 0, imageWidth, imageHeight);
 
-        var fluidStack = menu.blockEntity.FLUID_TANK.getFluid();
-
-        if (!fluidStack.isEmpty()) {
-            var fluid = fluidStack.getFluid();
-
-            var fluidExtensions = IClientFluidTypeExtensions.of(fluid);
-
-            TextureAtlasSprite sprite = Minecraft.getInstance()
-                    .getTextureAtlas(TextureAtlas.LOCATION_BLOCKS)
-                    .apply(fluidExtensions.getStillTexture());
-
-            int fluidHeight = menu.getScaledFluid();
-
-            guiGraphics.blit(
-                    x + 151,                         // align to the top-left X of the container
-                    y + 17 + (60 - fluidHeight),     // Y starts at top, goes down as fluid fills
-                    0,                                // texture Y offset (start of the fluid sprite)
-                    16,                              // width of the fluid (matches container)
-                    fluidHeight - 4,                     // height based on fluid amount
-                    sprite                            // the fluid texture sprite
-            );
-
-        }
+        // Draw fluid tank
+        renderFluidTank(guiGraphics, x, y);
 
         // Draw progress arrow
         if (menu.isCrafting()) {
@@ -69,16 +62,105 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
         // Draw fuel indicator
         guiGraphics.blit(TEXTURE, x + 89, y + 36 + 14 - menu.getScaledFuelProgress(),
                 176, 31 - menu.getScaledFuelProgress(), 14, menu.getScaledFuelProgress());
+    }
 
+    private void renderFluidTank(GuiGraphics guiGraphics, int x, int y) {
+        FluidStack fluidStack = menu.getFluid();
 
+        if (!fluidStack.isEmpty()) {
+            var fluid = fluidStack.getFluid();
+            var fluidExtensions = IClientFluidTypeExtensions.of(fluid);
 
+            ResourceLocation stillTexture = fluidExtensions.getStillTexture(fluidStack);
+            if (stillTexture == null) {
+                stillTexture = fluidExtensions.getStillTexture();
+            }
 
+            TextureAtlasSprite sprite = Minecraft.getInstance()
+                    .getTextureAtlas(TextureAtlas.LOCATION_BLOCKS)
+                    .apply(stillTexture);
+
+            int fluidHeight = menu.getScaledFluid();
+            int fluidY = y + FLUID_TANK_Y + (FLUID_TANK_HEIGHT - fluidHeight);
+
+            // Set the texture atlas for fluid rendering
+            RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_BLOCKS);
+
+            // Render fluid with tiling
+            int spriteHeight = sprite.contents().height();
+            int spriteWidth = sprite.contents().width();
+
+            int drawHeight = Math.min(spriteHeight, fluidHeight );
+
+            guiGraphics.blit(
+                    x + 151,                         // align to the top-left X of the container
+                    y + 17 + (60 - fluidHeight),     // Y starts at top, goes down as fluid fills
+                    0,                                // texture Y offset (start of the fluid sprite)
+                    16,                              // width of the fluid (matches container)
+                    fluidHeight - 4,                     // height based on fluid amount
+                    sprite                            // the fluid texture sprite
+            );
+            // Reset texture
+            RenderSystem.setShaderTexture(0, TEXTURE);
+        }
     }
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
         renderBackground(guiGraphics, mouseX, mouseY, delta);
         super.render(guiGraphics, mouseX, mouseY, delta);
+
+        // Render tooltips
         renderTooltip(guiGraphics, mouseX, mouseY);
+        renderFluidTankTooltip(guiGraphics, mouseX, mouseY);
+    }
+
+    private void renderFluidTankTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        int x = (width - imageWidth) / 2;
+        int y = (height - imageHeight) / 2;
+
+        if (mouseX >= x + FLUID_TANK_X && mouseX <= x + FLUID_TANK_X + FLUID_TANK_WIDTH &&
+                mouseY >= y + FLUID_TANK_Y && mouseY <= y + FLUID_TANK_Y + FLUID_TANK_HEIGHT) {
+
+            List<Component> tooltip = new ArrayList<>();
+
+            FluidStack fluidStack = menu.getFluid();
+            int amount = menu.getFluidAmount();
+            int capacity = menu.getFluidCapacity();
+
+            NumberFormat formatter = NumberFormat.getIntegerInstance();
+            String amountStr = formatter.format(amount);
+            String capacityStr = formatter.format(capacity);
+
+            if (fluidStack.isEmpty()) {
+                tooltip.add(Component.translatable("tooltip.arsenalcrafting.fluid_tank.empty")
+                        .withStyle(ChatFormatting.GRAY));
+                tooltip.add(Component.translatable("tooltip.arsenalcrafting.fluid_tank.capacity",
+                        capacityStr).withStyle(ChatFormatting.DARK_GRAY));
+            } else {
+                Component fluidName = fluidStack.getHoverName();
+                tooltip.add(fluidName.copy().withStyle(ChatFormatting.GOLD));
+
+                float percentage = (amount * 100f) / capacity;
+                String percentStr = String.format("%.1f", percentage);
+
+                tooltip.add(Component.translatable("tooltip.arsenalcrafting.fluid_tank.amount",
+                                amountStr, capacityStr, percentStr)
+                        .withStyle(ChatFormatting.GREEN));
+
+
+            }
+
+            guiGraphics.renderComponentTooltip(font, tooltip, mouseX, mouseY);
+        }
+    }
+
+    private String createProgressBar(int current, int max, int length) {
+        int filled = (int) ((long) current * length / max);
+        StringBuilder bar = new StringBuilder("§7[");
+        bar.append("§6".repeat(Math.max(0, filled)));
+        bar.append("§8".repeat(Math.max(0, length - filled)));
+        bar.append("§7]");
+        return bar.toString();
     }
 }
