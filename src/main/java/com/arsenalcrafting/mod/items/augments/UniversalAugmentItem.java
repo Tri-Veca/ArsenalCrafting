@@ -33,4 +33,5 @@ public class UniversalAugmentItem extends Item implements Augment, InstallableAu
 
     public String getAugmentId() { return augmentId; }
     public int getTier() { return tier; }
+    public boolean hasTiers() { return tier > 0;}
 }

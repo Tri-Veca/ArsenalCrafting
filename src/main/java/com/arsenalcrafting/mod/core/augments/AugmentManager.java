@@ -1,6 +1,8 @@
 package com.arsenalcrafting.mod.core.augments;
 
 import com.arsenalcrafting.mod.component.DynamicComponents;
+import com.arsenalcrafting.mod.component.ToolComponentType;
+import com.arsenalcrafting.mod.core.alloy.ToolType;
 import com.arsenalcrafting.mod.items.tool.ArsenalTool;
 import com.arsenalcrafting.mod.items.tool.ArsenalToolType;
 import net.minecraft.core.component.DataComponentType;
@@ -21,7 +23,9 @@ public class AugmentManager {
             Class<? extends AugmentHandler> handlerClass,
             boolean hasTiers,
             int maxTier
-    ) {}
+    ) {
+
+    }
 
     static {
         // Register all augments - SINGLE SOURCE OF TRUTH

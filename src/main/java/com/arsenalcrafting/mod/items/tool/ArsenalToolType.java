@@ -23,4 +23,5 @@ public enum ArsenalToolType {
     public boolean isWeapon() {
         return this == CHAKRAM || this == KATANA || this == DAGGER || this == BROADSWORD;
     }
+
 }

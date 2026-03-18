@@ -62,31 +62,20 @@ public class AlloySmelterRecipeCategory implements IRecipeCategory<AlloyRecipe> 
     public void setRecipe(IRecipeLayoutBuilder builder, AlloyRecipe recipe, IFocusGroup focuses) {
         List<Ingredient> ingredients = new ArrayList<>(recipe.getIngredients());
 
-        // Clear any existing slots (just in case)
-        builder.setShapeless();
-
         // Add input slots in a 3x3 grid
-        // The alloy smelter has 9 input slots (0-8)
         for (int i = 0; i < 9; i++) {
             int row = i / 3;
             int col = i % 3;
-
-            // Calculate position based on your GUI layout
             int xPos = 10 + col * 18;
             int yPos = 19 + row * 18;
 
-            // If we have an ingredient for this slot, add it
             if (i < ingredients.size()) {
                 builder.addSlot(RecipeIngredientRole.INPUT, xPos, yPos)
                         .addIngredients(ingredients.get(i));
-            } else {
-                // Add an empty slot for visual consistency
-                builder.addSlot(RecipeIngredientRole.INPUT, xPos, yPos)
-                        .addItemStack(ItemStack.EMPTY);
             }
         }
 
-        // Add fuel slot (slot 9)
+        // Add fuel slot
         builder.addSlot(RecipeIngredientRole.INPUT, 89, 53)
                 .addIngredients(Ingredient.of(Items.LAVA_BUCKET))
                 .addTooltipCallback((slotView, tooltip) -> {
@@ -94,7 +83,7 @@ public class AlloySmelterRecipeCategory implements IRecipeCategory<AlloyRecipe> 
                     tooltip.add(Component.literal("Place lava buckets here").withStyle(ChatFormatting.GRAY));
                 });
 
-        // Add output slot (slot 10)
+        // Add output slot
         builder.addSlot(RecipeIngredientRole.OUTPUT, 143, 35)
                 .addItemStack(recipe.getResultItem(null))
                 .addTooltipCallback((slotView, tooltip) -> {
@@ -102,26 +91,29 @@ public class AlloySmelterRecipeCategory implements IRecipeCategory<AlloyRecipe> 
 
                     // Add recipe info to output tooltip
                     int lavaCost = recipe.getLavaCost();
-                    int craftSeconds = recipe.getCraftTime() / 20;
-                   // int totalFuelMb = (int) Math.ceil((double) recipe.getCraftTime() / recipe.getFuelTime()) * 100;
+                    int craftTime = recipe.getCraftTime();
+
+                    int craftSeconds = craftTime / 20;
+                    int lavaBuckets = lavaCost / 1000;
+                    int lavaMb = lavaCost % 1000;
 
                     tooltip.add(Component.empty());
                     tooltip.add(Component.literal("Recipe Info:").withStyle(ChatFormatting.GOLD));
-                    tooltip.add(Component.literal("  Craft Time: " + craftSeconds + " sec").withStyle(ChatFormatting.GREEN));
-                    tooltip.add(Component.literal("  Lava Needed: " + lavaCost + " mb").withStyle(ChatFormatting.RED));
+                    tooltip.add(Component.literal("  ⏱ Craft Time: " + craftSeconds + " sec").withStyle(ChatFormatting.GREEN));
+
+                    if (lavaCost > 0) {
+                        if (lavaBuckets > 0) {
+                            tooltip.add(Component.literal("  🔥 Lava: " + lavaBuckets + " bucket" + (lavaBuckets > 1 ? "s" : "") +
+                                    (lavaMb > 0 ? " + " + lavaMb + " mb" : "")).withStyle(ChatFormatting.RED));
+                        } else {
+                            tooltip.add(Component.literal("  🔥 Lava: " + lavaCost + " mb").withStyle(ChatFormatting.RED));
+                        }
+                    }
                 });
     }
 
     @Override
     public List<Component> getTooltipStrings(AlloyRecipe recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
-        List<Component> tooltips = new ArrayList<>();
-
-        // Add custom tooltips when hovering over specific areas
-        if (mouseX >= 89 && mouseX <= 103 && mouseY >= 53 && mouseY <= 69) {
-            tooltips.add(Component.translatable("tooltip.arsenalcrafting.fuel_slot")
-                    .withStyle(ChatFormatting.GRAY));
-        }
-
-        return tooltips;
+        return new ArrayList<>();
     }
 }

@@ -329,6 +329,14 @@
   "tooltip.arsenalcrafting.fluid_tank.capacity": "Capacity: %s mb",
   "tooltip.arsenalcrafting.fluid_tank.amount": "%s / %s mb (%s%%)",
   "tooltip.arsenalcrafting.fluid_tank.lava_temperature": "§cBurning hot! §7Used as fuel",
-  "tooltip.arsenalcrafting.fluid_tank.burn_time": "§cFuel: §7%s seconds (%s cycles)"
+  "tooltip.arsenalcrafting.fluid_tank.burn_time": "§cFuel: §7%s seconds (%s cycles)",
+  "jei.arsenalcrafting.augments": "Arsenal Augments",
+  "jei.arsenalcrafting.toolkit": "Tool Assembly",
+  "tooltip.arsenalcrafting.tool_stats": "Tool Statistics",
+  "tooltip.arsenalcrafting.compatible_augments": "Compatible Augments",
+  "tooltip.arsenalcrafting.materials": "Materials",
+  "tooltip.arsenalcrafting.head": "Head: %s",
+  "tooltip.arsenalcrafting.rod": "Rod: %s",
+  "tooltip.arsenalcrafting.core": "Core: %s"
 
 }
