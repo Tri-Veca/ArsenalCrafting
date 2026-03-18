@@ -29,7 +29,8 @@ public enum AlloyMaterial {
             3.0f,    //weapon damage (shown in attack indicator, base 1 added by vanilla)
             ChatFormatting.RED,   //tooltip color
             0xFFe77c56,          //tint color
-            false            //allow alloy to be created automatically. We don't use for vanilla materials
+            false,//allow alloy to be created automatically. We don't use for vanilla materials
+            30 // 20 ticks = 1 second. how long to craft.
     ),
     TIN(
             "Tin",
@@ -46,7 +47,8 @@ public enum AlloyMaterial {
             3.5f,    //weapon damage
             ChatFormatting.GRAY,
             0xFFeddfdb,
-            true
+            true,
+            20
     ),
     IRON(
             "Iron",
@@ -63,7 +65,8 @@ public enum AlloyMaterial {
             4.0f,    //weapon damage
             ChatFormatting.WHITE,
             0xFFFFFFFF,
-            false
+            false,
+            60
     ),
     GOLD(
             "Gold",
@@ -80,7 +83,8 @@ public enum AlloyMaterial {
             3.5f,    //weapon damage — fast and crits often, not raw power
             ChatFormatting.YELLOW,
             0xFFfdf55f,
-            false
+            false,
+            10
     ),
     DIAMOND(
             "Diamond",
@@ -97,7 +101,8 @@ public enum AlloyMaterial {
             6.0f,    //weapon damage
             ChatFormatting.AQUA,
             0xFF4aedd9,
-            false
+            false,
+            70
     ),
     NETHERITE(
             "Netherite",
@@ -114,7 +119,8 @@ public enum AlloyMaterial {
             7.0f,    //weapon damage
             ChatFormatting.DARK_GRAY,
             0xFF706770,
-            false
+            false,
+            80
     ),
 
     BRONZE(
@@ -132,7 +138,9 @@ public enum AlloyMaterial {
             4.0f,    //weapon damage — slightly above iron, alloy payoff
             ChatFormatting.GOLD,
             0xFFcb9580,
-            true
+            true,
+            40
+
     ),
     STEEL(
             "Steel",
@@ -149,7 +157,8 @@ public enum AlloyMaterial {
             8.0f,    //weapon damage — high damage, slower speed
             ChatFormatting.GRAY,
             0xFFC0C0C0,
-            true
+            true,
+            100
     ),
     TITANIUM(
             "Titanium",
@@ -166,7 +175,9 @@ public enum AlloyMaterial {
             7.5f,    //weapon damage — fast + heavy crits, mid base
             ChatFormatting.DARK_AQUA,
             0xFFA0E4FF,
-            true
+            true,
+            100
+
     );
 
 
@@ -185,11 +196,12 @@ public enum AlloyMaterial {
     private final ChatFormatting color;
     private final int itemColor;
     private final boolean allowAlloy;
+    public int meltTime;
 
 
     AlloyMaterial(String name, int tier, int durability, float efficiency, float modifier, float attackSpeed, float damage, float arc, int toolAugmentSlots,
                   float critChance, float critDamage, float weaponDamage,
-                  ChatFormatting color, int itemColor, boolean allowAlloy) {
+                  ChatFormatting color, int itemColor, boolean allowAlloy, int meltTime) {
         this.name = name;
         this.tier = tier;
         this.durability = durability;
@@ -205,6 +217,7 @@ public enum AlloyMaterial {
         this.color = color;
         this.itemColor = itemColor;
         this.allowAlloy = allowAlloy;
+        this.meltTime= meltTime;
     }
 
 
