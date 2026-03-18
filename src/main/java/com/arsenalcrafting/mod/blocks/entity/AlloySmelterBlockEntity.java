@@ -230,6 +230,19 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
 
         if (recipeOpt.isPresent()) {
             var recipe = recipeOpt.get().value();
+            ItemStack result = recipe.getResultItem(level.registryAccess());
+            ItemStack out = be.itemHandler.getStackInSlot(10);
+
+            // CRITICAL: Check if output slot is compatible with this recipe
+            boolean outputCompatible = out.isEmpty() ||
+                    (ItemStack.isSameItem(out, result) &&
+                            out.getCount() + result.getCount() <= out.getMaxStackSize());
+
+            if (!outputCompatible) {
+                // Output slot has a different item or is full - can't craft
+                be.progress = 0;
+                return;
+            }
 
             // Set max progress from recipe
             be.maxProgress = recipe.getCraftTime();
@@ -290,18 +303,22 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
             inv.setItem(i, e.itemHandler.getStackInSlot(i));
         }
 
-        var recipe = level.getRecipeManager().getRecipeFor(
+        var recipeOpt = level.getRecipeManager().getRecipeFor(
                 AlloyRecipeType.ALLOY_SMELTING.get(),
                 new AlloyRecipeInput(inv), level
         );
 
-        if (recipe.isEmpty()) return false;
+        if (recipeOpt.isEmpty()) return false;
 
-        ItemStack result = recipe.get().value().getResultItem(level.registryAccess());
+        ItemStack result = recipeOpt.get().value().getResultItem(level.registryAccess());
         ItemStack out = e.itemHandler.getStackInSlot(10);
 
-        return out.isEmpty() || (out.getItem() == result.getItem()
-                && out.getCount() + result.getCount() <= out.getMaxStackSize());
+        // Check if output is empty OR (matches the recipe result AND has space)
+        boolean outputAcceptable = out.isEmpty() ||
+                (ItemStack.isSameItem(out, result) &&
+                        out.getCount() + result.getCount() <= out.getMaxStackSize());
+
+        return outputAcceptable;
     }
 
     private static void craftItem(AlloySmelterBlockEntity e) {
