@@ -1,10 +1,7 @@
 {
   "type": "arsenalcrafting:alloy_smelting",
-  "craftTime": 40,
+  "craftTime": 25,
   "ingredients": [
-    {
-      "item": "minecraft:copper_ingot"
-    },
     {
       "item": "minecraft:copper_ingot"
     },
@@ -17,7 +14,7 @@
   ],
   "lavaCost": 500,
   "result": {
-    "count": 4,
+    "count": 2,
     "id": "arsenalcrafting:bronze_alloy"
   }
 }

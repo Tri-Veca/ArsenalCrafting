@@ -1,6 +1,6 @@
 {
   "type": "arsenalcrafting:alloy_smelting",
-  "craftTime": 100,
+  "craftTime": 63,
   "ingredients": [
     {
       "item": "arsenalcrafting:steel_alloy"

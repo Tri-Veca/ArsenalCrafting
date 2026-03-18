@@ -1,6 +1,6 @@
 {
   "type": "arsenalcrafting:alloy_smelting",
-  "craftTime": 100,
+  "craftTime": 40,
   "ingredients": [
     {
       "item": "minecraft:iron_ingot"

@@ -10,10 +10,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.resources.ResourceLocation;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class AlloyRecipeDefinitions {
 
@@ -25,9 +22,9 @@ public class AlloyRecipeDefinitions {
         // Clear existing recipes
         RECIPES.clear();
 
-        // BRONZE: 3 Copper + 1 Tin = 4 Bronze
-        addRecipe("bronze_from_alloy_smelting", AlloyMaterial.BRONZE, 4,
-                Items.COPPER_INGOT, Items.COPPER_INGOT, Items.COPPER_INGOT,
+        // BRONZE: 2 Copper + 1 Tin = 2 Bronze
+        addRecipe("bronze_from_alloy_smelting", AlloyMaterial.BRONZE, 2,
+                Items.COPPER_INGOT, Items.COPPER_INGOT,
                 ItemStackHelper.getAlloyStack(AlloyMaterial.TIN).getItem()
         );
 
@@ -40,62 +37,130 @@ public class AlloyRecipeDefinitions {
 
         // TITANIUM: 2 Steel + 1 Diamond + 1 Obsidian = 1 Titanium
         addRecipe("titanium_from_alloy_smelting", AlloyMaterial.TITANIUM, 1,
-                ItemStackHelper.getAlloyStack(AlloyMaterial.STEEL).getItem(), ItemStackHelper.getAlloyStack(AlloyMaterial.STEEL).getItem(),
+                ItemStackHelper.getAlloyStack(AlloyMaterial.STEEL).getItem(),
+                ItemStackHelper.getAlloyStack(AlloyMaterial.STEEL).getItem(),
                 Items.DIAMOND, Items.OBSIDIAN
         );
-
-        // Example: HARDENED_STEEL (if you add it later)
-        // addRecipe("hardened_steel_from_alloy_smelting", AlloyMaterial.HARDENED_STEEL, 1,
-        //     getModItem("steel_alloy"), getModItem("steel_alloy"),
-        //     Items.NETHERITE_INGOT, Items.BLAZE_ROD
-        // );
 
         System.out.println("[AlloyRecipeDefinitions] Loaded " + RECIPES.size() + " recipe definitions");
     }
 
-    // Helper to add a recipe with variable ingredients
+    /**
+     * Adds a recipe with variable ingredients and automatically calculates craft time
+     * @param name The recipe name
+     * @param resultMaterial The resulting alloy material
+     * @param resultCount How many items are produced
+     * @param ingredients Variable array of ingredient items
+     */
     private static void addRecipe(String name, AlloyMaterial resultMaterial, int resultCount, Object... ingredients) {
         List<Object> ingredientList = new ArrayList<>();
         for (Object obj : ingredients) {
             ingredientList.add(obj);
         }
 
+        // Calculate craft time based on unique ingredient melt times
+        int calculatedCraftTime = calculateCraftTime(ingredientList);
+
         RECIPES.put(name, new AlloyRecipeDefinition(
                 name,
                 resultMaterial,
                 resultCount,
-                ingredientList
+                ingredientList,
+                calculatedCraftTime
         ));
+
+        System.out.println("[AlloyRecipeDefinitions] Recipe '" + name + "' craft time: " +
+                calculatedCraftTime + " ticks (" + (calculatedCraftTime/20) + " seconds) - Averaged from unique ingredients");
     }
 
-    // Helper to get mod item by name
-    private static Item getModItem(String name) {
-        // This will be resolved at runtime by the recipe provider
-        // We'll use a special marker that gets replaced later
-        return null; // Handled specially in the provider
+    /**
+     * Calculates craft time by averaging melt times of unique ingredients
+     * - If ingredient is an AlloyMaterial, use its meltTime
+     * - If ingredient is any other item (vanilla/mod), default to 20 ticks
+     * - Each ingredient type counted only once (by item)
+     *
+     * @param ingredients List of ingredient items
+     * @return Average craft time in ticks
+     */
+    private static int calculateCraftTime(List<Object> ingredients) {
+        // Use a Set to track unique items (by Item, not by quantity)
+        Set<Item> uniqueIngredients = new HashSet<>();
+        int totalTicks = 0;
+
+        for (Object ingredient : ingredients) {
+            if (ingredient instanceof Item item) {
+                // Skip if we've already processed this item type
+                if (uniqueIngredients.contains(item)) {
+                    continue;
+                }
+                uniqueIngredients.add(item);
+
+                int meltTime = 20; // Default for all items not in AlloyMaterial
+
+                // Check if this item corresponds to an AlloyMaterial
+                AlloyMaterial material = AlloyMaterial.fromItem(item);
+                if (material != null) {
+                    meltTime = material.meltTime; // Use the material's defined melt time
+                }
+                // If not an AlloyMaterial, keep default of 20 ticks
+
+                totalTicks += meltTime;
+
+                System.out.println("  - Ingredient: " + item.getDescription().getString() +
+                        " (meltTime: " + meltTime + ")");
+            }
+        }
+
+        // Fallback if no valid ingredients found
+        if (uniqueIngredients.isEmpty()) {
+            System.out.println("  - No valid ingredients found, using default 20 ticks");
+            return 20;
+        }
+
+        // Return average of unique ingredient melt times
+        int average = totalTicks / uniqueIngredients.size();
+        System.out.println("  - Average of " + uniqueIngredients.size() + " unique ingredients: " +
+                totalTicks + " / " + uniqueIngredients.size() + " = " + average + " ticks");
+
+        return average;
     }
 
-    // Record to hold recipe definition
+    /**
+     * Record to hold recipe definition with all necessary data
+     */
     public record AlloyRecipeDefinition(
             String name,
             AlloyMaterial resultMaterial,
             int resultCount,
-            List<Object> ingredients
+            List<Object> ingredients,
+            int craftTime  // Calculated craft time based on ingredient averages
     ) {
 
+        /**
+         * @return The resource location ID for the result item
+         */
         public String getResultItemId() {
             return "arsenalcrafting:" + resultMaterial.name().toLowerCase() + "_alloy";
         }
 
+        /**
+         * @return The craft time in ticks (calculated from ingredients)
+         */
         public int getCraftTime() {
-            return resultMaterial.meltTime;
+            return craftTime;
         }
 
+        /**
+         * @return Fixed lava cost for all recipes (500mb)
+         */
         public int getLavaCost() {
             return 500; // Fixed lava cost as requested
         }
 
-        // Convert ingredient objects to JSON strings
+        /**
+         * Convert ingredient objects to JSON format for data generation
+         * @return JSON string representation of ingredients
+         */
         public String getIngredientsJson() {
             StringBuilder json = new StringBuilder();
             json.append("[");
@@ -127,6 +192,12 @@ public class AlloyRecipeDefinitions {
 
             json.append("]");
             return json.toString();
+        }
+
+        @Override
+        public String toString() {
+            return String.format("AlloyRecipeDefinition{name='%s', result=%s, count=%d, craftTime=%d ticks, ingredients=%s}",
+                    name, resultMaterial.name(), resultCount, craftTime, ingredients.size());
         }
     }
 }
