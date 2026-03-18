@@ -22,5 +22,11 @@ public class ModCapabilities {
                 com.arsenalcrafting.mod.registry.ModBlockEntities.ALLOY_SMELTER.get(),
                 (be, side) -> be.getItemHandler()
         );
+
+        event.registerBlockEntity(
+                Capabilities.FluidHandler.BLOCK,
+                ModBlockEntities.LAVA_TANK.get(),
+                (be, side) -> be.fluidTank
+        );
     }
 }
