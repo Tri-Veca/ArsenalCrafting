@@ -4,7 +4,8 @@ import com.arsenalcrafting.mod.blocks.entity.AlloySmelterBlockEntity;
 import com.arsenalcrafting.mod.registry.ModBlockEntities;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -17,6 +18,8 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public class AlloySmelterBlock extends BaseEntityBlock {
     public static final MapCodec<AlloySmelterBlock> CODEC = simpleCodec(AlloySmelterBlock::new);
@@ -64,6 +67,17 @@ public class AlloySmelterBlock extends BaseEntityBlock {
         return InteractionResult.sidedSuccess(level.isClientSide());
     }
 
+    @Override
+    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
+        if (!level.isClientSide) {
+            BlockEntity be = level.getBlockEntity(pos);
+            if (be instanceof AlloySmelterBlockEntity smelter) {
+                smelter.onNeighborChange(neighborPos);
+            }
+        }
+    }
+
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state,
@@ -71,7 +85,6 @@ public class AlloySmelterBlock extends BaseEntityBlock {
         if (level.isClientSide()) {
             return null;
         }
-
         return createTickerHelper(type, ModBlockEntities.ALLOY_SMELTER.get(),
                 (level1, pos, state1, blockEntity) -> AlloySmelterBlockEntity.tick(level1, pos, state1, blockEntity));
     }

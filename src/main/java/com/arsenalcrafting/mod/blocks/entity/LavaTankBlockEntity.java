@@ -14,8 +14,7 @@ import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
 public class LavaTankBlockEntity extends BlockEntity {
 
-    // Use NeoForge's FluidTank instead of custom int
-    public final FluidTank fluidTank = new FluidTank(8000) { // 4 buckets
+    public final FluidTank fluidTank = new FluidTank(8000) {
         @Override
         protected void onContentsChanged() {
             setChanged();
@@ -24,7 +23,6 @@ public class LavaTankBlockEntity extends BlockEntity {
 
         @Override
         public boolean isFluidValid(FluidStack stack) {
-            // Only allow lava
             return stack.getFluid() == Fluids.LAVA || stack.getFluid() == Fluids.FLOWING_LAVA;
         }
     };
@@ -32,8 +30,6 @@ public class LavaTankBlockEntity extends BlockEntity {
     public LavaTankBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.LAVA_TANK.get(), pos, state);
     }
-
-    // --- Convenience methods (optional, but keep for compatibility) ---
 
     public int getFluidAmount() {
         return fluidTank.getFluidAmount();
@@ -44,7 +40,6 @@ public class LavaTankBlockEntity extends BlockEntity {
     }
 
     public void setFluidAmount(int amount) {
-        // This is for compatibility - creates a new FluidStack
         FluidStack newStack = new FluidStack(Fluids.LAVA, Math.min(amount, getCapacity()));
         fluidTank.setFluid(newStack);
     }
@@ -74,25 +69,19 @@ public class LavaTankBlockEntity extends BlockEntity {
         return fluidTank.getFluid();
     }
 
-    // --- NBT (world save) using FluidTank's built-in NBT methods ---
-
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
         super.saveAdditional(tag, provider);
-        // Use FluidTank's built-in NBT serialization
         tag.put("FluidTank", fluidTank.writeToNBT(provider, new CompoundTag()));
     }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
         super.loadAdditional(tag, provider);
-        // Use FluidTank's built-in NBT deserialization
         if (tag.contains("FluidTank")) {
             fluidTank.readFromNBT(provider, tag.getCompound("FluidTank"));
         }
     }
-
-    // --- Network sync (server -> client) ---
 
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider provider) {

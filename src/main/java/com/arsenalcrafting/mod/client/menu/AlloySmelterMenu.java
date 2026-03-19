@@ -3,6 +3,8 @@ package com.arsenalcrafting.mod.client.menu;
 import com.arsenalcrafting.mod.blocks.entity.AlloySmelterBlockEntity;
 import com.arsenalcrafting.mod.registry.ModBlocks;
 import com.arsenalcrafting.mod.registry.ModMenus;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -30,7 +32,7 @@ public class AlloySmelterMenu extends AbstractContainerMenu {
                             BlockEntity entity, ContainerData data) {
         super(ModMenus.ALLOY_SMELTER_MENU.get(), containerId);
 
-        checkContainerSize(playerInventory, 11);
+        checkContainerSize(playerInventory, 10);
         this.blockEntity = (AlloySmelterBlockEntity) entity;
         this.level = playerInventory.player.level();
         this.data = data;
@@ -48,66 +50,89 @@ public class AlloySmelterMenu extends AbstractContainerMenu {
             }
         }
 
-        // Fuel slot - slot 9
-         this.addSlot(new SlotItemHandler(handler, 9, 89, 53));
 
-        // Output slot - slot 10
-        this.addSlot(new SlotItemHandler(handler, 10, 143, 35) {
+        // Output slot - slot 9
+        this.addSlot(new SlotItemHandler(handler, 9, 143, 35) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return false; // Output only
             }
         });
 
+        for (int i = 0; i < slots.size(); i++) {
+            Slot slot = slots.get(i);
+            if (slot instanceof SlotItemHandler) {
+                System.out.println("[Menu] Slot " + i + " is SlotItemHandler with index " + ((SlotItemHandler)slot).getSlotIndex());
+            }
+        }
+
         addDataSlots(data);
     }
 
-    public int getScaledFluid() {
-        int fluidAmount = blockEntity.FLUID_TANK.getFluidAmount();
-        int capacity = blockEntity.FLUID_TANK.getCapacity();
-        int tankHeight = 60;
+    @Override
+    public void broadcastChanges() {
+        super.broadcastChanges();
+        if (blockEntity != null) {
+            blockEntity.setChanged();
+            slots.forEach(Slot::setChanged);
+        }
+    }
 
+    public int getScaledFluid() {
+        int fluidAmount = blockEntity.DISPLAY_TANK.getFluidAmount();
+        int capacity = blockEntity.DISPLAY_TANK.getCapacity();
+        int tankHeight = 60;
         return capacity != 0 ? (fluidAmount * tankHeight / capacity) : 0;
     }
 
-    // Progress bar helpers
     public boolean isCrafting() {
         return data.get(0) > 0;
     }
 
     public int getScaledProgress() {
-        int progress = this.data.get(0);
-        int maxProgress = this.data.get(1);
-        int progressArrowSize = 24; // Pixel width of arrow
-
-        return maxProgress != 0 ? (progress * progressArrowSize / maxProgress) : 0;
+        int progress = data.get(0);
+        int maxProgress = data.get(1);
+        int arrowSize = 24;
+        return maxProgress != 0 ? (progress * arrowSize / maxProgress) : 0;
     }
 
     public int getScaledFuelProgress() {
-        int fuelTime = this.data.get(2);
-        int maxFuelTime = this.data.get(3);
-        int fuelBarSize = 14; // Pixel height of fuel bar
-
+        int fuelTime = data.get(2);
+        int maxFuelTime = data.get(3);
+        int fuelBarSize = 14;
         return maxFuelTime != 0 ? (fuelTime * fuelBarSize / maxFuelTime) : 0;
     }
 
     public int getFluidAmount() {
-        return blockEntity.FLUID_TANK.getFluidAmount();
-    }
-
-    public int getFluidCapacity() {
-        return blockEntity.FLUID_TANK.getCapacity();
+        return blockEntity.DISPLAY_TANK.getFluidAmount();
     }
 
     public boolean hasFluid() {
-        return !blockEntity.FLUID_TANK.isEmpty();
+        return !blockEntity.DISPLAY_TANK.isEmpty();
+    }
+
+    public int getFluidCapacity() {
+        return blockEntity.DISPLAY_TANK.getCapacity();
     }
 
     public FluidStack getFluid() {
-        return blockEntity.FLUID_TANK.getFluid();
+        return blockEntity.DISPLAY_TANK.getFluid();
     }
 
-    // CREDIT GOES TO: diesieben07 | https://github.com/diesieben07/SevenCommons
+    public int getDisplayCapacity() {
+        return blockEntity.DISPLAY_TANK.getCapacity();
+    }
+
+    public String getDebugInfo() {
+        return String.format("Display: %d/%d mb, Connected tanks: %d",
+                getFluidAmount(), getFluidCapacity(), blockEntity.getConnectedTanksCount());
+    }
+
+    public int getConnectedTanksCount() {
+        return data.get(2);
+    }
+
+    // Standard shift-click logic
     private static final int HOTBAR_SLOT_COUNT = 9;
     private static final int PLAYER_INVENTORY_ROW_COUNT = 3;
     private static final int PLAYER_INVENTORY_COLUMN_COUNT = 9;
@@ -115,45 +140,32 @@ public class AlloySmelterMenu extends AbstractContainerMenu {
     private static final int VANILLA_SLOT_COUNT = HOTBAR_SLOT_COUNT + PLAYER_INVENTORY_SLOT_COUNT;
     private static final int VANILLA_FIRST_SLOT_INDEX = 0;
     private static final int TE_INVENTORY_FIRST_SLOT_INDEX = VANILLA_FIRST_SLOT_INDEX + VANILLA_SLOT_COUNT;
-
-    // THIS YOU HAVE TO DEFINE!
     private static final int TE_INVENTORY_SLOT_COUNT = 11;
 
     @Override
-    public ItemStack quickMoveStack(Player playerIn, int pIndex) {
-        Slot sourceSlot = slots.get(pIndex);
-        if (sourceSlot == null || !sourceSlot.hasItem()) return ItemStack.EMPTY;
+    public ItemStack quickMoveStack(Player player, int index) {
+        Slot slot = slots.get(index);
+        if (slot == null || !slot.hasItem()) return ItemStack.EMPTY;
+        ItemStack stack = slot.getItem();
+        ItemStack copy = stack.copy();
 
-        ItemStack sourceStack = sourceSlot.getItem();
-        ItemStack copyOfSourceStack = sourceStack.copy();
-
-        // Check if the slot clicked is one of the vanilla container slots
-        if (pIndex < VANILLA_FIRST_SLOT_INDEX + VANILLA_SLOT_COUNT) {
-            // This is a vanilla container slot so merge the stack into the tile inventory
-            if (!moveItemStackTo(sourceStack, TE_INVENTORY_FIRST_SLOT_INDEX,
+        if (index < VANILLA_FIRST_SLOT_INDEX + VANILLA_SLOT_COUNT) {
+            if (!moveItemStackTo(stack, TE_INVENTORY_FIRST_SLOT_INDEX,
                     TE_INVENTORY_FIRST_SLOT_INDEX + TE_INVENTORY_SLOT_COUNT - 1, false)) {
                 return ItemStack.EMPTY;
             }
-        } else if (pIndex < TE_INVENTORY_FIRST_SLOT_INDEX + TE_INVENTORY_SLOT_COUNT) {
-            // This is a TE slot so merge the stack into the players inventory
-            if (!moveItemStackTo(sourceStack, VANILLA_FIRST_SLOT_INDEX,
+        } else if (index < TE_INVENTORY_FIRST_SLOT_INDEX + TE_INVENTORY_SLOT_COUNT) {
+            if (!moveItemStackTo(stack, VANILLA_FIRST_SLOT_INDEX,
                     VANILLA_FIRST_SLOT_INDEX + VANILLA_SLOT_COUNT, false)) {
                 return ItemStack.EMPTY;
             }
-        } else {
-            System.out.println("Invalid slotIndex:" + pIndex);
-            return ItemStack.EMPTY;
         }
-
-        // If stack size == 0 (the entire stack was moved) set slot contents to null
-        if (sourceStack.getCount() == 0) {
-            sourceSlot.set(ItemStack.EMPTY);
+        if (stack.isEmpty()) {
+            slot.set(ItemStack.EMPTY);
         } else {
-            sourceSlot.setChanged();
+            slot.setChanged();
         }
-
-        sourceSlot.onTake(playerIn, sourceStack);
-        return copyOfSourceStack;
+        return copy;
     }
 
     @Override
@@ -162,17 +174,19 @@ public class AlloySmelterMenu extends AbstractContainerMenu {
                 player, ModBlocks.ALLOY_SMELTER.get());
     }
 
-    private void addPlayerInventory(Inventory playerInventory) {
-        for (int i = 0; i < 3; ++i) {
-            for (int l = 0; l < 9; ++l) {
-                this.addSlot(new Slot(playerInventory, l + i * 9 + 9, 8 + l * 18, 84 + i * 18));
+    private void addPlayerInventory(Inventory inv) {
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 9; j++) {
+                this.addSlot(new Slot(inv, j + i * 9 + 9, 8 + j * 18, 84 + i * 18));
             }
         }
     }
 
-    private void addPlayerHotbar(Inventory playerInventory) {
-        for (int i = 0; i < 9; ++i) {
-            this.addSlot(new Slot(playerInventory, i, 8 + i * 18, 142));
+    private void addPlayerHotbar(Inventory inv) {
+        for (int i = 0; i < 9; i++) {
+            this.addSlot(new Slot(inv, i, 8 + i * 18, 142));
         }
     }
+
+
 }

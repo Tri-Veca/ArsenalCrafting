@@ -337,6 +337,13 @@
   "tooltip.arsenalcrafting.materials": "Materials",
   "tooltip.arsenalcrafting.head": "Head: %s",
   "tooltip.arsenalcrafting.rod": "Rod: %s",
-  "tooltip.arsenalcrafting.core": "Core: %s"
+  "tooltip.arsenalcrafting.core": "Core: %s",
+  "block.arsenalcrafting.alloy_smelter": "Alloy Smelter",
+  "tooltip.arsenalcrafting.fluid.empty": "Empty",
+  "tooltip.arsenalcrafting.fluid.capacity": "Capacity: %s mb",
+  "tooltip.arsenalcrafting.fluid.amount": "%s / %s mb (%s%%)",
+  "tooltip.arsenalcrafting.fluid.tanks": "Connected tanks: %s",
+  "tooltip.arsenalcrafting.fluid_tank.connected": "Connected to %s tank(s)",
+  "tooltip.arsenalcrafting.fluid_tank.no_tanks": "No lava tanks connected!"
 
 }

@@ -31,7 +31,7 @@ public record SyncAlloySmelterFluidPacket(BlockPos pos, FluidStack fluidStack) i
         context.enqueueWork(() -> {
             Level level = context.player().level();
             if (level.getBlockEntity(data.pos) instanceof AlloySmelterBlockEntity be) {
-                be.FLUID_TANK.setFluid(data.fluidStack);
+                be.DISPLAY_TANK.setFluid(data.fluidStack);
             }
         });
     }

@@ -41,6 +41,12 @@ public class PacketHandler {
                 SyncAlloySmelterFluidPacket.STREAM_CODEC,
                 SyncAlloySmelterFluidPacket::handle
         );
+
+        registrar.playToClient(
+                SyncAlloySmelterCapacityPacket.TYPE,
+                SyncAlloySmelterCapacityPacket.STREAM_CODEC,
+                SyncAlloySmelterCapacityPacket::handle
+        );
     }
 
     public static void sendToPlayer(ServerPlayer player, CustomPacketPayload packet) {

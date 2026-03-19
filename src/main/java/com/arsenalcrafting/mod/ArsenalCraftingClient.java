@@ -1,12 +1,9 @@
 package com.arsenalcrafting.mod;
 
-import com.arsenalcrafting.mod.client.gui.AlloySmelterScreen;
 import com.arsenalcrafting.mod.client.render.ToolKitRenderer;
 import com.arsenalcrafting.mod.registry.ModBlockEntities;
 import com.arsenalcrafting.mod.registry.ModBlocks;
 import com.arsenalcrafting.mod.client.render.LavaTankRenderer;
-import com.arsenalcrafting.mod.registry.ModMenus;
-import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
