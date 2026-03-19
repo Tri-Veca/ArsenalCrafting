@@ -25,60 +25,38 @@ public class RepairKitItem extends Item {
         super(props.stacksTo(1));
     }
 
-    // ---------------- DATA ACCESS ----------------
+    // ── DATA ACCESS ───────────────────────────────────────────────────────────
+
     public static RepairKitData getData(ItemStack kit) {
-        return kit.getOrDefault(
-                ModComponents.REPAIR_KIT_DATA.get(),
-                RepairKitData.EMPTY
-        );
+        return kit.getOrDefault(ModComponents.REPAIR_KIT_DATA.get(), RepairKitData.EMPTY);
     }
 
     public static void setData(ItemStack kit, RepairKitData data) {
         kit.set(ModComponents.REPAIR_KIT_DATA.get(), data);
     }
 
-    // ---------------- MATERIAL ----------------
+    // ── MATERIAL ──────────────────────────────────────────────────────────────
+
     public static String getMaterial(ItemStack kit) {
         return getData(kit).material();
     }
 
     public static void setMaterial(ItemStack kit, String material) {
-        RepairKitData d = getData(kit);
-        setData(kit, d.withMaterial(material));
+        setData(kit, getData(kit).withMaterial(material));
     }
 
-    // ---------------- VALUE ----------------
+    // ── VALUE ─────────────────────────────────────────────────────────────────
+
     public static int getStoredValue(ItemStack kit) {
         return getData(kit).storedValue();
     }
 
     public static void setStoredValue(ItemStack kit, int value) {
-        RepairKitData d = getData(kit);
-        setData(kit, d.withStoredValue(value));
+        setData(kit, getData(kit).withStoredValue(value));
     }
 
-    // ---------------- MATERIAL LOCK ----------------
-    public static boolean isMaterialLocked(ItemStack kit) {
-        return getData(kit).materialLocked();
-    }
+    // ── TOOL ──────────────────────────────────────────────────────────────────
 
-    public static void setMaterialLocked(ItemStack kit, boolean locked) {
-        RepairKitData d = getData(kit);
-        setData(kit, d.withMaterialLocked(locked));
-    }
-
-    // ---------------- RESET MATERIAL ----------------
-    public static boolean resetMaterial(ItemStack kit) {
-        RepairKitData d = getData(kit);
-        if (d.storedValue() > 0) {
-            // Can't reset if there's stored value
-            return false;
-        }
-        setData(kit, d.withMaterial("").withMaterialLocked(false));
-        return true;
-    }
-
-    // ---------------- TOOL ----------------
     public static ItemStack getTool(ItemStack kit) {
         return getData(kit).tool().orElse(ItemStack.EMPTY).copy();
     }
@@ -89,12 +67,12 @@ public class RepairKitItem extends Item {
                 d.material(),
                 d.storedValue(),
                 stack.isEmpty() ? Optional.empty() : Optional.of(stack.copy()),
-                d.ingot(),
-                d.materialLocked()
+                d.ingot()
         ));
     }
 
-    // ---------------- INGOT ----------------
+    // ── INGOT ─────────────────────────────────────────────────────────────────
+
     public static ItemStack getIngot(ItemStack kit) {
         return getData(kit).ingot().orElse(ItemStack.EMPTY).copy();
     }
@@ -105,16 +83,15 @@ public class RepairKitItem extends Item {
                 d.material(),
                 d.storedValue(),
                 d.tool(),
-                stack.isEmpty() ? Optional.empty() : Optional.of(stack.copy()),
-                d.materialLocked()
+                stack.isEmpty() ? Optional.empty() : Optional.of(stack.copy())
         ));
     }
 
-    // ---------------- MENU ----------------
+    // ── MENU ──────────────────────────────────────────────────────────────────
+
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
-
         if (!level.isClientSide) {
             player.openMenu(new SimpleMenuProvider(
                     (id, inv, p) -> new com.arsenalcrafting.mod.client.menu.RepairKitMenu(id, inv, stack),
@@ -124,8 +101,7 @@ public class RepairKitItem extends Item {
         return InteractionResultHolder.success(stack);
     }
 
-
-    // ---------------- TOOLTIP ----------------
+    // ── TOOLTIP ───────────────────────────────────────────────────────────────
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context,
@@ -134,12 +110,16 @@ public class RepairKitItem extends Item {
 
         RepairKitData data = getData(stack);
 
-        if (data.materialLocked()) {
-            tooltip.add(Component.literal("Material Locked")
-                    .withStyle(ChatFormatting.RED));
+        if (data.storedValue() > 0) {
+            tooltip.add(Component.literal("Stored: " + data.storedValue() + "/128")
+                    .withStyle(ChatFormatting.YELLOW));
+            if (!data.material().isEmpty()) {
+                tooltip.add(Component.literal("Material: " + data.material())
+                        .withStyle(ChatFormatting.GRAY));
+            }
         }
 
-        // Check for repair reduction in stored tool
+        // Show repair reduction bonus if stored tool has that core
         ItemStack tool = getTool(stack);
         if (!tool.isEmpty()) {
             ToolAssemblyData toolData = tool.get(ModComponents.TOOL_ASSEMBLY_DATA.get());

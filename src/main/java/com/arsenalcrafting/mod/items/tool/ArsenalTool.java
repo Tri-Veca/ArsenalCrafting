@@ -224,13 +224,33 @@ public interface ArsenalTool extends IItemExtension {
         AlloyMaterial mat = getRepairMaterial(stack);
         return mat != null ? mat.getName() : "";
     }
-
     /**
      * Repair efficiency - 1 value = 15% of durability
      */
+    /**
+     * Repair efficiency — average of head and rod material modifiers.
+     * Lower value = cheaper to repair (modifier acts as a cost multiplier).
+     * Core material has no effect on repair cost.
+     *
+     * Example: Steel rod (1.2) + Gold head (0.5) → (1.2 + 0.5) / 2 = 0.85
+     */
     default float getRepairEfficiency(ItemStack stack) {
-        AlloyMaterial mat = getRepairMaterial(stack);
-        return mat != null ? mat.getModifier() : 1.0f;
+        ToolAssemblyData data = stack.get(TOOL_ASSEMBLY_DATA.get());
+
+        if (data != null && !data.isEmpty()) {
+            AlloyMaterial headMat = AlloyMaterial.fromName(data.headMaterial());
+            AlloyMaterial rodMat  = AlloyMaterial.fromName(data.rodMaterial());
+
+            if (headMat != null && rodMat != null) {
+                return (headMat.getModifier() + rodMat.getModifier()) / 2.0f;
+            }
+            if (headMat != null) return headMat.getModifier();
+            if (rodMat  != null) return rodMat.getModifier();
+        }
+
+        // Fallback for unassembled tools
+        AlloyMaterial base = getRepairMaterial(stack);
+        return base != null ? base.getModifier() : 1.0f;
     }
 
     // ==================== TOOLTIP ====================
