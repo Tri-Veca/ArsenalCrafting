@@ -83,12 +83,11 @@ public class RepairKitScreen extends AbstractContainerScreen<RepairKitMenu> {
 
     @Override
     protected void renderTooltip(GuiGraphics gfx, int mouseX, int mouseY) {
-        // Check mismatch FIRST before super renders anything
+        // Mismatch check BEFORE super so it can't be overridden
         if (isHovering(BAR_X, BAR_Y, BAR_WIDTH, BAR_HEIGHT, mouseX, mouseY)) {
             ItemStack tool  = menu.getSlot(0).getItem();
             ItemStack ingot = menu.getSlot(1).getItem();
 
-            // ── Mismatch warning ──────────────────────────────────────────────
             if (!tool.isEmpty() && !ingot.isEmpty()
                     && tool.getItem() instanceof ArsenalTool arsenalTool) {
 
@@ -100,70 +99,70 @@ public class RepairKitScreen extends AbstractContainerScreen<RepairKitMenu> {
                     List<Component> mismatchTooltip = new ArrayList<>();
                     mismatchTooltip.add(Component.literal("⚠ Material Mismatch!")
                             .withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
-                    mismatchTooltip.add(Component.literal("Tool: "  + toolMat).withStyle(ChatFormatting.RED));
-                    mismatchTooltip.add(Component.literal("Ingot: " + ingotMat).withStyle(ChatFormatting.RED));
+                    mismatchTooltip.add(Component.literal("Tool: "  + toolMat)
+                            .withStyle(ChatFormatting.RED));
+                    mismatchTooltip.add(Component.literal("Ingot: " + ingotMat)
+                            .withStyle(ChatFormatting.RED));
                     mismatchTooltip.add(Component.literal("Cannot repair with different material")
                             .withStyle(ChatFormatting.DARK_RED));
                     gfx.renderComponentTooltip(this.font, mismatchTooltip, mouseX, mouseY);
                     return;
                 }
             }
-
-            // ── Normal bar tooltip ────────────────────────────────────────────
-            super.renderTooltip(gfx, mouseX, mouseY);
-
-            int    displayValue    = menu.getCalculatedValue();
-            String displayMaterial = menu.getCalculatedMaterial();
-            List<Component> barTooltip = new ArrayList<>();
-
-            barTooltip.add(Component.literal("Stored Value: " + displayValue + "/" + MAX_VALUE)
-                    .withStyle(ChatFormatting.YELLOW));
-
-            if (!displayMaterial.isEmpty()) {
-                barTooltip.add(Component.literal("Material: " + displayMaterial)
-                        .withStyle(ChatFormatting.GREEN));
-            } else {
-                barTooltip.add(Component.literal("No Material Set")
-                        .withStyle(ChatFormatting.GRAY));
-            }
-
-            if (!tool.isEmpty() && tool.getItem() instanceof ArsenalTool arsenalTool) {
-                float efficiency = arsenalTool.getRepairEfficiency(tool);
-
-                boolean hasRepairReduction = false;
-                ToolAssemblyData data = tool.get(ModComponents.TOOL_ASSEMBLY_DATA.get());
-                if (data != null && !data.isEmpty()) {
-                    AlloyMaterial coreMat = AlloyMaterial.fromName(data.coreMaterial());
-                    if (coreMat != null) {
-                        CoreManager.CoreDefinition coreDef = CoreManager.getForMaterial(coreMat);
-                        hasRepairReduction = coreDef != null && coreDef.id().equals("repair_reduction");
-                    }
-                }
-
-                float repairPctPerValue = hasRepairReduction
-                        ? RepairReduction.calculateRepairPercent(efficiency)
-                        : 15.0f / efficiency;
-
-                if (hasRepairReduction) {
-                    barTooltip.add(Component.literal("Repair Reduction Core "
-                                    + CoreHandlers.RepairReductionCore.getBonusText())
-                            .withStyle(ChatFormatting.GREEN));
-                }
-
-                barTooltip.add(Component.literal("1 Value = "
-                                + String.format("%.1f", repairPctPerValue) + "% of max durability")
-                        .withStyle(ChatFormatting.AQUA));
-            } else {
-                barTooltip.add(Component.literal("Insert a tool to see repair cost")
-                        .withStyle(ChatFormatting.DARK_GRAY));
-            }
-
-            gfx.renderComponentTooltip(this.font, barTooltip, mouseX, mouseY);
-            return;
         }
 
-        // Not hovering bar — normal slot tooltips
         super.renderTooltip(gfx, mouseX, mouseY);
+
+        if (!isHovering(BAR_X, BAR_Y, BAR_WIDTH, BAR_HEIGHT, mouseX, mouseY)) return;
+
+        int    displayValue    = menu.getCalculatedValue();
+        String displayMaterial = menu.getCalculatedMaterial();
+        ItemStack tool         = menu.getSlot(0).getItem();
+        List<Component> barTooltip = new ArrayList<>();
+
+        barTooltip.add(Component.literal("Stored Value: " + displayValue + "/" + MAX_VALUE)
+                .withStyle(ChatFormatting.YELLOW));
+
+        if (!displayMaterial.isEmpty()) {
+            barTooltip.add(Component.literal("Material: " + displayMaterial)
+                    .withStyle(ChatFormatting.GREEN));
+        } else {
+            barTooltip.add(Component.literal("No Material Set")
+                    .withStyle(ChatFormatting.GRAY));
+        }
+
+        if (!tool.isEmpty() && tool.getItem() instanceof ArsenalTool arsenalTool) {
+            float efficiency = arsenalTool.getRepairEfficiency(tool);
+
+            boolean hasRepairReduction = false;
+            ToolAssemblyData data = tool.get(ModComponents.TOOL_ASSEMBLY_DATA.get());
+            if (data != null && !data.isEmpty()) {
+                AlloyMaterial coreMat = AlloyMaterial.fromName(data.coreMaterial());
+                if (coreMat != null) {
+                    CoreManager.CoreDefinition coreDef = CoreManager.getForMaterial(coreMat);
+                    hasRepairReduction = coreDef != null && coreDef.id().equals("repair_reduction");
+                }
+            }
+
+            float repairPctPerValue = hasRepairReduction
+                    ? RepairReduction.calculateRepairPercent(efficiency)
+                    : 15.0f / efficiency;
+
+            if (hasRepairReduction) {
+                barTooltip.add(Component.literal("Repair Reduction Core "
+                                + CoreHandlers.RepairReductionCore.getBonusText())
+                        .withStyle(ChatFormatting.GREEN));
+            }
+
+            barTooltip.add(Component.literal("1 Value = "
+                            + String.format("%.1f", repairPctPerValue) + "% of max durability")
+                    .withStyle(ChatFormatting.AQUA));
+        } else {
+            barTooltip.add(Component.literal("Insert a tool to see repair cost")
+                    .withStyle(ChatFormatting.DARK_GRAY));
+        }
+
+        gfx.renderComponentTooltip(this.font, barTooltip, mouseX, mouseY);
     }
 
     // ── RENDER ────────────────────────────────────────────────────────────────
