@@ -132,6 +132,18 @@ public class LangGenerator implements DataProvider {
         entries.put("item.arsenalcrafting.alloy_color", "Alloy Color: %s");
         entries.put("item.arsenalcrafting.tin_alloy", "Tin");
         entries.put("block.arsenalcrafting.fossil_generator", "Fossil Generator");
+        entries.put("jei.arsenalcrafting.augments", "Arsenal Augments");
+        entries.put("jei.arsenalcrafting.toolkit", "Tool Assembly");
+        entries.put("tooltip.arsenalcrafting.fluid.capacity", "Capacity: %s mb");
+        entries.put("tooltip.arsenalcrafting.fluid.amount", "%s / %s mb (%s%%)");
+        entries.put("tooltip.arsenalcrafting.fluid.tanks", "Connected tanks: %s");
+        entries.put("tooltip.arsenalcrafting.fluid_tank.connected", "Connected to %s tank(s)");
+        entries.put("tooltip.arsenalcrafting.fluid_tank.no_tanks", "No lava tanks connected!");
+        entries.put("tooltip.arsenalcrafting.fluid_tank.empty", "Empty");
+        entries.put("tooltip.arsenalcrafting.fluid_tank.capacity", "Capacity: %s mb");
+        entries.put("tooltip.arsenalcrafting.fluid_tank.amount", "%s / %s mb (%s%%)");
+        entries.put("tooltip.arsenalcrafting.fluid_tank.lava_temperature", "§cBurning hot! §7Used as fuel");
+        entries.put("tooltip.arsenalcrafting.fluid_tank.burn_time", "§cFuel: §7%s seconds (%s cycles)");
 
 
 
