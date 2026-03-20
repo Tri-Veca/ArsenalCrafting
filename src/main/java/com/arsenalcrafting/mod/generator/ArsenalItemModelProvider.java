@@ -35,6 +35,7 @@ public class ArsenalItemModelProvider extends ItemModelProvider {
         generateAlloyItemModels();
         generateAugmentModels();
         generateMoldItemModels();
+        generateAlloyBucketModels();
     }
 
     private void generateArsenalPickaxeModel() {
@@ -167,6 +168,16 @@ public class ArsenalItemModelProvider extends ItemModelProvider {
                         .parent(new ModelFile.UncheckedModelFile("item/generated"))
                         .texture("layer0", modLoc("item/" + id));
             }
+        }
+    }
+
+    private void generateAlloyBucketModels() {
+        for (AlloyMaterial material : AlloyMaterial.values()) {
+            String key = material.getName().toLowerCase(Locale.ROOT);
+            getBuilder(key + "_bucket")
+                    .parent(new ModelFile.UncheckedModelFile(mcLoc("item/generated")))
+                    .texture("layer0", mcLoc("arsenalcrafting:item/bucket_base"))          // vanilla iron bucket shape
+                    .texture("layer1", modLoc("item/molten_bucket_fluid")); // grayscale fluid fill
         }
     }
 

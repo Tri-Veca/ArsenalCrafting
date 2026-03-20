@@ -49,6 +49,20 @@ public class ModItemColors {
                 event.register(ModItemColors::colorAlloyItem, holder.get());
             }
 
+            for (var entry : ModItems.ALLOY_BUCKETS.entrySet()) {
+                AlloyMaterial material = entry.getKey();
+                Item bucketItem = entry.getValue().get();
+                event.register(
+                        (stack, tintIndex) -> {
+                            if (tintIndex == 1) {
+                                return ensureOpaque(material.getItemColor());
+                            }
+                            return 0xFFFFFFFF; // layer0 — no tint
+                        },
+                        bucketItem
+                );
+            }
+
         }
 
 

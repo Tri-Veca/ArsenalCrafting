@@ -44,7 +44,7 @@ public class ModCreativeTabs {
                         output.accept(ModItems.ARSENAL_BROADSWORD.get());
                         output.accept(ModItems.ARSENAL_DAGGER.get());
                         output.accept(ModItems.REPAIR_KIT.get());
-                        output.accept(ModItems.TITANIUM_BUCKET.get());
+
                     })
                     .build());
 
@@ -61,6 +61,25 @@ public class ModCreativeTabs {
                     })
                     .build());
 
+    // Fluids tab — registered third
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> ARSENAL_FLUIDS_TAB =
+            CREATIVE_MODE_TABS.register("2_arsenal_fluids_tab", () -> CreativeModeTab.builder()
+                    .icon(() -> {
+                        // Use the first bucket as the tab icon — Copper
+                        var copperBucket = ModItems.ALLOY_BUCKETS.get(AlloyMaterial.COPPER);
+                        return copperBucket != null
+                                ? new ItemStack(copperBucket.get())
+                                : new ItemStack(Items.BUCKET);
+                    })
+                    .title(Component.translatable("itemGroup." + ArsenalCrafting.MOD_ID + ".2_arsenal_fluids_tab"))
+                    .displayItems((parameters, output) -> {
+                        // One bucket per material in AlloyMaterial order
+                        for (AlloyMaterial material : AlloyMaterial.values()) {
+                            var bucket = ModItems.ALLOY_BUCKETS.get(material);
+                            if (bucket != null) output.accept(bucket.get());
+                        }
+                    })
+                    .build());
 
 
     public static void register(IEventBus eventBus) {

@@ -36,6 +36,7 @@ public class LangGenerator implements DataProvider {
         entries.put("itemGroup.arsenalcrafting.0_arsenal_tab", "Arsenal Crafting");
         entries.put("itemGroup.arsenalcrafting.main", "Arsenal Crafting");
         entries.put("itemGroup.arsenalcrafting.1_arsenal_components_tab", "Arsenal Crafting Components");
+        entries.put("itemGroup.arsenalcrafting.2_arsenal_fluids_tab", "Arsenal Fluids");
 
         // 2. Blocks
         entries.put("block.arsenalcrafting.alloy_smelter_core", "Alloy Smelter Core");
@@ -55,6 +56,13 @@ public class LangGenerator implements DataProvider {
             // Alloy ingot/item
             entries.put("item.arsenalcrafting." + materialId + "_alloy", materialName + " Alloy");
             System.out.println("[LangGenerator] Added: " + materialId + "_alloy");
+
+            // Molten bucket
+            entries.put("item.arsenalcrafting." + materialId + "_bucket", "Bucket of Molten " + materialName);
+
+            // Fluid type name (shows in fluid tooltips/JEI)
+            entries.put("fluid_type.arsenalcrafting." + materialId + "_fluid_type", "Molten " + materialName);
+
 
             // Tool parts (optional - you can auto-generate these too if needed)
             entries.put("item.arsenalcrafting." + materialId + "_pickaxe_head", materialName + " Pickaxe Head");
@@ -212,6 +220,7 @@ public class LangGenerator implements DataProvider {
             entries.put("tooltip.arsenalcrafting." + materialId + "_durability", "Base Durability: " + material.getDurability());
             entries.put("tooltip.arsenalcrafting." + materialId + "_efficiency", "Mining Speed: " + material.getEfficiency());
             entries.put("tooltip.arsenalcrafting." + materialId + "_damage", "Attack Damage: " + material.getDamage());
+
         }
 
         // ============ END OF ENTRIES ============

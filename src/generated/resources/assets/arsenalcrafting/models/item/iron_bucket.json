@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "arsenalcrafting:item/bucket_base",
+    "layer1": "arsenalcrafting:item/molten_bucket_fluid"
+  }
+}

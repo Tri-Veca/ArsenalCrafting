@@ -3,7 +3,10 @@ package com.arsenalcrafting.mod.registry;
 import com.arsenalcrafting.mod.ArsenalCrafting;
 import com.arsenalcrafting.mod.blocks.*;
 import com.arsenalcrafting.mod.component.ToolComponentType;
+import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.power.PowerTier;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -13,6 +16,7 @@ import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -26,10 +30,11 @@ public class ModBlocks {
             DeferredRegister.create(Registries.BLOCK, ArsenalCrafting.MOD_ID);
     public static final Map<ToolComponentType, DeferredHolder<Block, MoldBlock>> MOLD_BLOCKS = new HashMap<>();
     public static final Map<ToolComponentType, DeferredHolder<Block, MoldBlock>> BRONZE_MOLD_BLOCKS = new HashMap<>();
+    public static final Map<AlloyMaterial, DeferredHolder<Block, LiquidBlock>> ALLOY_FLUID_BLOCKS =
+            new HashMap<>();
 
 
-    public static final DeferredHolder<Block, LiquidBlock> TITANIUM_FLUID_BLOCK = BLOCKS.register("titanium_fluid_block",
-            () -> new LiquidBlock(ModFluids.TITANIUM_SOURCE.get(), BlockBehaviour.Properties.ofFullCopy(Blocks.WATER)));
+
 
 
     public static final DeferredHolder<Block, Block> LAVA_TANK = registerBlock(
@@ -178,6 +183,31 @@ public class ModBlocks {
         }
     }
 
+
+
+    public static void registerAlloyFluidBlocks() {
+        for (AlloyMaterial material : AlloyMaterial.values()) {
+            String id = material.getName().toLowerCase() + "_fluid_block";
+            final AlloyMaterial mat = material;
+
+            DeferredHolder<Block, LiquidBlock> holder = BLOCKS.register(id,
+                    () -> new LiquidBlock(
+                            ModFluids.getSource(mat),
+                            BlockBehaviour.Properties.of()
+                                    .noCollission()
+                                    .strength(100f)
+                                    .noLootTable()
+                                    .liquid()
+                                    .replaceable()
+                                    .pushReaction(PushReaction.DESTROY)  // Add this
+                                    .mapColor(MapColor.COLOR_GRAY)       // Add this
+                                    .lightLevel(state -> 5)              // Add this - makes it glow
+                    )
+            );
+            ALLOY_FLUID_BLOCKS.put(material, holder);
+        }
+    }
+
     private static <T extends Block> DeferredHolder<Block, T> registerBlock(String name, Supplier<T> block) {
         // Now using DeferredHolder<Block, T>
         DeferredHolder<Block, T> toReturn = BLOCKS.register(name, block);
@@ -193,5 +223,6 @@ public class ModBlocks {
     public static void register(IEventBus eventBus) {
         BLOCKS.register(eventBus);
         registerMolds();
+        registerAlloyFluidBlocks();
     }
 }

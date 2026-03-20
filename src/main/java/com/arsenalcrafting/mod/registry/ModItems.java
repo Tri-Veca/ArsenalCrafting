@@ -33,6 +33,8 @@ public class ModItems {
     public static final List<DeferredHolder<Item, UniversalAugmentItem>> UNIVERSAL_AUGMENTS = new ArrayList<>();
     public static final Map<AlloyMaterial, DeferredHolder<Item, Item>> ALLOY_ITEMS = new HashMap<>();
     public static final Map<AlloyMaterial, Map<ToolComponentType, DeferredHolder<Item, ToolComponentItem>>> TOOL_COMPONENTS = new HashMap<>();
+    public static final Map<AlloyMaterial, DeferredHolder<Item, BucketItem>> ALLOY_BUCKETS =
+            new HashMap<>();
 
     public static final DeferredHolder<Item, ArsenalSawItem> SAW =
             ITEMS.register("saw", () -> new ArsenalSawItem(new Item.Properties()));
@@ -44,8 +46,7 @@ public class ModItems {
             () -> new RepairKitItem(new Item.Properties()));
 
 
-    public static final DeferredHolder<Item, BucketItem> TITANIUM_BUCKET = ITEMS.register("titanium_bucket",
-            () -> new BucketItem(ModFluids.TITANIUM_SOURCE.get(), new Item.Properties().stacksTo(1).craftRemainder(Items.BUCKET)));
+
 
     // --- Tools & Weapons (Base items use the lightest alloy by default) ---
     public static final DeferredHolder<Item, ArsenalPickaxeItem> ARSENAL_PICKAXE = ITEMS.register("arsenal_pickaxe",
@@ -146,6 +147,26 @@ public class ModItems {
         }
     }
 
+
+    public static void registerAlloyBuckets() {
+        System.out.println("[ModItems] Registering alloy buckets...");
+        for (AlloyMaterial material : AlloyMaterial.values()) {
+            String id = material.getName().toLowerCase() + "_bucket";
+            final AlloyMaterial mat = material;
+
+            DeferredHolder<Item, BucketItem> holder = ITEMS.register(id,
+                    () -> new BucketItem(
+                            ModFluids.getSource(mat),
+                            new Item.Properties()
+                                    .stacksTo(1)
+                                    .craftRemainder(Items.BUCKET)
+                    )
+            );
+            ALLOY_BUCKETS.put(material, holder);
+            System.out.println("[ModItems] Registered bucket: " + id);
+        }
+    }
+
     // Helper method to register all universal augment items
     public static void registerUniversalAugments() {
         System.out.println("[ModItems] Registering universal augment items...");
@@ -213,6 +234,10 @@ public class ModItems {
             System.out.println("[ModItems] Step 2: Registering alloys...");
             registerAlloys();
             System.out.println("[ModItems] Step 2: COMPLETE");
+
+            System.out.println("[ModItems] Step 2b: Registering alloy buckets...");
+            registerAlloyBuckets();
+            System.out.println("[ModItems] Step 2b: COMPLETE");
 
             System.out.println("[ModItems] Step 3: Registering tool components...");
             registerToolComponents();

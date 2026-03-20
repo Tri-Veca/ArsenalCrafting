@@ -63,8 +63,8 @@ public class ArsenalKatanaItem extends SwordItem implements ArsenalTool {
     private static final float DURABILITY_MULT   = 0.85f;
     // Always hits at least MIN_ARC_EXTRAS+1 targets total (material arc can increase this)
     private static final int   MIN_ARC_EXTRAS    = 2;
-    private static final float ARC_DAMAGE_FRACTION = 0.75f;
-    private static final double ARC_RADIUS       = 3.0;
+    private static final float ARC_DAMAGE_FRACTION = 0.50f;
+    private static final double ARC_RADIUS       = 2.0;
     // Public so ArsenalAttributeEvents can reference it
     public  static final double REACH_BONUS      = 1.0;
 

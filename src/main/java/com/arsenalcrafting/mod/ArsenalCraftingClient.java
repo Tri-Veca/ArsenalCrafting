@@ -1,19 +1,30 @@
 package com.arsenalcrafting.mod;
 
 import com.arsenalcrafting.mod.client.render.ToolKitRenderer;
+import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.registry.ModBlockEntities;
 import com.arsenalcrafting.mod.registry.ModBlocks;
 import com.arsenalcrafting.mod.client.render.LavaTankRenderer;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.renderer.texture.atlas.sources.SingleFile;
+import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.ModelEvent;
+import net.neoforged.neoforge.client.event.RegisterSpriteSourceTypesEvent;
+import net.neoforged.neoforge.client.event.TextureAtlasStitchedEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.arsenalcrafting.mod.items.tool.ArsenalTool.tickHeldToolAugments;
 
@@ -42,9 +53,17 @@ public class ArsenalCraftingClient {
             );
         });
 
+        for (AlloyMaterial material : AlloyMaterial.values()) {
+            ItemBlockRenderTypes.setRenderLayer(
+                    ModBlocks.ALLOY_FLUID_BLOCKS.get(material).get(),
+                    RenderType.translucent()
+            );
+        }
+
 
 
     }
+
 
     public static void register() {
         NeoForge.EVENT_BUS.addListener(PlayerTickEvent.Post.class, tickEvent -> {

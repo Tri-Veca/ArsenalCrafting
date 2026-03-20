@@ -1,6 +1,7 @@
 package com.arsenalcrafting.mod;
 import com.arsenalcrafting.mod.commands.ArsenalCommands;
 import com.arsenalcrafting.mod.config.TestModeConfig;
+import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.core.alloy.AlloyRecipeType;
 import com.arsenalcrafting.mod.events.ArsenalAttributeEvents;
 import com.arsenalcrafting.mod.events.ArsenalPlayerEvents;
@@ -67,9 +68,13 @@ public class ArsenalCrafting {
 
 
 
-    public static void onClientSetup(final FMLClientSetupEvent event){
-        ItemBlockRenderTypes.setRenderLayer(ModFluids.TITANIUM_SOURCE.get(), RenderType.translucent());
-        ItemBlockRenderTypes.setRenderLayer(ModFluids.TITANIUM_FLOWING.get(), RenderType.translucent());
+    public static void onClientSetup(final FMLClientSetupEvent event) {
+        for (AlloyMaterial material : AlloyMaterial.values()) {
+            net.minecraft.world.level.material.FlowingFluid source = ModFluids.getSource(material);
+            net.minecraft.world.level.material.FlowingFluid flowing = ModFluids.getFlowing(material);
+            if (source != null) ItemBlockRenderTypes.setRenderLayer(source, RenderType.translucent());
+            if (flowing != null) ItemBlockRenderTypes.setRenderLayer(flowing, RenderType.translucent());
+        }
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
