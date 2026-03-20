@@ -8,6 +8,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3f;
 
 public enum AlloyMaterial {
     /**
@@ -252,6 +253,33 @@ public enum AlloyMaterial {
             }
         }
         return null;
+    }
+
+    /**
+     * Converts the material's itemColor to a Vector3f for fog effects
+     * @return Vector3f with RGB values normalized to 0-1 range
+     */
+    public Vector3f getFogVector() {
+        return getFogVector(1.0f);
+    }
+
+    /**
+     * Converts the material's itemColor to a Vector3f for fog effects with brightness adjustment
+     * @param brightness Multiplier for the color (0.0 - 1.0)
+     * @return Vector3f with RGB values normalized to 0-1 range
+     */
+    public Vector3f getFogVector(float brightness) {
+        // Extract RGB components from itemColor (format: 0xAARRGGBB)
+        float r = ((itemColor >> 16) & 0xFF) / 255.0f * brightness;
+        float g = ((itemColor >> 8) & 0xFF) / 255.0f * brightness;
+        float b = (itemColor & 0xFF) / 255.0f * brightness;
+
+        // Clamp values to 0-1 range
+        r = Math.max(0.0f, Math.min(1.0f, r));
+        g = Math.max(0.0f, Math.min(1.0f, g));
+        b = Math.max(0.0f, Math.min(1.0f, b));
+
+        return new Vector3f(r, g, b);
     }
 
     @Nullable

@@ -1,6 +1,7 @@
 package com.arsenalcrafting.mod.registry;
 
 import com.arsenalcrafting.mod.ArsenalCrafting;
+import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.fluids.TitaniumFluidType;
 import com.mojang.blaze3d.shaders.FogShape;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -41,7 +42,7 @@ public class ModFluidTypes {
 
     private static DeferredHolder<FluidType, TitaniumFluidType> registerTitanium(String name, FluidType.Properties properties){
         return FLUID_TYPES.register(name, () -> new TitaniumFluidType(WATER_STILL_RL, WATER_FLOWING_RL, TITANIUM_OVERLAY_RL,
-                0xFFC0C0C0, new Vector3f(192f / 255f, 192f / 255f, 192f / 255f), properties));
+                AlloyMaterial.TITANIUM.getItemColor(), AlloyMaterial.TITANIUM.getFogVector(), properties));
     }
 
 
