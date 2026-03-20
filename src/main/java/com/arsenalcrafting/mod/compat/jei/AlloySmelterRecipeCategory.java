@@ -101,7 +101,7 @@ public class AlloySmelterRecipeCategory implements IRecipeCategory<AlloyRecipe> 
             // Invisible ingot slot - placed outside visible area
             var ingotHolder = ModItems.ALLOY_ITEMS.get(material);
             if (ingotHolder != null) {
-                builder.addSlot(RecipeIngredientRole.OUTPUT, -100, -100)
+                builder.addSlot(RecipeIngredientRole.OUTPUT, -300, -300)
                         .addItemStack(new ItemStack(ingotHolder.get()))
                         .setBackground(emptyDrawable, 0, 0);
             }
