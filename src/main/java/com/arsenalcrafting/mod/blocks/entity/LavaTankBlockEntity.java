@@ -24,8 +24,7 @@ public class LavaTankBlockEntity extends BlockEntity {
 
         @Override
         public boolean isFluidValid(FluidStack stack) {
-            return stack.getFluid() == Fluids.LAVA || stack.getFluid() == Fluids.FLOWING_LAVA ||
-                    stack.getFluid() == ModFluids.TITANIUM_SOURCE.get() || stack.getFluid() == ModFluids.TITANIUM_FLOWING.get();
+            return stack.getFluid() == Fluids.LAVA || stack.getFluid() == Fluids.FLOWING_LAVA;
         }
     };
 
