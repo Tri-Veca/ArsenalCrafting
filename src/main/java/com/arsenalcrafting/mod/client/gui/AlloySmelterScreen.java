@@ -115,10 +115,10 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
 
             guiGraphics.blit(
                     x + FLUID_TANK_X,
-                    fluidY - 4,
+                    fluidY ,
                     0,
                     FLUID_TANK_WIDTH,
-                    fluidHeight,
+                    fluidHeight - 4,
                     sprite
             );
 
