@@ -8,8 +8,11 @@ import com.arsenalcrafting.mod.items.gadgets.ArsenalDrillItem;
 import com.arsenalcrafting.mod.items.gadgets.ArsenalSawItem;
 import com.arsenalcrafting.mod.power.PowerNetworkEvents;
 import com.arsenalcrafting.mod.registry.*;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.RenderType;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
@@ -26,6 +29,8 @@ public class ArsenalCrafting {
         modEventBus.addListener(ArsenalCraftingClient::onClientSetup);
 
         // Register all deferred registries
+        ModFluidTypes.register(modEventBus);
+        ModFluids.register(modEventBus);
         ModItems.register(modEventBus);
         ModBlocks.register(modEventBus);
         ModBlockEntities.register(modEventBus);
@@ -40,6 +45,7 @@ public class ArsenalCrafting {
         NeoForge.EVENT_BUS.register(ArsenalCommands.class);
         modEventBus.addListener(ModCapabilities::register);
         modEventBus.addListener(this::registerCapabilities);
+
 
         TestModeConfig.setTestMode(false);
         System.out.println("[ArsenalCrafting] Constructor completed - Test Mode should be OFF");
@@ -61,6 +67,10 @@ public class ArsenalCrafting {
 
 
 
+    public static void onClientSetup(final FMLClientSetupEvent event){
+        ItemBlockRenderTypes.setRenderLayer(ModFluids.TITANIUM_SOURCE.get(), RenderType.translucent());
+        ItemBlockRenderTypes.setRenderLayer(ModFluids.TITANIUM_FLOWING.get(), RenderType.translucent());
+    }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
 
@@ -127,4 +137,6 @@ public class ArsenalCrafting {
                 ModItems.DRILL.get()
         );
     }
+
+
 }

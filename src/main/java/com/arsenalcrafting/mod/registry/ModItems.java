@@ -13,7 +13,9 @@ import com.arsenalcrafting.mod.component.ToolComponentType;
 import com.arsenalcrafting.mod.items.tool.toolparts.ToolComponentItem;
 
 import net.minecraft.core.registries.Registries;
+import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -42,7 +44,8 @@ public class ModItems {
             () -> new RepairKitItem(new Item.Properties()));
 
 
-
+    public static final DeferredHolder<Item, BucketItem> TITANIUM_BUCKET = ITEMS.register("titanium_bucket",
+            () -> new BucketItem(ModFluids.TITANIUM_SOURCE.get(), new Item.Properties().stacksTo(1).craftRemainder(Items.BUCKET)));
 
     // --- Tools & Weapons (Base items use the lightest alloy by default) ---
     public static final DeferredHolder<Item, ArsenalPickaxeItem> ARSENAL_PICKAXE = ITEMS.register("arsenal_pickaxe",

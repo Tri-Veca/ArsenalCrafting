@@ -12,6 +12,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.block.LiquidBlock;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -30,7 +31,10 @@ public class ModCreativeTabs {
                     .displayItems((parameters, output) -> {
                         ModItems.UNIVERSAL_AUGMENTS.forEach(item -> output.accept(item.get()));
                         ModItems.ALLOY_ITEMS.forEach((key, value) -> output.accept(value.get()));
-                        ModBlocks.BLOCKS.getEntries().forEach(block -> output.accept(block.get()));
+                        ModBlocks.BLOCKS.getEntries().forEach(block -> {
+                            if (block.get() instanceof LiquidBlock) { return; }
+                            output.accept(block.get());
+                        });
                         output.accept(ModItems.DRILL.get());
                         output.accept(ModItems.SAW.get());
                         output.accept(ModItems.ARSENAL_PICKAXE.get());
@@ -40,6 +44,7 @@ public class ModCreativeTabs {
                         output.accept(ModItems.ARSENAL_BROADSWORD.get());
                         output.accept(ModItems.ARSENAL_DAGGER.get());
                         output.accept(ModItems.REPAIR_KIT.get());
+                        output.accept(ModItems.TITANIUM_BUCKET.get());
                     })
                     .build());
 

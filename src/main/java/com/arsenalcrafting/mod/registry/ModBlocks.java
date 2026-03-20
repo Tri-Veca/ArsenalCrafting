@@ -9,6 +9,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
@@ -25,6 +26,10 @@ public class ModBlocks {
             DeferredRegister.create(Registries.BLOCK, ArsenalCrafting.MOD_ID);
     public static final Map<ToolComponentType, DeferredHolder<Block, MoldBlock>> MOLD_BLOCKS = new HashMap<>();
     public static final Map<ToolComponentType, DeferredHolder<Block, MoldBlock>> BRONZE_MOLD_BLOCKS = new HashMap<>();
+
+
+    public static final DeferredHolder<Block, LiquidBlock> TITANIUM_FLUID_BLOCK = BLOCKS.register("titanium_fluid_block",
+            () -> new LiquidBlock(ModFluids.TITANIUM_SOURCE.get(), BlockBehaviour.Properties.ofFullCopy(Blocks.WATER)));
 
 
     public static final DeferredHolder<Block, Block> LAVA_TANK = registerBlock(

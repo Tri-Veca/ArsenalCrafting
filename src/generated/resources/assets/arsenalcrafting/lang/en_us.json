@@ -344,6 +344,7 @@
   "tooltip.arsenalcrafting.fluid.amount": "%s / %s mb (%s%%)",
   "tooltip.arsenalcrafting.fluid.tanks": "Connected tanks: %s",
   "tooltip.arsenalcrafting.fluid_tank.connected": "Connected to %s tank(s)",
-  "tooltip.arsenalcrafting.fluid_tank.no_tanks": "No lava tanks connected!"
+  "tooltip.arsenalcrafting.fluid_tank.no_tanks": "No lava tanks connected!",
+  "item.arsenalcrafting.titanium_bucket": "Titanium Bucket"
 
 }

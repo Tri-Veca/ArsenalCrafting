@@ -1,6 +1,7 @@
 package com.arsenalcrafting.mod.blocks.entity;
 
 import com.arsenalcrafting.mod.registry.ModBlockEntities;
+import com.arsenalcrafting.mod.registry.ModFluids;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -23,7 +24,8 @@ public class LavaTankBlockEntity extends BlockEntity {
 
         @Override
         public boolean isFluidValid(FluidStack stack) {
-            return stack.getFluid() == Fluids.LAVA || stack.getFluid() == Fluids.FLOWING_LAVA;
+            return stack.getFluid() == Fluids.LAVA || stack.getFluid() == Fluids.FLOWING_LAVA ||
+                    stack.getFluid() == ModFluids.TITANIUM_SOURCE.get() || stack.getFluid() == ModFluids.TITANIUM_FLOWING.get();
         }
     };
 
