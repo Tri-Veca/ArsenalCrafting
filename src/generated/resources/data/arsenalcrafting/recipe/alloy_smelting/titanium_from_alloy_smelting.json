@@ -16,8 +16,6 @@
     }
   ],
   "lavaCost": 500,
-  "result": {
-    "count": 1,
-    "id": "arsenalcrafting:titanium_alloy"
-  }
+  "resultAmountMb": 2000,
+  "resultMaterial": "Titanium"
 }

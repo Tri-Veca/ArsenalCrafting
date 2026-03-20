@@ -22,8 +22,6 @@
     }
   ],
   "lavaCost": 500,
-  "result": {
-    "count": 2,
-    "id": "arsenalcrafting:steel_alloy"
-  }
+  "resultAmountMb": 1000,
+  "resultMaterial": "Steel"
 }

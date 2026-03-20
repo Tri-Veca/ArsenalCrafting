@@ -13,8 +13,6 @@
     }
   ],
   "lavaCost": 500,
-  "result": {
-    "count": 2,
-    "id": "arsenalcrafting:bronze_alloy"
-  }
+  "resultAmountMb": 2000,
+  "resultMaterial": "Bronze"
 }

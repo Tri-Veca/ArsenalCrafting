@@ -136,7 +136,7 @@ public enum AlloyMaterial {
             4,
             0.08f,   //crit chance
             1.25f,   //crit damage multiplier
-            4.0f,    //weapon damage — slightly above iron, alloy payoff
+            4.0f,
             ChatFormatting.GOLD,
             0xFFcb9580,
             true,

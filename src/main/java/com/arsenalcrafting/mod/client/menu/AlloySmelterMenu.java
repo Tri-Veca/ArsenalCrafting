@@ -3,8 +3,6 @@ package com.arsenalcrafting.mod.client.menu;
 import com.arsenalcrafting.mod.blocks.entity.AlloySmelterBlockEntity;
 import com.arsenalcrafting.mod.registry.ModBlocks;
 import com.arsenalcrafting.mod.registry.ModMenus;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -34,15 +32,15 @@ public class AlloySmelterMenu extends AbstractContainerMenu {
 
         checkContainerSize(playerInventory, 10);
         this.blockEntity = (AlloySmelterBlockEntity) entity;
-        this.level = playerInventory.player.level();
-        this.data = data;
+        this.level       = playerInventory.player.level();
+        this.data        = data;
 
         addPlayerInventory(playerInventory);
         addPlayerHotbar(playerInventory);
 
         var handler = this.blockEntity.getItemHandler();
 
-        // Input grid (3x3) - slots 0-8
+        // Input grid (3x3) - slots 0-8 — unchanged
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 3; col++) {
                 int index = row * 3 + col;
@@ -50,19 +48,19 @@ public class AlloySmelterMenu extends AbstractContainerMenu {
             }
         }
 
-
-        // Output slot - slot 9
-        this.addSlot(new SlotItemHandler(handler, 9, 143, 35) {
-            @Override
-            public boolean mayPlace(ItemStack stack) {
-                return false; // Output only
-            }
-        });
+        // ── OLD ITEM OUTPUT SLOT (commented out — slot 9 now unused) ─────────
+        // this.addSlot(new SlotItemHandler(handler, 9, 143, 35) {
+        //     @Override
+        //     public boolean mayPlace(ItemStack stack) {
+        //         return false; // Output only
+        //     }
+        // });
 
         for (int i = 0; i < slots.size(); i++) {
             Slot slot = slots.get(i);
             if (slot instanceof SlotItemHandler) {
-                System.out.println("[Menu] Slot " + i + " is SlotItemHandler with index " + ((SlotItemHandler)slot).getSlotIndex());
+                System.out.println("[Menu] Slot " + i + " is SlotItemHandler with index "
+                        + ((SlotItemHandler) slot).getSlotIndex());
             }
         }
 
@@ -78,76 +76,82 @@ public class AlloySmelterMenu extends AbstractContainerMenu {
         }
     }
 
+    // ── LAVA DISPLAY TANK GETTERS (existing — unchanged) ─────────────────────
+
     public int getScaledFluid() {
         int fluidAmount = blockEntity.DISPLAY_TANK.getFluidAmount();
-        int capacity = blockEntity.DISPLAY_TANK.getCapacity();
-        int tankHeight = 60;
+        int capacity    = blockEntity.DISPLAY_TANK.getCapacity();
+        int tankHeight  = 60;
         return capacity != 0 ? (fluidAmount * tankHeight / capacity) : 0;
     }
 
-    public boolean isCrafting() {
-        return data.get(0) > 0;
+    public int getFluidAmount()    { return blockEntity.DISPLAY_TANK.getFluidAmount(); }
+    public boolean hasFluid()      { return !blockEntity.DISPLAY_TANK.isEmpty(); }
+    public int getFluidCapacity()  { return blockEntity.DISPLAY_TANK.getCapacity(); }
+    public FluidStack getFluid()   { return blockEntity.DISPLAY_TANK.getFluid(); }
+    public int getDisplayCapacity(){ return blockEntity.DISPLAY_TANK.getCapacity(); }
+
+    // ── OUTPUT TANK GETTERS (new) ─────────────────────────────────────────────
+
+    public int getOutputFluidAmount()   { return blockEntity.OUTPUT_TANK.getFluidAmount(); }
+    public int getOutputFluidCapacity() { return blockEntity.OUTPUT_TANK.getCapacity(); }
+    public FluidStack getOutputFluid()  { return blockEntity.OUTPUT_TANK.getFluid(); }
+    public boolean hasOutputFluid()     { return !blockEntity.OUTPUT_TANK.isEmpty(); }
+
+    public int getScaledOutputFluid() {
+        int amount   = blockEntity.OUTPUT_TANK.getFluidAmount();
+        int capacity = blockEntity.OUTPUT_TANK.getCapacity();
+        int height   = 60;
+        return capacity != 0 ? (amount * height / capacity) : 0;
     }
 
+    // ── PROGRESS (existing — unchanged) ───────────────────────────────────────
+
+    public boolean isCrafting() { return data.get(0) > 0; }
+
     public int getScaledProgress() {
-        int progress = data.get(0);
+        int progress    = data.get(0);
         int maxProgress = data.get(1);
-        int arrowSize = 24;
+        int arrowSize   = 24;
         return maxProgress != 0 ? (progress * arrowSize / maxProgress) : 0;
     }
 
     public int getScaledFuelProgress() {
-        int fuelTime = data.get(2);
+        int fuelTime    = data.get(2);
         int maxFuelTime = data.get(3);
         int fuelBarSize = 14;
         return maxFuelTime != 0 ? (fuelTime * fuelBarSize / maxFuelTime) : 0;
     }
 
-    public int getFluidAmount() {
-        return blockEntity.DISPLAY_TANK.getFluidAmount();
-    }
-
-    public boolean hasFluid() {
-        return !blockEntity.DISPLAY_TANK.isEmpty();
-    }
-
-    public int getFluidCapacity() {
-        return blockEntity.DISPLAY_TANK.getCapacity();
-    }
-
-    public FluidStack getFluid() {
-        return blockEntity.DISPLAY_TANK.getFluid();
-    }
-
-    public int getDisplayCapacity() {
-        return blockEntity.DISPLAY_TANK.getCapacity();
-    }
-
     public String getDebugInfo() {
-        return String.format("Display: %d/%d mb, Connected tanks: %d",
-                getFluidAmount(), getFluidCapacity(), blockEntity.getConnectedTanksCount());
+        return String.format("Display: %d/%d mb | Output: %d/%d mb | Connected tanks: %d",
+                getFluidAmount(), getFluidCapacity(),
+                getOutputFluidAmount(), getOutputFluidCapacity(),
+                blockEntity.getConnectedTanksCount());
     }
 
-    public int getConnectedTanksCount() {
-        return data.get(2);
-    }
+    public int getConnectedTanksCount() { return data.get(2); }
 
-    // Standard shift-click logic
-    private static final int HOTBAR_SLOT_COUNT = 9;
-    private static final int PLAYER_INVENTORY_ROW_COUNT = 3;
-    private static final int PLAYER_INVENTORY_COLUMN_COUNT = 9;
-    private static final int PLAYER_INVENTORY_SLOT_COUNT = PLAYER_INVENTORY_COLUMN_COUNT * PLAYER_INVENTORY_ROW_COUNT;
-    private static final int VANILLA_SLOT_COUNT = HOTBAR_SLOT_COUNT + PLAYER_INVENTORY_SLOT_COUNT;
-    private static final int VANILLA_FIRST_SLOT_INDEX = 0;
-    private static final int TE_INVENTORY_FIRST_SLOT_INDEX = VANILLA_FIRST_SLOT_INDEX + VANILLA_SLOT_COUNT;
-    private static final int TE_INVENTORY_SLOT_COUNT = 11;
+    // ── SHIFT CLICK (existing — unchanged) ────────────────────────────────────
+
+    private static final int HOTBAR_SLOT_COUNT              = 9;
+    private static final int PLAYER_INVENTORY_ROW_COUNT     = 3;
+    private static final int PLAYER_INVENTORY_COLUMN_COUNT  = 9;
+    private static final int PLAYER_INVENTORY_SLOT_COUNT    =
+            PLAYER_INVENTORY_COLUMN_COUNT * PLAYER_INVENTORY_ROW_COUNT;
+    private static final int VANILLA_SLOT_COUNT             =
+            HOTBAR_SLOT_COUNT + PLAYER_INVENTORY_SLOT_COUNT;
+    private static final int VANILLA_FIRST_SLOT_INDEX       = 0;
+    private static final int TE_INVENTORY_FIRST_SLOT_INDEX  =
+            VANILLA_FIRST_SLOT_INDEX + VANILLA_SLOT_COUNT;
+    private static final int TE_INVENTORY_SLOT_COUNT        = 11;
 
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
         Slot slot = slots.get(index);
         if (slot == null || !slot.hasItem()) return ItemStack.EMPTY;
         ItemStack stack = slot.getItem();
-        ItemStack copy = stack.copy();
+        ItemStack copy  = stack.copy();
 
         if (index < VANILLA_FIRST_SLOT_INDEX + VANILLA_SLOT_COUNT) {
             if (!moveItemStackTo(stack, TE_INVENTORY_FIRST_SLOT_INDEX,
@@ -160,11 +164,8 @@ public class AlloySmelterMenu extends AbstractContainerMenu {
                 return ItemStack.EMPTY;
             }
         }
-        if (stack.isEmpty()) {
-            slot.set(ItemStack.EMPTY);
-        } else {
-            slot.setChanged();
-        }
+        if (stack.isEmpty()) slot.set(ItemStack.EMPTY);
+        else slot.setChanged();
         return copy;
     }
 
@@ -175,18 +176,13 @@ public class AlloySmelterMenu extends AbstractContainerMenu {
     }
 
     private void addPlayerInventory(Inventory inv) {
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 9; j++) {
+        for (int i = 0; i < 3; i++)
+            for (int j = 0; j < 9; j++)
                 this.addSlot(new Slot(inv, j + i * 9 + 9, 8 + j * 18, 84 + i * 18));
-            }
-        }
     }
 
     private void addPlayerHotbar(Inventory inv) {
-        for (int i = 0; i < 9; i++) {
+        for (int i = 0; i < 9; i++)
             this.addSlot(new Slot(inv, i, 8 + i * 18, 142));
-        }
     }
-
-
 }

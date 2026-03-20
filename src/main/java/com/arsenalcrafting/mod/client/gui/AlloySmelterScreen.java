@@ -25,16 +25,25 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
             ResourceLocation.fromNamespaceAndPath(ArsenalCrafting.MOD_ID,
                     "textures/gui/container/alloy_smelter_gui.png");
 
-    private static final int FLUID_TANK_X = 151;
-    private static final int FLUID_TANK_Y = 17;
-    private static final int FLUID_TANK_WIDTH = 16;
+    // ── LAVA TANK (existing — unchanged) ─────────────────────────────────────
+    private static final int FLUID_TANK_X      = 151;
+    private static final int FLUID_TANK_Y      = 17;
+    private static final int FLUID_TANK_WIDTH  = 16;
     private static final int FLUID_TANK_HEIGHT = 60;
+
+    // ── OUTPUT TANK (new — adjust X/Y to match your GUI texture) ─────────────
+    private static final int OUTPUT_TANK_X      = 87;  // adjust to fit your GUI layout
+    private static final int OUTPUT_TANK_Y      = 19;
+    private static final int OUTPUT_TANK_WIDTH  = 56;
+    private static final int OUTPUT_TANK_HEIGHT = 58;
 
     public AlloySmelterScreen(AlloySmelterMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, Component.literal("Alloy Smelter"));
-        this.imageHeight = 166;
-        this.inventoryLabelY = this.imageHeight - 94;
+        this.imageHeight      = 166;
+        this.inventoryLabelY  = this.imageHeight - 94;
     }
+
+    // ── RENDER BG (existing + output tank render added) ───────────────────────
 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
@@ -42,125 +51,158 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, TEXTURE);
 
-        int x = (width - imageWidth) / 2;
+        int x = (width  - imageWidth)  / 2;
         int y = (height - imageHeight) / 2;
 
         guiGraphics.blit(TEXTURE, x, y, 0, 0, imageWidth, imageHeight);
 
+        // Lava tank (existing)
         renderFluidTank(guiGraphics, x, y);
 
+        // Progress arrow (existing)
         if (menu.isCrafting()) {
             guiGraphics.blit(TEXTURE, x + 110, y + 34, 176, 0, menu.getScaledProgress(), 17);
         }
     }
 
+    // ── RENDER (existing + output tank render added) ──────────────────────────
+
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
         this.renderBackground(guiGraphics, mouseX, mouseY, delta);
 
-        // Save and set proper rendering state
         RenderSystem.enableDepthTest();
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
 
         super.render(guiGraphics, mouseX, mouseY, delta);
 
-        int x = (width - imageWidth) / 2;
+        int x = (width  - imageWidth)  / 2;
         int y = (height - imageHeight) / 2;
 
         int lastTexture = RenderSystem.getShaderTexture(0);
-        //renderFluidTank(guiGraphics, x, y);
+
+        // Output tank fluid render
+        renderOutputTank(guiGraphics, x, y);
+
         RenderSystem.setShaderTexture(0, lastTexture);
         RenderSystem.enableDepthTest();
 
         this.renderTooltip(guiGraphics, mouseX, mouseY);
         renderFluidTankTooltip(guiGraphics, mouseX, mouseY);
+        renderOutputTankTooltip(guiGraphics, mouseX, mouseY);  // new
     }
+
+    // ── LAVA TANK RENDER (existing — unchanged) ───────────────────────────────
 
     private void renderFluidTank(GuiGraphics guiGraphics, int x, int y) {
         FluidStack fluidStack = menu.getFluid();
-        int amount = menu.getFluidAmount();
+        int amount   = menu.getFluidAmount();
         int capacity = menu.getFluidCapacity();
 
         if (!fluidStack.isEmpty() && amount > 0 && capacity > 0) {
-            var fluid = fluidStack.getFluid();
+            var fluid           = fluidStack.getFluid();
             var fluidExtensions = IClientFluidTypeExtensions.of(fluid);
 
             ResourceLocation stillTexture = fluidExtensions.getStillTexture(fluidStack);
-            if (stillTexture == null) {
-                stillTexture = fluidExtensions.getStillTexture();
-            }
+            if (stillTexture == null) stillTexture = fluidExtensions.getStillTexture();
+
+            TextureAtlasSprite sprite = Minecraft.getInstance()
+                    .getTextureAtlas(TextureAtlas.LOCATION_BLOCKS)
+                    .apply(stillTexture);
+
+            float percentage  = (float) amount / capacity;
+            int fluidHeight   = (int) (FLUID_TANK_HEIGHT * percentage);
+            int fluidY        = y + FLUID_TANK_Y + (FLUID_TANK_HEIGHT - fluidHeight);
+
+            int color = fluidExtensions.getTintColor(fluidStack);
+            float r = ((color >> 16) & 0xFF) / 255f;
+            float g = ((color >>  8) & 0xFF) / 255f;
+            float b = ( color        & 0xFF) / 255f;
+            float a = ((color >> 24) & 0xFF) / 255f;
+
+            float[] last = RenderSystem.getShaderColor();
+            RenderSystem.disableDepthTest();
+            RenderSystem.setShaderColor(r, g, b, a);
+
+            guiGraphics.blit(x + FLUID_TANK_X, fluidY, 0,
+                    FLUID_TANK_WIDTH, fluidHeight - 4, sprite);
+
+            RenderSystem.setShaderColor(last[0], last[1], last[2], last[3]);
+            RenderSystem.enableDepthTest();
+            RenderSystem.setShaderTexture(0, TEXTURE);
+        }
+    }
+
+    // ── OUTPUT TANK RENDER (new) ──────────────────────────────────────────────
+
+    private void renderOutputTank(GuiGraphics guiGraphics, int x, int y) {
+        FluidStack fluidStack = menu.getOutputFluid();
+        int amount   = menu.getOutputFluidAmount();
+        int capacity = menu.getOutputFluidCapacity();
+
+        if (!fluidStack.isEmpty() && amount > 0 && capacity > 0) {
+            var fluid           = fluidStack.getFluid();
+            var fluidExtensions = IClientFluidTypeExtensions.of(fluid);
+
+            ResourceLocation stillTexture = fluidExtensions.getStillTexture(fluidStack);
+            if (stillTexture == null) stillTexture = fluidExtensions.getStillTexture();
 
             TextureAtlasSprite sprite = Minecraft.getInstance()
                     .getTextureAtlas(TextureAtlas.LOCATION_BLOCKS)
                     .apply(stillTexture);
 
             float percentage = (float) amount / capacity;
-            int fluidHeight = (int) (FLUID_TANK_HEIGHT * percentage);
-            int fluidY = y + FLUID_TANK_Y + (FLUID_TANK_HEIGHT - fluidHeight);
+            int fluidHeight  = (int) (OUTPUT_TANK_HEIGHT * percentage);
+            int fluidY       = y + OUTPUT_TANK_Y + (OUTPUT_TANK_HEIGHT - fluidHeight);
 
             int color = fluidExtensions.getTintColor(fluidStack);
             float r = ((color >> 16) & 0xFF) / 255f;
-            float g = ((color >> 8) & 0xFF) / 255f;
-            float b = (color & 0xFF) / 255f;
+            float g = ((color >>  8) & 0xFF) / 255f;
+            float b = ( color        & 0xFF) / 255f;
             float a = ((color >> 24) & 0xFF) / 255f;
 
-            float lastR = RenderSystem.getShaderColor()[0];
-            float lastG = RenderSystem.getShaderColor()[1];
-            float lastB = RenderSystem.getShaderColor()[2];
-            float lastA = RenderSystem.getShaderColor()[3];
-
+            float[] last = RenderSystem.getShaderColor();
             RenderSystem.disableDepthTest();
             RenderSystem.setShaderColor(r, g, b, a);
 
-            guiGraphics.blit(
-                    x + FLUID_TANK_X,
-                    fluidY ,
-                    0,
-                    FLUID_TANK_WIDTH,
-                    fluidHeight - 4,
-                    sprite
-            );
+            guiGraphics.blit(x + OUTPUT_TANK_X, fluidY, 0,
+                    OUTPUT_TANK_WIDTH, fluidHeight - 4, sprite);
 
-            RenderSystem.setShaderColor(lastR, lastG, lastB, lastA);
+            RenderSystem.setShaderColor(last[0], last[1], last[2], last[3]);
             RenderSystem.enableDepthTest();
             RenderSystem.setShaderTexture(0, TEXTURE);
         }
     }
 
+    // ── LAVA TANK TOOLTIP (existing — unchanged) ──────────────────────────────
+
     private void renderFluidTankTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        int x = (width - imageWidth) / 2;
+        int x = (width  - imageWidth)  / 2;
         int y = (height - imageHeight) / 2;
 
         if (mouseX >= x + FLUID_TANK_X && mouseX <= x + FLUID_TANK_X + FLUID_TANK_WIDTH &&
                 mouseY >= y + FLUID_TANK_Y && mouseY <= y + FLUID_TANK_Y + FLUID_TANK_HEIGHT) {
 
             List<Component> tooltip = new ArrayList<>();
-
-            FluidStack fluidStack = menu.getFluid();
-            int amount = menu.getFluidAmount();
+            FluidStack fluidStack   = menu.getFluid();
+            int amount   = menu.getFluidAmount();
             int capacity = menu.getFluidCapacity();
             int tankCount = menu.getConnectedTanksCount();
 
             NumberFormat formatter = NumberFormat.getIntegerInstance();
-            String amountStr = formatter.format(amount);
-            String capacityStr = formatter.format(capacity);
 
             if (fluidStack.isEmpty() || amount == 0) {
                 tooltip.add(Component.translatable("tooltip.arsenalcrafting.fluid_tank.empty")
                         .withStyle(ChatFormatting.GRAY));
                 tooltip.add(Component.translatable("tooltip.arsenalcrafting.fluid_tank.capacity",
-                        capacityStr).withStyle(ChatFormatting.DARK_GRAY));
+                        formatter.format(capacity)).withStyle(ChatFormatting.DARK_GRAY));
             } else {
-                Component fluidName = fluidStack.getHoverName();
-                tooltip.add(fluidName.copy().withStyle(ChatFormatting.GOLD));
-
-                float percentage = (amount * 100f) / capacity;
-                String percentStr = String.format("%.1f", percentage);
-
+                tooltip.add(fluidStack.getHoverName().copy().withStyle(ChatFormatting.GOLD));
+                float pct = (amount * 100f) / capacity;
                 tooltip.add(Component.translatable("tooltip.arsenalcrafting.fluid_tank.amount",
-                                amountStr, capacityStr, percentStr)
-                        .withStyle(ChatFormatting.GREEN));
+                        formatter.format(amount), formatter.format(capacity),
+                        String.format("%.1f", pct)).withStyle(ChatFormatting.GREEN));
             }
 
             if (tankCount > 0) {
@@ -175,4 +217,38 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
         }
     }
 
+    // ── OUTPUT TANK TOOLTIP (new) ─────────────────────────────────────────────
+
+    private void renderOutputTankTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        int x = (width  - imageWidth)  / 2;
+        int y = (height - imageHeight) / 2;
+
+        if (mouseX >= x + OUTPUT_TANK_X && mouseX <= x + OUTPUT_TANK_X + OUTPUT_TANK_WIDTH &&
+                mouseY >= y + OUTPUT_TANK_Y && mouseY <= y + OUTPUT_TANK_Y + OUTPUT_TANK_HEIGHT) {
+
+            List<Component> tooltip = new ArrayList<>();
+            FluidStack fluidStack   = menu.getOutputFluid();
+            int amount   = menu.getOutputFluidAmount();
+            int capacity = menu.getOutputFluidCapacity();
+
+            NumberFormat formatter = NumberFormat.getIntegerInstance();
+
+            tooltip.add(Component.literal("Molten Output").withStyle(ChatFormatting.GOLD));
+
+            if (fluidStack.isEmpty() || amount == 0) {
+                tooltip.add(Component.literal("Empty").withStyle(ChatFormatting.GRAY));
+                tooltip.add(Component.literal("Capacity: " + formatter.format(capacity) + " mb")
+                        .withStyle(ChatFormatting.DARK_GRAY));
+            } else {
+                tooltip.add(fluidStack.getHoverName().copy().withStyle(ChatFormatting.YELLOW));
+                float pct = (amount * 100f) / capacity;
+                tooltip.add(Component.literal(
+                                formatter.format(amount) + " / " + formatter.format(capacity)
+                                        + " mb (" + String.format("%.1f", pct) + "%)")
+                        .withStyle(ChatFormatting.GREEN));
+            }
+
+            guiGraphics.renderComponentTooltip(font, tooltip, mouseX, mouseY);
+        }
+    }
 }
