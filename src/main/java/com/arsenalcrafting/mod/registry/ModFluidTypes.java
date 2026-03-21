@@ -27,6 +27,8 @@ public class ModFluidTypes {
     public static final DeferredRegister<FluidType> FLUID_TYPES =
             DeferredRegister.create(NeoForgeRegistries.FLUID_TYPES, ArsenalCrafting.MOD_ID);
 
+
+
     public static final Map<AlloyMaterial, DeferredHolder<FluidType, AlloyFluidType>> ALLOY_FLUID_TYPES =
             new EnumMap<>(AlloyMaterial.class);
 
@@ -60,6 +62,8 @@ public class ModFluidTypes {
             ALLOY_FLUID_TYPES.put(material, holder);
         }
     }
+
+
 
     /** Get the registered AlloyFluidType for a material. */
     public static AlloyFluidType get(AlloyMaterial material) {

@@ -27,6 +27,9 @@ public class ModFluids {
     // Fluid properties — built after source/flowing holders exist
     static final Map<AlloyMaterial, BaseFlowingFluid.Properties> FLUID_PROPS = new EnumMap<>(AlloyMaterial.class);
 
+
+
+
     static {
         for (AlloyMaterial material : AlloyMaterial.values()) {
             String name = material.getName().toLowerCase();

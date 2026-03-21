@@ -64,19 +64,21 @@ public class LangGenerator implements DataProvider {
             entries.put("fluid_type.arsenalcrafting." + materialId + "_fluid_type", "Molten " + materialName);
 
 
-            // Tool parts (optional - you can auto-generate these too if needed)
-            entries.put("item.arsenalcrafting." + materialId + "_pickaxe_head", materialName + " Pickaxe Head");
-            entries.put("item.arsenalcrafting." + materialId + "_shovel_head", materialName + " Shovel Head");
-            entries.put("item.arsenalcrafting." + materialId + "_axe_head", materialName + " Axe Head");
-            entries.put("item.arsenalcrafting." + materialId + "_tool_rod", materialName + " Tool Rod");
-            entries.put("item.arsenalcrafting." + materialId + "_shovel_tool_rod", materialName + " Shovel Tool Rod");
-            entries.put("item.arsenalcrafting." + materialId + "_core", materialName + " Core");
-            entries.put("item.arsenalcrafting." + materialId + "_katana_blade_head", materialName + " Katana Blade");
-            entries.put("item.arsenalcrafting." + materialId + "_katana_hilt_rod", materialName + " Katana Hilt");
-            entries.put("item.arsenalcrafting." + materialId + "_broadsword_blade_head", materialName + " Broadsword Blade");
-            entries.put("item.arsenalcrafting." + materialId + "_broadsword_hilt_rod", materialName + " Broadsword Hilt");
-            entries.put("item.arsenalcrafting." + materialId + "_dagger_blade_head", materialName + " Dagger Blade");
-            entries.put("item.arsenalcrafting." + materialId + "_dagger_hilt_rod", materialName + " Dagger Hilt");
+            // Tool parts ONLY if shouldGenerateParts is true
+            if (material.shouldGenerateParts()) {
+                entries.put("item.arsenalcrafting." + materialId + "_pickaxe_head", materialName + " Pickaxe Head");
+                entries.put("item.arsenalcrafting." + materialId + "_shovel_head", materialName + " Shovel Head");
+                entries.put("item.arsenalcrafting." + materialId + "_axe_head", materialName + " Axe Head");
+                entries.put("item.arsenalcrafting." + materialId + "_tool_rod", materialName + " Tool Rod");
+                entries.put("item.arsenalcrafting." + materialId + "_shovel_tool_rod", materialName + " Shovel Tool Rod");
+                entries.put("item.arsenalcrafting." + materialId + "_core", materialName + " Core");
+                entries.put("item.arsenalcrafting." + materialId + "_katana_blade_head", materialName + " Katana Blade");
+                entries.put("item.arsenalcrafting." + materialId + "_katana_hilt_rod", materialName + " Katana Hilt");
+                entries.put("item.arsenalcrafting." + materialId + "_broadsword_blade_head", materialName + " Broadsword Blade");
+                entries.put("item.arsenalcrafting." + materialId + "_broadsword_hilt_rod", materialName + " Broadsword Hilt");
+                entries.put("item.arsenalcrafting." + materialId + "_dagger_blade_head", materialName + " Dagger Blade");
+                entries.put("item.arsenalcrafting." + materialId + "_dagger_hilt_rod", materialName + " Dagger Hilt");
+            }
         }
 
         // Other items
@@ -144,6 +146,10 @@ public class LangGenerator implements DataProvider {
         entries.put("tooltip.arsenalcrafting.fluid_tank.amount", "%s / %s mb (%s%%)");
         entries.put("tooltip.arsenalcrafting.fluid_tank.lava_temperature", "§cBurning hot! §7Used as fuel");
         entries.put("tooltip.arsenalcrafting.fluid_tank.burn_time", "§cFuel: §7%s seconds (%s cycles)");
+        entries.put("fluid_type.arsenalcrafting.coal_fluid_type", "Hydrocarbon");
+        entries.put("item.arsenalcrafting.coal_bucket", "Bucket of Hydrocarbon");
+
+
 
 
 
@@ -226,13 +232,15 @@ public class LangGenerator implements DataProvider {
 
         }
 
-        // 9. Alloy properties for tooltips (optional)
+        // 9. Alloy properties for tooltips (optional) ONLY if shouldGenerateParts is true
         for (AlloyMaterial material : AlloyMaterial.values()) {
-            String materialId = material.name().toLowerCase();
-            entries.put("tooltip.arsenalcrafting." + materialId + "_durability", "Base Durability: " + material.getDurability());
-            entries.put("tooltip.arsenalcrafting." + materialId + "_efficiency", "Mining Speed: " + material.getEfficiency());
-            entries.put("tooltip.arsenalcrafting." + materialId + "_damage", "Attack Damage: " + material.getDamage());
+            if (material.shouldGenerateParts()) {
+                String materialId = material.name().toLowerCase();
+                entries.put("tooltip.arsenalcrafting." + materialId + "_durability", "Base Durability: " + material.getDurability());
+                entries.put("tooltip.arsenalcrafting." + materialId + "_efficiency", "Mining Speed: " + material.getEfficiency());
+                entries.put("tooltip.arsenalcrafting." + materialId + "_damage", "Attack Damage: " + material.getDamage());
 
+            }
         }
 
         // ============ END OF ENTRIES ============

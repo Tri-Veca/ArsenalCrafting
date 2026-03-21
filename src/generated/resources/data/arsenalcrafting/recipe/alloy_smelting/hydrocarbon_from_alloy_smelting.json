@@ -1,0 +1,12 @@
+{
+  "type": "arsenalcrafting:alloy_smelting",
+  "craftTime": 20,
+  "ingredients": [
+    {
+      "item": "minecraft:coal"
+    }
+  ],
+  "lavaCost": 500,
+  "resultAmountMb": 1000,
+  "resultMaterial": "coal"
+}

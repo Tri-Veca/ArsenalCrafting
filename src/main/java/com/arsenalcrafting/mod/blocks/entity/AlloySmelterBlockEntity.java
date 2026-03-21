@@ -123,7 +123,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
     }
 
     // ── OUTPUT TANK (new — holds molten alloy produced by recipes) ────────────
-    public final FluidTank OUTPUT_TANK = new FluidTank(16000) {
+    public final FluidTank OUTPUT_TANK = new FluidTank(8000) {
         @Override
         protected void onContentsChanged() {
             setChanged();

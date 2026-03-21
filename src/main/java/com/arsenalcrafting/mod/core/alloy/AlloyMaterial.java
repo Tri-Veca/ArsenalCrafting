@@ -31,7 +31,8 @@ public enum AlloyMaterial {
             ChatFormatting.RED,   //tooltip color
             0xFFe77c56,          //tint color
             false,//allow alloy to be created automatically. We don't use for vanilla materials
-            30 // 20 ticks = 1 second. how long to craft.
+            30,// 20 ticks = 1 second. how long to craft.
+            true //Should Parts be created automatically. set to false in special cases like coal
     ),
     TIN(
             "Tin",
@@ -49,7 +50,8 @@ public enum AlloyMaterial {
             ChatFormatting.GRAY,
             0xFFeddfdb,
             true,
-            20
+            20,
+            true
     ),
     IRON(
             "Iron",
@@ -67,7 +69,8 @@ public enum AlloyMaterial {
             ChatFormatting.WHITE,
             0xFFFFFFFF,
             false,
-            60
+            60,
+            true
     ),
     GOLD(
             "Gold",
@@ -85,7 +88,8 @@ public enum AlloyMaterial {
             ChatFormatting.YELLOW,
             0xFFfdf55f,
             false,
-            10
+            10,
+            true
     ),
     DIAMOND(
             "Diamond",
@@ -103,7 +107,8 @@ public enum AlloyMaterial {
             ChatFormatting.AQUA,
             0xFF4aedd9,
             false,
-            70
+            70,
+            true
     ),
     NETHERITE(
             "Netherite",
@@ -121,7 +126,8 @@ public enum AlloyMaterial {
             ChatFormatting.DARK_GRAY,
             0xFF706770,
             false,
-            80
+            80,
+            true
     ),
 
     BRONZE(
@@ -140,7 +146,8 @@ public enum AlloyMaterial {
             ChatFormatting.GOLD,
             0xFFcb9580,
             true,
-            40
+            40,
+            true
 
     ),
     STEEL(
@@ -159,7 +166,8 @@ public enum AlloyMaterial {
             ChatFormatting.GRAY,
             0xFFC0C0C0,
             true,
-            100
+            100,
+            true
     ),
     TITANIUM(
             "Titanium",
@@ -177,8 +185,29 @@ public enum AlloyMaterial {
             ChatFormatting.DARK_AQUA,
             0xFFA0E4FF,
             true,
-            100
+            100,
+            true
 
+    ),
+    // non component materials
+    COAL(
+            "coal",   //Name
+            1,             //maps tier to Incorrect tool for block BlockTag
+            190,        //durability, getMaxDamage
+            5.0f,       //efficency, getDestroySpeed
+            0.75f,        //how cheap are repairs? lower is better.
+            1.6f,      //attack speed. default for swords
+            0f,      // 0 extra dmg. Correct for Copper
+            1.0f,      // how many can we swing?
+            4,       //max aug slots
+            0.05f,   //crit chance
+            1.25f,   //crit damage multiplier
+            3.0f,    //weapon damage (shown in attack indicator, base 1 added by vanilla)
+            ChatFormatting.RED,   //tooltip color
+            0xFFa0a0a0,          //tint color
+            false,//allow alloy to be created automatically. We don't use for vanilla materials
+            30,
+            false
     );
 
 
@@ -198,11 +227,12 @@ public enum AlloyMaterial {
     private final int itemColor;
     private final boolean allowAlloy;
     public int meltTime;
+    private final boolean shouldGenerateParts;
 
 
     AlloyMaterial(String name, int tier, int durability, float efficiency, float modifier, float attackSpeed, float damage, float arc, int toolAugmentSlots,
                   float critChance, float critDamage, float weaponDamage,
-                  ChatFormatting color, int itemColor, boolean allowAlloy, int meltTime) {
+                  ChatFormatting color, int itemColor, boolean allowAlloy, int meltTime, boolean shouldGenerateParts) {
         this.name = name;
         this.tier = tier;
         this.durability = durability;
@@ -219,6 +249,7 @@ public enum AlloyMaterial {
         this.itemColor = itemColor;
         this.allowAlloy = allowAlloy;
         this.meltTime= meltTime;
+        this.shouldGenerateParts = shouldGenerateParts;
     }
 
 
@@ -238,6 +269,7 @@ public enum AlloyMaterial {
     public ChatFormatting getColor() { return color; }
     public int getTier() { return tier; }
     public boolean allowsAlloy() { return allowAlloy; }
+    public boolean shouldGenerateParts() { return shouldGenerateParts; }
 
 
     // --- helpers ---

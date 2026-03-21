@@ -3,6 +3,8 @@ package com.arsenalcrafting.mod.generator;
 import com.arsenalcrafting.mod.ArsenalCrafting;
 import com.arsenalcrafting.mod.core.ItemStackHelper;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
+import com.arsenalcrafting.mod.fluids.AlloyFluidType;
+import com.arsenalcrafting.mod.registry.ModFluidTypes;
 import com.arsenalcrafting.mod.registry.ModItems;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -24,6 +26,11 @@ public class AlloyRecipeDefinitions {
                 Items.COPPER_INGOT, Items.COPPER_INGOT,
                 ItemStackHelper.getAlloyStack(AlloyMaterial.TIN).getItem()
         );
+        addRecipe("hydrocarbon_from_alloy_smelting", AlloyMaterial.COAL, 1000,
+                Items.COAL
+
+        );
+
 
         // STEEL: 3 Iron + 3 Coal → 1000 mb Steel
         addRecipe("steel_from_alloy_smelting", AlloyMaterial.STEEL, 1000,
@@ -41,6 +48,8 @@ public class AlloyRecipeDefinitions {
         System.out.println("[AlloyRecipeDefinitions] Loaded " + RECIPES.size() + " recipe definitions");
     }
 
+
+
     /**
      * @param resultAmountMb Output fluid in millibuckets
      */
@@ -57,9 +66,11 @@ public class AlloyRecipeDefinitions {
                 calculatedCraftTime
         ));
 
+
         System.out.println("[AlloyRecipeDefinitions] Recipe '" + name + "' → " + resultAmountMb
                 + "mb " + resultMaterial.getName() + " | craftTime: " + calculatedCraftTime + " ticks");
     }
+
 
     private static int calculateCraftTime(List<Object> ingredients) {
         Set<Item> uniqueIngredients = new HashSet<>();

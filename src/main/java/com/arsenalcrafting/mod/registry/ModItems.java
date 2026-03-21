@@ -117,6 +117,11 @@ public class ModItems {
             // Register components for each material and type
             for (AlloyMaterial material : AlloyMaterial.values()) {
                 System.out.println("[ModItems] Processing components for material: " + material.name());
+                // Skip materials that don't generate parts (like coal)
+                if (!material.shouldGenerateParts()) {
+                    System.out.println("[ModItems] Skipping parts generation for: " + material.name());
+                    continue;
+                }
 
                 for (ToolComponentType componentType : ToolComponentType.values()) {
                     String materialName = material.name().toLowerCase();

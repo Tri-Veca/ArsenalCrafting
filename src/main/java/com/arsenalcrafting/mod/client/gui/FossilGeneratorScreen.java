@@ -157,7 +157,7 @@ public class FossilGeneratorScreen extends AbstractContainerScreen<FossilGenerat
             List<Component> tooltip = new ArrayList<>();
             tooltip.add(Component.literal("Fuel Slot")
                     .withStyle(ChatFormatting.WHITE));
-            tooltip.add(Component.literal("Accepts: Coal, Charcoal, Coal Block")
+            tooltip.add(Component.literal("Accepts: Coal, Charcoal, Coal Block, Bucket of Hydrocarbon")
                     .withStyle(ChatFormatting.GRAY));
             gfx.renderComponentTooltip(this.font, tooltip, mouseX, mouseY);
         }

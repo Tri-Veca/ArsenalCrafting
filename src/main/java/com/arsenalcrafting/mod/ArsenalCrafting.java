@@ -75,6 +75,7 @@ public class ArsenalCrafting {
             if (source != null) ItemBlockRenderTypes.setRenderLayer(source, RenderType.translucent());
             if (flowing != null) ItemBlockRenderTypes.setRenderLayer(flowing, RenderType.translucent());
         }
+
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {

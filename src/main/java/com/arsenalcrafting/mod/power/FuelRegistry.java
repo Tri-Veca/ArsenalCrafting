@@ -1,5 +1,7 @@
 package com.arsenalcrafting.mod.power;
 
+import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
+import com.arsenalcrafting.mod.registry.ModItems;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -23,6 +25,7 @@ public class FuelRegistry {
         // Coal block = 16000t, coal/charcoal = 1600t
         if (stack.is(Items.COAL_BLOCK))     return 1440;
         if (stack.is(Items.COAL))           return 160;
+        if (stack.is(ModItems.ALLOY_BUCKETS.get(AlloyMaterial.COAL))) return 640;
         if (stack.is(Items.CHARCOAL))       return 160;
         if (stack.is(net.minecraft.world.item.Items.BLAZE_ROD)) return 1800;
 
