@@ -154,8 +154,8 @@ public enum AlloyMaterial {
             "Steel",
             4,
             2500,
-            9.0f,
-            1.2f,
+            8.5f,
+            1.4f,
             1.2f,
             5.0f,
             1.2f,
@@ -166,7 +166,7 @@ public enum AlloyMaterial {
             ChatFormatting.GRAY,
             0xFFC0C0C0,
             true,
-            100,
+            90,
             true
     ),
     TITANIUM(
@@ -204,7 +204,7 @@ public enum AlloyMaterial {
             1.25f,   //crit damage multiplier
             3.0f,    //weapon damage (shown in attack indicator, base 1 added by vanilla)
             ChatFormatting.RED,   //tooltip color
-            0xFFa0a0a0,          //tint color
+            0xFFFFFACA,          //tint color
             false,//allow alloy to be created automatically. We don't use for vanilla materials
             30,
             false

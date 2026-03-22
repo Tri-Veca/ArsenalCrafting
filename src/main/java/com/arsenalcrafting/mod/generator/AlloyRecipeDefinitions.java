@@ -1,16 +1,9 @@
 package com.arsenalcrafting.mod.generator;
 
-import com.arsenalcrafting.mod.ArsenalCrafting;
 import com.arsenalcrafting.mod.core.ItemStackHelper;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
-import com.arsenalcrafting.mod.fluids.AlloyFluidType;
-import com.arsenalcrafting.mod.registry.ModFluidTypes;
-import com.arsenalcrafting.mod.registry.ModItems;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.resources.ResourceLocation;
 
 import java.util.*;
 
@@ -22,24 +15,24 @@ public class AlloyRecipeDefinitions {
         RECIPES.clear();
 
         // BRONZE: 2 Copper + 1 Tin → 1000 mb Bronze
-        addRecipe("bronze_from_alloy_smelting", AlloyMaterial.BRONZE, 2000,
+        addRecipe("bronze_from_alloy_smelting", AlloyMaterial.BRONZE,  2000, 500,
                 Items.COPPER_INGOT, Items.COPPER_INGOT,
                 ItemStackHelper.getAlloyStack(AlloyMaterial.TIN).getItem()
         );
-        addRecipe("hydrocarbon_from_alloy_smelting", AlloyMaterial.COAL, 1000,
+        addRecipe("hydrocarbon_from_alloy_smelting", AlloyMaterial.COAL, 1000, 500,
                 Items.COAL
 
         );
 
 
         // STEEL: 3 Iron + 3 Coal → 1000 mb Steel
-        addRecipe("steel_from_alloy_smelting", AlloyMaterial.STEEL, 1000,
+        addRecipe("steel_from_alloy_smelting", AlloyMaterial.STEEL, 1000, 750,
                 Items.IRON_INGOT, Items.IRON_INGOT, Items.IRON_INGOT,
                 Items.COAL, Items.COAL, Items.COAL
         );
 
         // TITANIUM: 2 Steel + 1 Diamond + 1 Obsidian → 1000 mb Titanium
-        addRecipe("titanium_from_alloy_smelting", AlloyMaterial.TITANIUM, 2000,
+        addRecipe("titanium_from_alloy_smelting", AlloyMaterial.TITANIUM, 2000,750,
                 ItemStackHelper.getAlloyStack(AlloyMaterial.STEEL).getItem(),
                 ItemStackHelper.getAlloyStack(AlloyMaterial.STEEL).getItem(),
                 Items.DIAMOND, Items.OBSIDIAN
@@ -54,7 +47,7 @@ public class AlloyRecipeDefinitions {
      * @param resultAmountMb Output fluid in millibuckets
      */
     private static void addRecipe(String name, AlloyMaterial resultMaterial,
-                                  int resultAmountMb, Object... ingredients) {
+                                  int resultAmountMb, int lavaCost, Object... ingredients) {
         List<Object> ingredientList = new ArrayList<>(List.of(ingredients));
         int calculatedCraftTime = calculateCraftTime(ingredientList);
 
@@ -62,6 +55,7 @@ public class AlloyRecipeDefinitions {
                 name,
                 resultMaterial,
                 resultAmountMb,
+                lavaCost,
                 ingredientList,
                 calculatedCraftTime
         ));
@@ -102,15 +96,16 @@ public class AlloyRecipeDefinitions {
             String name,
             AlloyMaterial resultMaterial,
             int resultAmountMb,
-            List<Object> ingredients,
+            int lavaCost, List<Object> ingredients,
             int craftTime
+
     ) {
         public String getResultMaterialName() {
             return resultMaterial.getName();
         }
 
         public int getCraftTime()  { return craftTime; }
-        public int getLavaCost()   { return 500; }
+        public int getLavaCost()   { return lavaCost; }
 
         public String getIngredientsJson() {
             StringBuilder json = new StringBuilder("[");
@@ -133,7 +128,7 @@ public class AlloyRecipeDefinitions {
         @Override
         public String toString() {
             return String.format("AlloyRecipeDefinition{name='%s', result=%s, amountMb=%d, craftTime=%d}",
-                    name, resultMaterial.name(), resultAmountMb, craftTime);
+                    name, resultMaterial.name(), resultAmountMb, lavaCost,craftTime);
         }
     }
 }

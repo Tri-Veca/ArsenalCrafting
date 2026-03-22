@@ -21,7 +21,7 @@
       "item": "minecraft:coal"
     }
   ],
-  "lavaCost": 500,
+  "lavaCost": 750,
   "resultAmountMb": 1000,
   "resultMaterial": "Steel"
 }
