@@ -191,7 +191,7 @@ public enum AlloyMaterial {
     ),
     // non component materials
     COAL(
-            "coal",   //Name
+            "Coal",   //Name
             1,             //maps tier to Incorrect tool for block BlockTag
             190,        //durability, getMaxDamage
             5.0f,       //efficency, getDestroySpeed

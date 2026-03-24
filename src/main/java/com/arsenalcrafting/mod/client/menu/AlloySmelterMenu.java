@@ -13,6 +13,9 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.items.SlotItemHandler;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class AlloySmelterMenu extends AbstractContainerMenu {
     public final AlloySmelterBlockEntity blockEntity;
     private final Level level;
@@ -74,6 +77,7 @@ public class AlloySmelterMenu extends AbstractContainerMenu {
             blockEntity.setChanged();
             slots.forEach(Slot::setChanged);
         }
+        System.out.println(getDebugInfo());
     }
 
     // ── LAVA DISPLAY TANK GETTERS (existing — unchanged) ─────────────────────
@@ -93,13 +97,46 @@ public class AlloySmelterMenu extends AbstractContainerMenu {
 
     // ── OUTPUT TANK GETTERS (new) ─────────────────────────────────────────────
 
-    public int getOutputFluidAmount()   { return blockEntity.OUTPUT_TANK.getFluidAmount(); }
-    public int getOutputFluidCapacity() { return blockEntity.OUTPUT_TANK.getCapacity(); }
-    public FluidStack getOutputFluid()  { return blockEntity.OUTPUT_TANK.getFluid(); }
-    public boolean hasOutputFluid()     { return !blockEntity.OUTPUT_TANK.isEmpty(); }
+    // Get total amount of ALL fluids combined (for scaling the tank visual)
+    public int getOutputFluidAmount() {
+        return blockEntity.OUTPUT_TANK.getTotalAmount();
+    }
+
+    // Get total capacity
+    public int getOutputFluidCapacity() {
+        return blockEntity.OUTPUT_TANK.getCapacity();
+    }
+
+    // For tooltip/debug - returns the first fluid (or all)
+    public FluidStack getOutputFluid() {
+        List<FluidStack> fluids = blockEntity.OUTPUT_TANK.getAllFluids();
+        return fluids.isEmpty() ? FluidStack.EMPTY : fluids.get(0);
+    }
+
+    // Check if any fluid exists
+    public boolean hasOutputFluid() {
+        return !blockEntity.OUTPUT_TANK.isEmpty();
+    }
+
+    // Get all fluids for tooltip display
+    public List<FluidStack> getAllOutputFluids() {
+        return new ArrayList<>(blockEntity.OUTPUT_TANK.getAllFluids());
+    }
+
+    // Get fluid by index or type (for rendering multiple tanks)
+    public FluidStack getFluidAt(int index) {
+        List<FluidStack> fluids = blockEntity.OUTPUT_TANK.getAllFluids();
+        return index < fluids.size() ? fluids.get(index) : FluidStack.EMPTY;
+    }
+
+    // Get number of different fluids in tank
+    public int getFluidCount() {
+        return blockEntity.OUTPUT_TANK.getAllFluids().size();
+    }
+
 
     public int getScaledOutputFluid() {
-        int amount   = blockEntity.OUTPUT_TANK.getFluidAmount();
+        int amount   = blockEntity.OUTPUT_TANK.getTotalAmount();
         int capacity = blockEntity.OUTPUT_TANK.getCapacity();
         int height   = 60;
         return capacity != 0 ? (amount * height / capacity) : 0;
@@ -123,10 +160,16 @@ public class AlloySmelterMenu extends AbstractContainerMenu {
         return maxFuelTime != 0 ? (fuelTime * fuelBarSize / maxFuelTime) : 0;
     }
 
+
     public String getDebugInfo() {
-        return String.format("Display: %d/%d mb | Output: %d/%d mb | Connected tanks: %d",
-                getFluidAmount(), getFluidCapacity(),
-                getOutputFluidAmount(), getOutputFluidCapacity(),
+        FluidStack outputFluid = getOutputFluid();
+        String outputFluidName = outputFluid.isEmpty() ? "Empty" : outputFluid.getFluid().getFluidType().getDescription().getString();
+
+        return String.format("Display: %d/%d mb | Output: %d mb of %s | Connected tanks: %d",
+                getFluidAmount(),
+                getFluidCapacity(),
+                getOutputFluidAmount(),
+                outputFluidName,
                 blockEntity.getConnectedTanksCount());
     }
 

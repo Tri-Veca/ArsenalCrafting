@@ -10,6 +10,7 @@ import java.util.*;
 public class AlloyRecipeDefinitions {
 
     public static final Map<String, AlloyRecipeDefinition> RECIPES = new LinkedHashMap<>();
+    public static final Map<String, AlloyRecipeDefinition> RECIPES2 = new LinkedHashMap<>();
 
     public static void init() {
         RECIPES.clear();
@@ -61,9 +62,11 @@ public class AlloyRecipeDefinitions {
         ));
 
 
+
         System.out.println("[AlloyRecipeDefinitions] Recipe '" + name + "' → " + resultAmountMb
                 + "mb " + resultMaterial.getName() + " | craftTime: " + calculatedCraftTime + " ticks");
     }
+
 
 
     private static int calculateCraftTime(List<Object> ingredients) {

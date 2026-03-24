@@ -1,5 +1,5 @@
-// 1.21.1	2026-03-22T12:36:03.4054572	Alloy Smelting Recipes
+// 1.21.1	2026-03-22T12:53:11.3920803	Alloy Smelting Recipes
 b0e355ef8e0d0773c7f10c858e17940fbefe23d1 data/arsenalcrafting/recipe/alloy_smelting/bronze_from_alloy_smelting.json
-4b0abb50dff6d0364c537d915e39f0144cbc963c data/arsenalcrafting/recipe/alloy_smelting/hydrocarbon_from_alloy_smelting.json
+b7c1653ddc2da2dd3f49d1d582b5bc37d67f1870 data/arsenalcrafting/recipe/alloy_smelting/hydrocarbon_from_alloy_smelting.json
 bd1441b3e967f35af9ca367429dd399b4e8d6b7c data/arsenalcrafting/recipe/alloy_smelting/steel_from_alloy_smelting.json
 de82d923534f2921305ba15b18600418037cc749 data/arsenalcrafting/recipe/alloy_smelting/titanium_from_alloy_smelting.json

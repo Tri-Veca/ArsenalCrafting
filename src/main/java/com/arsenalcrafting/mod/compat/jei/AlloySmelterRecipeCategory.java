@@ -175,6 +175,7 @@ public class AlloySmelterRecipeCategory implements IRecipeCategory<AlloyRecipe> 
         RenderSystem.setShaderColor(last[0], last[1], last[2], last[3]);
     }
 
+
     @Override
     public List<Component> getTooltipStrings(AlloyRecipe recipe, IRecipeSlotsView recipeSlotsView,
                                              double mouseX, double mouseY) {

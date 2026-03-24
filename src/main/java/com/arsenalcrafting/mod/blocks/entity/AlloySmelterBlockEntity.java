@@ -4,6 +4,7 @@ import com.arsenalcrafting.mod.client.menu.AlloySmelterMenu;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.core.alloy.AlloyRecipeInput;
 import com.arsenalcrafting.mod.core.alloy.AlloyRecipeType;
+import com.arsenalcrafting.mod.fluids.MultiFluidTank;
 import com.arsenalcrafting.mod.network.PacketHandler;
 import com.arsenalcrafting.mod.network.SyncAlloySmelterCapacityPacket;
 import com.arsenalcrafting.mod.network.SyncAlloySmelterFluidPacket;
@@ -120,21 +121,27 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
             if (tag.contains("Capacity")) this.currentCapacity = tag.getInt("Capacity");
             return this;
         }
+
+
     }
 
     // ── OUTPUT TANK (new — holds molten alloy produced by recipes) ────────────
-    public final FluidTank OUTPUT_TANK = new FluidTank(8000) {
+    public final MultiFluidTank OUTPUT_TANK = new MultiFluidTank(8000) {
         @Override
         protected void onContentsChanged() {
             setChanged();
             syncOutputTankToClient();
+
         }
+
         @Override
         public boolean isFluidValid(FluidStack stack) {
+
             // Accept any alloy fluid — validated at fill time
             return true;
         }
     };
+
 
     private void syncOutputTankToClient() {
         if (level != null && !level.isClientSide) {
@@ -345,9 +352,11 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         tag.putInt("TankCount", connectedTanks.size());
         tag.put("inv", itemHandler.serializeNBT(registries));
         // Output tank sync
+        // Save output tank - using save() instead of writeToNBT
         CompoundTag outputTag = new CompoundTag();
-        OUTPUT_TANK.writeToNBT(registries, outputTag);
+        OUTPUT_TANK.save(outputTag, registries);  // Changed from writeToNBT
         tag.put("OutputTank", outputTag);
+
         return tag;
     }
 
@@ -362,7 +371,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
             itemHandler.deserializeNBT(registries, tag);
         }
         if (tag.contains("OutputTank")) {
-            OUTPUT_TANK.readFromNBT(registries, tag.getCompound("OutputTank"));
+            OUTPUT_TANK.load(tag.getCompound("OutputTank"), registries);  // Changed from readFromNBT
         }
     }
 
@@ -380,9 +389,9 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         CompoundTag tankTag = new CompoundTag();
         DISPLAY_TANK.writeToNBT(registries, tankTag);
         tag.put("DisplayTank", tankTag);
-        // Save output tank
+        // Save output tank - using save() instead of writeToNBT
         CompoundTag outputTag = new CompoundTag();
-        OUTPUT_TANK.writeToNBT(registries, outputTag);
+        OUTPUT_TANK.save(outputTag, registries);  // Changed from writeToNBT
         tag.put("OutputTank", outputTag);
     }
 
@@ -396,7 +405,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
             DISPLAY_TANK.readFromNBT(registries, tag.getCompound("DisplayTank"));
         }
         if (tag.contains("OutputTank")) {
-            OUTPUT_TANK.readFromNBT(registries, tag.getCompound("OutputTank"));
+            OUTPUT_TANK.load(tag.getCompound("OutputTank"), registries);  // Changed from readFromNBT
         }
     }
 
@@ -432,7 +441,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
 
             // Check output tank has room for the result
             int resultMb = recipe.getResultAmountMb();
-            if (be.OUTPUT_TANK.getFluidAmount() + resultMb > be.OUTPUT_TANK.getCapacity()) {
+            if (be.OUTPUT_TANK.getTotalAmount() + resultMb > be.OUTPUT_TANK.getCapacity()) {
                 be.progress = 0;
                 return;
             }

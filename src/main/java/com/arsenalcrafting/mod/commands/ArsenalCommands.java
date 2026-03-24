@@ -367,7 +367,7 @@ public class ArsenalCommands {
         ItemStack held = player.getMainHandItem();
         ToolAssemblyData data = held.get(ModComponents.TOOL_ASSEMBLY_DATA.get());
 
-        if (data == null || data.isEmpty()) {
+        if (data == null || data.isEmpty()){
             ctx.getSource().sendSuccess(() ->
                     Component.literal("§7No assembly data on held item."), false);
             return Command.SINGLE_SUCCESS;
