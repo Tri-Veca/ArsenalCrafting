@@ -2,45 +2,115 @@ package com.arsenalcrafting.mod.generator;
 
 import com.arsenalcrafting.mod.core.ItemStackHelper;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
+import com.arsenalcrafting.mod.registry.ModFluids;
+import com.arsenalcrafting.mod.registry.ModItems;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.material.Fluid;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 import java.util.*;
 
 public class AlloyRecipeDefinitions {
 
     public static final Map<String, AlloyRecipeDefinition> RECIPES = new LinkedHashMap<>();
-    public static final Map<String, AlloyRecipeDefinition> RECIPES2 = new LinkedHashMap<>();
+    public static final Map<String, LiquidMixingRecipeDefinition> LIQUID_MIXING_RECIPES = new LinkedHashMap<>();
 
     public static void init() {
         RECIPES.clear();
+        LIQUID_MIXING_RECIPES.clear();
+        //System.out.println("[DEBUG] ===== AlloyRecipeDefinitions.init() START =====");
+        //System.out.println("[DEBUG] LIQUID_MIXING_RECIPES cleared, size: " + LIQUID_MIXING_RECIPES.size());
 
         // BRONZE: 2 Copper + 1 Tin → 1000 mb Bronze
-        addRecipe("bronze_from_alloy_smelting", AlloyMaterial.BRONZE,  2000, 500,
+        /*addRecipe("bronze_from_alloy_smelting", AlloyMaterial.BRONZE, 2000, 500,
                 Items.COPPER_INGOT, Items.COPPER_INGOT,
                 ItemStackHelper.getAlloyStack(AlloyMaterial.TIN).getItem()
+
         );
+
+         */
         addRecipe("hydrocarbon_from_alloy_smelting", AlloyMaterial.COAL, 1000, 500,
                 Items.COAL
 
         );
+        addRecipe("copper_from_alloy_smelting", AlloyMaterial.COPPER, 1000, 500,
+                Items.COPPER_INGOT
+
+        );
+        addRecipe("tin_from_alloy_smelting", AlloyMaterial.TIN, 1000, 500,
+                ItemStackHelper.getAlloyStack(AlloyMaterial.TIN).getItem()
+
+        );
+        addRecipe("iron_from_alloy_smelting", AlloyMaterial.IRON, 1000, 500,
+                Items.IRON_INGOT
+
+        );
+        addRecipe("diamond_from_alloy_smelting", AlloyMaterial.DIAMOND, 1000, 500,
+                Items.DIAMOND
+
+        );
+
+        addRecipe("gold_from_alloy_smelting", AlloyMaterial.GOLD, 1000, 500,
+                Items.GOLD_INGOT
+
+        );
+
+        addRecipe("netherite_from_alloy_smelting", AlloyMaterial.NETHERITE, 1000, 500,
+                Items.NETHERITE_INGOT
+
+        );
+
+
+
+
 
 
         // STEEL: 3 Iron + 3 Coal → 1000 mb Steel
-        addRecipe("steel_from_alloy_smelting", AlloyMaterial.STEEL, 1000, 750,
+        /*addRecipe("steel_from_alloy_smelting", AlloyMaterial.STEEL, 1000, 750,
                 Items.IRON_INGOT, Items.IRON_INGOT, Items.IRON_INGOT,
                 Items.COAL, Items.COAL, Items.COAL
         );
 
+         */
+
         // TITANIUM: 2 Steel + 1 Diamond + 1 Obsidian → 1000 mb Titanium
-        addRecipe("titanium_from_alloy_smelting", AlloyMaterial.TITANIUM, 2000,750,
+       /* addRecipe("titanium_from_alloy_smelting", AlloyMaterial.TITANIUM, 2000, 750,
                 ItemStackHelper.getAlloyStack(AlloyMaterial.STEEL).getItem(),
                 ItemStackHelper.getAlloyStack(AlloyMaterial.STEEL).getItem(),
                 Items.DIAMOND, Items.OBSIDIAN
         );
 
-        System.out.println("[AlloyRecipeDefinitions] Loaded " + RECIPES.size() + " recipe definitions");
+        */
+
+
+
+
+        addLiquidMixingRecipe("bronze_from_liquids",
+                ItemStackHelper.getFluidFromBucket(AlloyMaterial.BRONZE, 2000),
+                10,
+                ItemStackHelper.getFluidFromBucket(AlloyMaterial.COPPER, 2000),
+                ItemStackHelper.getFluidFromBucket(AlloyMaterial.TIN, 1000)
+        );
+
+        addLiquidMixingRecipe("steel_from_liquids",
+                ItemStackHelper.getFluidFromBucket(AlloyMaterial.STEEL, 1000),
+                10,
+                ItemStackHelper.getFluidFromBucket(AlloyMaterial.IRON, 3000),
+                ItemStackHelper.getFluidFromBucket(AlloyMaterial.COAL, 3000)
+        );
+        addLiquidMixingRecipe("titanium_from_liquids",
+                ItemStackHelper.getFluidFromBucket(AlloyMaterial.TITANIUM, 2000),
+                10,
+                ItemStackHelper.getFluidFromBucket(AlloyMaterial.DIAMOND, 1000),
+                ItemStackHelper.getFluidFromBucket(AlloyMaterial.STEEL, 2000)
+        );
+
+
+
     }
+
+
 
 
 
@@ -66,6 +136,28 @@ public class AlloyRecipeDefinitions {
         System.out.println("[AlloyRecipeDefinitions] Recipe '" + name + "' → " + resultAmountMb
                 + "mb " + resultMaterial.getName() + " | craftTime: " + calculatedCraftTime + " ticks");
     }
+
+    private static void addLiquidMixingRecipe(String name, FluidStack output,
+                                              int craftTime, FluidStack... inputs) {
+        LIQUID_MIXING_RECIPES.put(name, new LiquidMixingRecipeDefinition(
+                name,
+                output,
+                Arrays.asList(inputs),
+                craftTime
+        ));
+
+        StringBuilder inputStr = new StringBuilder();
+        for (FluidStack input : inputs) {
+            if (inputStr.length() > 0) inputStr.append(" + ");
+            inputStr.append(input.getAmount()).append("mb ").append(input.getDisplayName().getString());
+        }
+
+        System.out.println("[AlloyRecipeDefinitions] Liquid recipe '" + name + "' → " +
+                output.getAmount() + "mb " + output.getDisplayName().getString() +
+                " | Inputs: " + inputStr.toString() +
+                " | craftTime: " + craftTime + " ticks");
+    }
+
 
 
 
@@ -93,6 +185,87 @@ public class AlloyRecipeDefinitions {
         System.out.println("  - Average: " + totalTicks + " / " + uniqueIngredients.size()
                 + " = " + average + " ticks");
         return average;
+    }
+
+
+    public record LiquidMixingRecipeDefinition(
+            String name,
+            FluidStack output,
+            List<FluidStack> inputs,
+            int craftTime
+    ) {
+        // In AlloyRecipeDefinitions.java - update canCraft with debug
+        public boolean canCraft(List<FluidStack> availableFluids) {
+            //System.out.println("[DEBUG] canCraft check for recipe: " + name);
+           // System.out.println("[DEBUG] Required inputs:");
+            for (FluidStack req : inputs) {
+               /* System.out.println("  - Required: " + req.getAmount() + "mb " +
+                        req.getFluid().getFluidType().getDescription().getString());
+
+                */
+            }
+
+            // Merge available fluids
+            Map<Fluid, Integer> availableMap = new HashMap<>();
+            for (FluidStack fluid : availableFluids) {
+                if (fluid != null && !fluid.isEmpty()) {
+                    availableMap.merge(fluid.getFluid(), fluid.getAmount(), Integer::sum);
+                    /*System.out.println("[DEBUG] Available: " + fluid.getAmount() + "mb " +
+                            fluid.getFluid().getFluidType().getDescription().getString());
+
+                     */
+                }
+            }
+
+            // Merge required fluids
+            Map<Fluid, Integer> requiredMap = new HashMap<>();
+            for (FluidStack required : inputs) {
+                if (required != null && !required.isEmpty()) {
+                    requiredMap.merge(required.getFluid(), required.getAmount(), Integer::sum);
+                }
+            }
+
+            // Check requirements
+            for (Map.Entry<Fluid, Integer> entry : requiredMap.entrySet()) {
+                int available = availableMap.getOrDefault(entry.getKey(), 0);
+               /* System.out.println("[DEBUG] Checking " + entry.getKey().getFluidType().getDescription().getString()
+                        + ": need " + entry.getValue() + ", have " + available);
+
+                */
+                if (available < entry.getValue()) {
+                    /*System.out.println("[DEBUG] FAILED: Not enough " +
+                            entry.getKey().getFluidType().getDescription().getString());
+
+                     */
+                    return false;
+                }
+            }
+
+            //System.out.println("[DEBUG] PASSED: All requirements met!");
+            return true;
+        }
+
+        public List<FluidStack> getConsumedFluids() {
+            // Merge same fluids together
+            Map<Fluid, Integer> merged = new HashMap<>();
+            for (FluidStack input : inputs) {
+                if (input != null && !input.isEmpty()) {
+                    merged.merge(input.getFluid(), input.getAmount(), Integer::sum);
+                }
+            }
+
+            List<FluidStack> result = new ArrayList<>();
+            for (Map.Entry<Fluid, Integer> entry : merged.entrySet()) {
+                result.add(new FluidStack(entry.getKey(), entry.getValue()));
+            }
+            return result;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("LiquidMixingRecipeDefinition{name='%s', output=%s, inputs=%d, craftTime=%d}",
+                    name, output.getDisplayName().getString(), inputs.size(), craftTime);
+        }
     }
 
     public record AlloyRecipeDefinition(
@@ -127,6 +300,13 @@ public class AlloyRecipeDefinitions {
             json.append("]");
             return json.toString();
         }
+
+        public static List<LiquidMixingRecipeDefinition> getAllLiquidMixingRecipes() {
+            return new ArrayList<>(LIQUID_MIXING_RECIPES.values());
+        }
+
+
+
 
         @Override
         public String toString() {

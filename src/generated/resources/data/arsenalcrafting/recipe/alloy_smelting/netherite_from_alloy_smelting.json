@@ -1,0 +1,12 @@
+{
+  "type": "arsenalcrafting:alloy_smelting",
+  "craftTime": 80,
+  "ingredients": [
+    {
+      "item": "minecraft:netherite_ingot"
+    }
+  ],
+  "lavaCost": 500,
+  "resultAmountMb": 1000,
+  "resultMaterial": "Netherite"
+}

@@ -11,6 +11,7 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -36,10 +37,19 @@ public class AlloyRecipeProvider implements DataProvider {
         return registries.thenCompose(provider -> {
             List<CompletableFuture<?>> futures = new ArrayList<>();
             System.out.println("[AlloyRecipeProvider] Generating "
-                    + AlloyRecipeDefinitions.RECIPES.size() + " alloy recipes...");
+                    + AlloyRecipeDefinitions.RECIPES.size() + " solid recipes and "
+                    + AlloyRecipeDefinitions.LIQUID_MIXING_RECIPES.size() + " liquid mixing recipes...");
+
+            // Generate solid recipes
             for (AlloyRecipeDefinitions.AlloyRecipeDefinition recipe : AlloyRecipeDefinitions.RECIPES.values()) {
                 futures.add(generateRecipe(cache, recipe));
             }
+
+            // Generate liquid mixing recipes
+            for (AlloyRecipeDefinitions.LiquidMixingRecipeDefinition recipe : AlloyRecipeDefinitions.LIQUID_MIXING_RECIPES.values()) {
+                futures.add(generateLiquidMixingRecipe(cache, recipe));
+            }
+
             return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
         });
     }
@@ -87,6 +97,41 @@ public class AlloyRecipeProvider implements DataProvider {
         System.out.println("[AlloyRecipeProvider] Generating: " + recipe.name()
                 + " → " + recipe.resultAmountMb() + "mb " + recipe.getResultMaterialName()
                 + " (craftTime: " + recipe.getCraftTime() + ", lavaCost: " + recipe.getLavaCost() + ")");
+
+        return DataProvider.saveStable(cache, json, path);
+    }
+
+    private CompletableFuture<?> generateLiquidMixingRecipe(CachedOutput cache,
+                                                            AlloyRecipeDefinitions.LiquidMixingRecipeDefinition recipe) {
+        JsonObject json = new JsonObject();
+        json.addProperty("type", "arsenalcrafting:liquid_mixing");
+
+        // Input fluids
+        JsonArray inputs = new JsonArray();
+        for (FluidStack input : recipe.inputs()) {
+            JsonObject inputObj = new JsonObject();
+            inputObj.addProperty("fluid", input.getFluid().builtInRegistryHolder().key().location().toString());
+            inputObj.addProperty("amount", input.getAmount());
+            inputs.add(inputObj);
+        }
+        json.add("inputs", inputs);
+
+        // Output fluid
+        JsonObject output = new JsonObject();
+        output.addProperty("fluid", recipe.output().getFluid().builtInRegistryHolder().key().location().toString());
+        output.addProperty("amount", recipe.output().getAmount());
+        json.add("output", output);
+
+        json.addProperty("craftTime", recipe.craftTime());
+
+        Path path = packOutput.getOutputFolder(PackOutput.Target.DATA_PACK)
+                .resolve(ArsenalCrafting.MOD_ID)
+                .resolve("recipe")
+                .resolve("liquid_mixing")
+                .resolve(recipe.name() + ".json");
+
+        System.out.println("[AlloyRecipeProvider] Generating liquid recipe: " + recipe.name()
+                + " → " + recipe.output().getAmount() + "mb " + recipe.output().getDisplayName().getString());
 
         return DataProvider.saveStable(cache, json, path);
     }

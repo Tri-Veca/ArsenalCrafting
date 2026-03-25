@@ -4,9 +4,13 @@ import com.arsenalcrafting.mod.component.ToolComponentType;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.items.augments.UniversalAugmentItem;
 import com.arsenalcrafting.mod.items.tool.toolparts.ToolComponentItem;
+import com.arsenalcrafting.mod.registry.ModFluids;
 import com.arsenalcrafting.mod.registry.ModItems;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.material.Fluid;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidUtil;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
 import java.util.ArrayList;
@@ -49,6 +53,17 @@ public class ItemStackHelper {
             return new ItemStack(holder.get());
         }
         return ItemStack.EMPTY;
+    }
+
+    public static FluidStack getFluidFromBucket(AlloyMaterial material, int amount) {
+        //System.out.println("[DEBUG] getFluidFromBucket called for: " + material.getName());
+        Fluid fluid = ModFluids.getSource(material);
+        if (fluid != null) {
+            //System.out.println("[DEBUG] Found fluid: " + fluid.getFluidType().getDescription().getString());
+            return new FluidStack(fluid, amount);
+        }
+        //System.out.println("[DEBUG] No fluid found for material: " + material.getName());
+        return FluidStack.EMPTY;
     }
 
 

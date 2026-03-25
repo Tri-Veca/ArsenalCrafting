@@ -1,0 +1,18 @@
+{
+  "type": "arsenalcrafting:liquid_mixing",
+  "craftTime": 10,
+  "inputs": [
+    {
+      "amount": 2000,
+      "fluid": "arsenalcrafting:copper_source"
+    },
+    {
+      "amount": 1000,
+      "fluid": "arsenalcrafting:tin_source"
+    }
+  ],
+  "output": {
+    "amount": 2000,
+    "fluid": "arsenalcrafting:bronze_source"
+  }
+}

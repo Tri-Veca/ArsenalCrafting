@@ -44,6 +44,11 @@ public class AlloyRecipe implements Recipe<AlloyRecipeInput> {
     public String getResultMaterial() { return resultMaterial; }
     public int getResultAmountMb()  { return resultAmountMb; }
 
+    // Optional: Helper method to get the AlloyMaterial enum directly
+    public AlloyMaterial getResultAlloyMaterial() {
+        return AlloyMaterial.fromName(resultMaterial);
+    }
+
     @Override
     public NonNullList<Ingredient> getIngredients() {
         return ingredients;

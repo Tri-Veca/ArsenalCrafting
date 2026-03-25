@@ -5,6 +5,7 @@ import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.core.alloy.AlloyRecipeType;
 import com.arsenalcrafting.mod.events.ArsenalAttributeEvents;
 import com.arsenalcrafting.mod.events.ArsenalPlayerEvents;
+import com.arsenalcrafting.mod.generator.AlloyRecipeDefinitions;
 import com.arsenalcrafting.mod.items.gadgets.ArsenalDrillItem;
 import com.arsenalcrafting.mod.items.gadgets.ArsenalSawItem;
 import com.arsenalcrafting.mod.power.PowerNetworkEvents;
@@ -48,6 +49,7 @@ public class ArsenalCrafting {
         modEventBus.addListener(this::registerCapabilities);
 
 
+
         TestModeConfig.setTestMode(false);
         System.out.println("[ArsenalCrafting] Constructor completed - Test Mode should be OFF");
 
@@ -79,10 +81,14 @@ public class ArsenalCrafting {
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
-
+        event.enqueueWork(() -> {
+            AlloyRecipeDefinitions.init();
+            System.out.println("[ArsenalCrafting] AlloyRecipeDefinitions initialized");
+        });
+    }
         // Here you would register networking packets, capabilities, etc.
         // This is always safe to run on both client and server.
-    }
+
 
     private void registerCapabilities(final RegisterCapabilitiesEvent event) {
         ModBlockEntities.registerCapabilities(event);

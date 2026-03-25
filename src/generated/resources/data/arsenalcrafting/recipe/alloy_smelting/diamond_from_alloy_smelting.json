@@ -1,0 +1,12 @@
+{
+  "type": "arsenalcrafting:alloy_smelting",
+  "craftTime": 70,
+  "ingredients": [
+    {
+      "item": "minecraft:diamond"
+    }
+  ],
+  "lavaCost": 500,
+  "resultAmountMb": 1000,
+  "resultMaterial": "Diamond"
+}

@@ -1,0 +1,12 @@
+{
+  "type": "arsenalcrafting:alloy_smelting",
+  "craftTime": 10,
+  "ingredients": [
+    {
+      "item": "minecraft:gold_ingot"
+    }
+  ],
+  "lavaCost": 500,
+  "resultAmountMb": 1000,
+  "resultMaterial": "Gold"
+}

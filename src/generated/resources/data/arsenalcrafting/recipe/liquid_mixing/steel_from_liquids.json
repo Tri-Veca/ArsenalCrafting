@@ -1,0 +1,18 @@
+{
+  "type": "arsenalcrafting:liquid_mixing",
+  "craftTime": 10,
+  "inputs": [
+    {
+      "amount": 3000,
+      "fluid": "arsenalcrafting:iron_source"
+    },
+    {
+      "amount": 3000,
+      "fluid": "arsenalcrafting:coal_source"
+    }
+  ],
+  "output": {
+    "amount": 1000,
+    "fluid": "arsenalcrafting:steel_source"
+  }
+}

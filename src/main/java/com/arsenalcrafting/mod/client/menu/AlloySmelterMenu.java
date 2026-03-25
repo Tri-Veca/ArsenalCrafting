@@ -1,6 +1,7 @@
 package com.arsenalcrafting.mod.client.menu;
 
 import com.arsenalcrafting.mod.blocks.entity.AlloySmelterBlockEntity;
+import com.arsenalcrafting.mod.generator.AlloyRecipeDefinitions;
 import com.arsenalcrafting.mod.registry.ModBlocks;
 import com.arsenalcrafting.mod.registry.ModMenus;
 import net.minecraft.network.FriendlyByteBuf;
@@ -15,6 +16,7 @@ import net.neoforged.neoforge.items.SlotItemHandler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class AlloySmelterMenu extends AbstractContainerMenu {
     public final AlloySmelterBlockEntity blockEntity;
@@ -77,7 +79,7 @@ public class AlloySmelterMenu extends AbstractContainerMenu {
             blockEntity.setChanged();
             slots.forEach(Slot::setChanged);
         }
-        System.out.println(getDebugInfo());
+        //System.out.println(getDebugInfo());
     }
 
     // ── LAVA DISPLAY TANK GETTERS (existing — unchanged) ─────────────────────
@@ -94,6 +96,9 @@ public class AlloySmelterMenu extends AbstractContainerMenu {
     public int getFluidCapacity()  { return blockEntity.DISPLAY_TANK.getCapacity(); }
     public FluidStack getFluid()   { return blockEntity.DISPLAY_TANK.getFluid(); }
     public int getDisplayCapacity(){ return blockEntity.DISPLAY_TANK.getCapacity(); }
+
+
+
 
     // ── OUTPUT TANK GETTERS (new) ─────────────────────────────────────────────
 
@@ -142,6 +147,33 @@ public class AlloySmelterMenu extends AbstractContainerMenu {
         return capacity != 0 ? (amount * height / capacity) : 0;
     }
 
+
+
+    // Check if there's a valid liquid mixing recipe available
+    public boolean hasValidLiquidRecipe() {
+        return blockEntity.findValidLiquidRecipe().isPresent();
+    }
+
+    // Get the current liquid recipe (for display purposes)
+    public Optional<AlloyRecipeDefinitions.LiquidMixingRecipeDefinition> getCurrentLiquidRecipe() {
+        return blockEntity.findValidLiquidRecipe();
+    }
+
+    // Get the crafting progress for liquid recipes (reuse existing progress system)
+    public int getScaledLiquidProgress() {
+        // You might need to store liquid progress separately or reuse data.get(0)
+        // The current progress is already tracked in data.get(0)
+        int progress = data.get(0);
+        int maxProgress = data.get(1);
+        int arrowSize = 24;
+        return maxProgress != 0 ? (progress * arrowSize / maxProgress) : 0;
+    }
+
+    // Get current recipe type (solid or liquid)
+    public String getCurrentRecipeType() {
+        return blockEntity.currentRecipeType;
+    }
+
     // ── PROGRESS (existing — unchanged) ───────────────────────────────────────
 
     public boolean isCrafting() { return data.get(0) > 0; }
@@ -176,39 +208,70 @@ public class AlloySmelterMenu extends AbstractContainerMenu {
     public int getConnectedTanksCount() { return data.get(2); }
 
     // ── SHIFT CLICK (existing — unchanged) ────────────────────────────────────
+    private static final int INPUT_SLOT_COUNT = 9;           // slots 0-8
+    private static final int PLAYER_INVENTORY_ROWS = 3;
+    private static final int PLAYER_INVENTORY_COLS = 9;
+    private static final int HOTBAR_SLOT_COUNT = 9;
+    private static final int PLAYER_INVENTORY_SLOT_COUNT = PLAYER_INVENTORY_ROWS * PLAYER_INVENTORY_COLS; // 27
+    private static final int TOTAL_PLAYER_SLOTS = HOTBAR_SLOT_COUNT + PLAYER_INVENTORY_SLOT_COUNT; // 36
 
-    private static final int HOTBAR_SLOT_COUNT              = 9;
-    private static final int PLAYER_INVENTORY_ROW_COUNT     = 3;
-    private static final int PLAYER_INVENTORY_COLUMN_COUNT  = 9;
-    private static final int PLAYER_INVENTORY_SLOT_COUNT    =
-            PLAYER_INVENTORY_COLUMN_COUNT * PLAYER_INVENTORY_ROW_COUNT;
-    private static final int VANILLA_SLOT_COUNT             =
-            HOTBAR_SLOT_COUNT + PLAYER_INVENTORY_SLOT_COUNT;
-    private static final int VANILLA_FIRST_SLOT_INDEX       = 0;
-    private static final int TE_INVENTORY_FIRST_SLOT_INDEX  =
-            VANILLA_FIRST_SLOT_INDEX + VANILLA_SLOT_COUNT;
-    private static final int TE_INVENTORY_SLOT_COUNT        = 11;
+// Slot index calculations
+// Input slots: 0-8 (9 slots)
+// Player inventory: 9-35 (27 slots)
+// Hotbar: 36-44 (9 slots)
+// Total: 45 slots
+
+    private static final int INPUT_SLOTS_START = 0;
+    private static final int INPUT_SLOTS_END = INPUT_SLOT_COUNT; // 9
+
+    private static final int PLAYER_INVENTORY_START = INPUT_SLOTS_END; // 9
+    private static final int PLAYER_INVENTORY_END = PLAYER_INVENTORY_START + PLAYER_INVENTORY_SLOT_COUNT; // 36
+
+    private static final int HOTBAR_START = PLAYER_INVENTORY_END; // 36
+    private static final int HOTBAR_END = HOTBAR_START + HOTBAR_SLOT_COUNT; // 45
 
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
         Slot slot = slots.get(index);
         if (slot == null || !slot.hasItem()) return ItemStack.EMPTY;
-        ItemStack stack = slot.getItem();
-        ItemStack copy  = stack.copy();
 
-        if (index < VANILLA_FIRST_SLOT_INDEX + VANILLA_SLOT_COUNT) {
-            if (!moveItemStackTo(stack, TE_INVENTORY_FIRST_SLOT_INDEX,
-                    TE_INVENTORY_FIRST_SLOT_INDEX + TE_INVENTORY_SLOT_COUNT - 1, false)) {
-                return ItemStack.EMPTY;
-            }
-        } else if (index < TE_INVENTORY_FIRST_SLOT_INDEX + TE_INVENTORY_SLOT_COUNT) {
-            if (!moveItemStackTo(stack, VANILLA_FIRST_SLOT_INDEX,
-                    VANILLA_FIRST_SLOT_INDEX + VANILLA_SLOT_COUNT, false)) {
+        ItemStack stack = slot.getItem();
+        ItemStack copy = stack.copy();
+
+        System.out.println("[DEBUG] quickMoveStack - index: " + index + ", item: " + stack.getItem());
+
+        // Slot layout:
+        // 0-8: Input slots
+        // 9-35: Player inventory
+        // 36-44: Player hotbar
+
+        // If clicking in player inventory or hotbar
+        if (index >= 9 && index < 45) {
+            System.out.println("[DEBUG] Moving from player inventory to input slots");
+            // Try to move to input slots (0-8)
+            boolean moved = moveItemStackTo(stack, 0, 9, false);
+            System.out.println("[DEBUG] Move result: " + moved + ", stack now: " + stack.getCount());
+            if (!moved) {
                 return ItemStack.EMPTY;
             }
         }
-        if (stack.isEmpty()) slot.set(ItemStack.EMPTY);
-        else slot.setChanged();
+        // If clicking in input slots
+        else if (index >= 0 && index < 9) {
+            System.out.println("[DEBUG] Moving from input slots to player inventory");
+            // Move to player inventory (9-35) then hotbar (36-44)
+            boolean moved = moveItemStackTo(stack, 9, 45, false);
+            System.out.println("[DEBUG] Move result: " + moved + ", stack now: " + stack.getCount());
+            if (!moved) {
+                return ItemStack.EMPTY;
+            }
+        }
+
+        if (stack.isEmpty()) {
+            slot.set(ItemStack.EMPTY);
+        } else {
+            slot.setChanged();
+        }
+
         return copy;
     }
 
