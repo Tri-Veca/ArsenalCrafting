@@ -25,6 +25,7 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -52,6 +53,8 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
     private int craftingProgress = 0; // Add this field for liquid recipe progress
     private int craftingTime = 0;     // Add this field for liquid recipe time
     private boolean isCrafting = false; // Add this field to track crafting state
+    private int[] slotProgress = new int[9];
+    private int[] slotMaxProgress = new int[9];
 
     private final ItemStackHandler itemHandler = new ItemStackHandler(10) {
         @Override
@@ -61,21 +64,18 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         }
 
         @Override
+        public int getSlotLimit(int slot) {
+            if (slot < 9) return 1;
+            return super.getSlotLimit(slot);
+        }
+
+        @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            if (slot == 9) return false; // slot 9 disabled
+            if (slot >= 9) return false;
 
-            // TEMP: Allow all items for testing
-            return true;
-
-            // Your original validation (commented for testing)
-            // if (level != null) {
-            //     SimpleContainer inv = new SimpleContainer(9);
-            //     inv.setItem(slot, stack);
-            //     var recipe = level.getRecipeManager()
-            //         .getRecipeFor(AlloyRecipeType.ALLOY_SMELTING.get(), new AlloyRecipeInput(inv), level);
-            //     return recipe.isPresent();
-            // }
-            // return true;
+            return AlloyRecipeDefinitions.RECIPES.values().stream()
+                    .anyMatch(recipe -> recipe.ingredients().stream()
+                            .anyMatch(ing -> ing instanceof Item item && item == stack.getItem()));
         }
     };
 
@@ -447,7 +447,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         }
     }
 
-    private int getTotalLavaInTanks() {
+ int getTotalLavaInTanks() {
         int total = 0;
         for (ConnectedTankInfo info : connectedTanks) {
             FluidStack fluid = info.handler.getFluidInTank(0);
@@ -474,7 +474,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         }
     }
 
-    private boolean consumeLavaFromTanks(int amount) {
+    boolean consumeLavaFromTanks(int amount) {
         if (level == null || level.isClientSide) return false;
         int remaining = amount;
         for (ConnectedTankInfo info : connectedTanks) {
@@ -573,6 +573,8 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         tag.put("inv", itemHandler.serializeNBT(registries));
         tag.putInt("prog", progress);
         tag.putInt("maxprog", maxProgress);
+        tag.putIntArray("slotProgress", slotProgress);
+        tag.putIntArray("slotMaxProgress", slotMaxProgress);
         CompoundTag tankTag = new CompoundTag();
         DISPLAY_TANK.writeToNBT(registries, tankTag);
         tag.put("DisplayTank", tankTag);
@@ -602,6 +604,9 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         if (tag.contains("RecipeType")) {
             currentRecipeType = tag.getString("RecipeType");
         }
+
+        if (tag.contains("slotProgress")) slotProgress = tag.getIntArray("slotProgress");
+        if (tag.contains("slotMaxProgress")) slotMaxProgress = tag.getIntArray("slotMaxProgress");
         craftingProgress = tag.getInt("craftingProgress");
         craftingTime = tag.getInt("craftingTime");
         isCrafting = tag.getBoolean("isCrafting");
@@ -644,7 +649,8 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
 
                     // Check if we have enough room in output tank
                     int resultMb = recipe.output().getAmount();
-                    if (be.OUTPUT_TANK.getTotalAmount() + resultMb > be.OUTPUT_TANK.getCapacity()) {
+                    int consumedMb = recipe.getConsumedFluids().stream().mapToInt(FluidStack::getAmount).sum();
+                    if (be.OUTPUT_TANK.getTotalAmount() - consumedMb + resultMb > be.OUTPUT_TANK.getCapacity()) {
                         be.progress = 0;
                         setChanged(level, pos, state);
                         return;
@@ -691,62 +697,76 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         }
 
         // If no liquid recipe, check solid recipes
-        var recipeOpt = level.getRecipeManager().getRecipeFor(
-                AlloyRecipeType.ALLOY_SMELTING.get(),
-                new AlloyRecipeInput(inv), level);
 
-        if (recipeOpt.isPresent()) {
+        // Process each input slot independently
+        for (int slotIndex = 0; slotIndex < 9; slotIndex++) {
+            ItemStack slotItem = be.itemHandler.getStackInSlot(slotIndex);
+            if (slotItem.isEmpty()) {
+                be.slotProgress[slotIndex] = 0;
+                be.slotMaxProgress[slotIndex] = 0;
+                continue;
+            }
+
+            SimpleContainer singleInv = new SimpleContainer(9);
+            singleInv.setItem(0, slotItem);
+
+            var recipeOpt = level.getRecipeManager().getRecipeFor(
+                    AlloyRecipeType.ALLOY_SMELTING.get(),
+                    new AlloyRecipeInput(singleInv), level);
+
+            if (recipeOpt.isEmpty()) {
+                be.slotProgress[slotIndex] = 0;
+                be.slotMaxProgress[slotIndex] = 0;
+                continue;
+            }
+
             var recipe = recipeOpt.get().value();
 
-            // Set recipe type
-            be.currentRecipeType = "solid";
-            be.currentSolidRecipe = recipe; // Now this works - recipe is AlloyRecipe type
+            // Set max progress if not already set
+            if (be.slotMaxProgress[slotIndex] == 0) {
+                be.slotMaxProgress[slotIndex] = recipe.getCraftTime();
+            }
 
-            // Check output tank has room for the result
+            // Check output tank has room
             int resultMb = recipe.getResultAmountMb();
-            if (be.OUTPUT_TANK.getTotalAmount() + resultMb > be.OUTPUT_TANK.getCapacity()) {
-                be.progress = 0;
-                setChanged(level, pos, state);
-                return;
+            if (be.OUTPUT_TANK.getTotalAmount() + resultMb > be.OUTPUT_TANK.getCapacity()) continue;
+
+
+            // Check lava availability on first tick
+            if (be.slotProgress[slotIndex] == 0) {
+                if (be.getTotalLavaInTanks() < recipe.getLavaCost()) continue;
             }
 
-            be.maxProgress = recipe.getCraftTime();
+// Drain lava gradually across craft time
             int totalLavaNeeded = recipe.getLavaCost();
-            int totalTicks = recipe.getCraftTime();
-
-            if (be.progress == 0) {
-                int totalAvailable = be.getTotalLavaInTanks();
-                if (totalAvailable < totalLavaNeeded) {
-                    setChanged(level, pos, state);
-                    return;
-                }
-            }
-
+            int totalTicks = be.slotMaxProgress[slotIndex];
             int baseLavaPerTick = totalLavaNeeded / totalTicks;
             int remainder = totalLavaNeeded % totalTicks;
-            int lavaToConsume = baseLavaPerTick + (be.progress < remainder ? 1 : 0);
+            int lavaToConsume = baseLavaPerTick + (be.slotProgress[slotIndex] < remainder ? 1 : 0);
 
-            if (!be.consumeLavaFromTanks(lavaToConsume)) {
-                be.progress = 0;
-                setChanged(level, pos, state);
-                return;
-            }
-            be.progress++;
+            if (!be.consumeLavaFromTanks(lavaToConsume)) continue; // pause if lava runs out mid-craft
 
-            if (be.progress >= be.maxProgress) {
-                craftItem(be);
-                be.progress = 0;
-                be.currentRecipeType = null;
-                be.currentSolidRecipe = null;
+            be.slotProgress[slotIndex]++;
+
+            if (be.slotProgress[slotIndex] >= be.slotMaxProgress[slotIndex]) {
+                // Craft
+                be.itemHandler.extractItem(slotIndex, 1, false);
+                AlloyMaterial resultMat = AlloyMaterial.fromName(recipe.getResultMaterial());
+                if (resultMat != null) {
+                    var sourceFluid = ModFluids.getSource(resultMat);
+                    if (sourceFluid != null) {
+                        be.OUTPUT_TANK.fill(
+                                new FluidStack(sourceFluid, resultMb),
+                                IFluidHandler.FluidAction.EXECUTE);
+                    }
+                }
+                be.slotProgress[slotIndex] = 0;
+                be.slotMaxProgress[slotIndex] = 0;
             }
-        } else {
-            // No valid recipes, reset progress and recipe type
-            be.progress = 0;
-            be.currentRecipeType = null;
-            be.currentSolidRecipe = null;
-            be.currentLiquidRecipe = null;
-            be.isCrafting = false;
         }
+
+        be.currentRecipeType = null;
+        be.currentSolidRecipe = null;
         setChanged(level, pos, state);
     }
 

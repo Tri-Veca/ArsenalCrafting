@@ -49,9 +49,16 @@ public class AlloySmelterMenu extends AbstractContainerMenu {
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 3; col++) {
                 int index = row * 3 + col;
-                this.addSlot(new SlotItemHandler(handler, index, 10 + col * 18, 19 + row * 18));
-            }
+                this.addSlot(new SlotItemHandler(handler, index, 10 + col * 18, 19 + row * 18){
+                    @Override
+                    public int getMaxStackSize() { return 1; }
+                });
+
+                }
         }
+
+
+
 
         // ── OLD ITEM OUTPUT SLOT (commented out — slot 9 now unused) ─────────
         // this.addSlot(new SlotItemHandler(handler, 9, 143, 35) {
@@ -238,30 +245,19 @@ public class AlloySmelterMenu extends AbstractContainerMenu {
         ItemStack stack = slot.getItem();
         ItemStack copy = stack.copy();
 
-        System.out.println("[DEBUG] quickMoveStack - index: " + index + ", item: " + stack.getItem());
+        // Actual slot layout:
+        // 0-26: Player inventory
+        // 27-35: Hotbar
+        // 36-44: Input slots
 
-        // Slot layout:
-        // 0-8: Input slots
-        // 9-35: Player inventory
-        // 36-44: Player hotbar
-
-        // If clicking in player inventory or hotbar
-        if (index >= 9 && index < 45) {
-            System.out.println("[DEBUG] Moving from player inventory to input slots");
-            // Try to move to input slots (0-8)
-            boolean moved = moveItemStackTo(stack, 0, 9, false);
-            System.out.println("[DEBUG] Move result: " + moved + ", stack now: " + stack.getCount());
-            if (!moved) {
+        if (index < 36) {
+            // From player inventory/hotbar → try input slots
+            if (!moveItemStackTo(stack, 36, 45, false)) {
                 return ItemStack.EMPTY;
             }
-        }
-        // If clicking in input slots
-        else if (index >= 0 && index < 9) {
-            System.out.println("[DEBUG] Moving from input slots to player inventory");
-            // Move to player inventory (9-35) then hotbar (36-44)
-            boolean moved = moveItemStackTo(stack, 9, 45, false);
-            System.out.println("[DEBUG] Move result: " + moved + ", stack now: " + stack.getCount());
-            if (!moved) {
+        } else {
+            // From input slots → move to player inventory then hotbar
+            if (!moveItemStackTo(stack, 0, 36, false)) {
                 return ItemStack.EMPTY;
             }
         }
