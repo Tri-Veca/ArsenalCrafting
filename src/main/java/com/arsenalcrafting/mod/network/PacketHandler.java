@@ -47,6 +47,36 @@ public class PacketHandler {
                 SyncAlloySmelterCapacityPacket.STREAM_CODEC,
                 SyncAlloySmelterCapacityPacket::handle
         );
+
+        registrar.playToServer(
+                ToggleMixingPacket.TYPE,
+                ToggleMixingPacket.STREAM_CODEC,
+                ToggleMixingPacket::handle
+        );
+
+        registrar.playToServer(
+                ForceMixPacket.TYPE,
+                ForceMixPacket.STREAM_CODEC,
+                ForceMixPacket::handle
+        );
+
+        registrar.playToServer(
+                ToggleMeltingPacket.TYPE,
+                ToggleMeltingPacket.STREAM_CODEC,
+                ToggleMeltingPacket::handle
+        );
+
+        registrar.playToServer(
+                ForceRecipePacket.TYPE,
+                ForceRecipePacket.STREAM_CODEC,
+                ForceRecipePacket::handle
+        );
+
+        registrar.playToServer(
+                DumpFluidPacket.TYPE,
+                DumpFluidPacket.STREAM_CODEC,
+                DumpFluidPacket::handle
+        );
     }
 
     public static void sendToPlayer(ServerPlayer player, CustomPacketPayload packet) {

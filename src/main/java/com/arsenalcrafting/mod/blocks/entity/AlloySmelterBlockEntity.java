@@ -39,12 +39,13 @@ import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
 import org.jetbrains.annotations.Nullable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+
+import java.util.*;
 
 public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider {
 
+    public Set<String> mixingBlocked = new HashSet<>();
+    public Set<String> meltingBlocked = new HashSet<>();
     // Slots: 0–8 = inputs, 9 = unused (was item output — now fluid output via OUTPUT_TANK)
 
     public String currentRecipeType = null; // "solid" or "liquid"
@@ -301,7 +302,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
                         .filter(r -> {
                             boolean canCraft = r.canCraft(availableFluids);
                             if (canCraft) {
-                                System.out.println("[DEBUG] Recipe " + r.name() + " can craft!");
+                                //System.out.println("[DEBUG] Recipe " + r.name() + " can craft!");
                             }
                             return canCraft;
                         })
@@ -447,7 +448,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         }
     }
 
- int getTotalLavaInTanks() {
+ public int getTotalLavaInTanks() {
         int total = 0;
         for (ConnectedTankInfo info : connectedTanks) {
             FluidStack fluid = info.handler.getFluidInTank(0);
@@ -474,7 +475,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         }
     }
 
-    boolean consumeLavaFromTanks(int amount) {
+    public boolean consumeLavaFromTanks(int amount) {
         if (level == null || level.isClientSide) return false;
         int remaining = amount;
         for (ConnectedTankInfo info : connectedTanks) {
@@ -534,6 +535,9 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         CompoundTag outputTag = new CompoundTag();
         OUTPUT_TANK.save(outputTag, registries);
         tag.put("OutputTank", outputTag);
+
+        tag.putString("MeltingBlocked", String.join(",", meltingBlocked));
+        tag.putString("MixingBlocked", String.join(",", mixingBlocked));
         // Save recipe type and progress
         if (currentRecipeType != null) tag.putString("RecipeType", currentRecipeType);
         tag.putInt("Progress", progress);
@@ -557,6 +561,18 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         }
         if (tag.contains("RecipeType")) {
             currentRecipeType = tag.getString("RecipeType");
+        }
+
+        if (tag.contains("MixingBlocked")) {
+            String raw = tag.getString("MixingBlocked");
+            mixingBlocked.clear();
+            if (!raw.isEmpty()) Collections.addAll(mixingBlocked, raw.split(","));
+        }
+
+        if (tag.contains("MeltingBlocked")) {
+            String raw = tag.getString("MeltingBlocked");
+            meltingBlocked.clear();
+            if (!raw.isEmpty()) Collections.addAll(meltingBlocked, raw.split(","));
         }
         progress = tag.getInt("Progress");
         maxProgress = tag.getInt("MaxProgress");
@@ -582,6 +598,11 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         CompoundTag outputTag = new CompoundTag();
         OUTPUT_TANK.save(outputTag, registries);
         tag.put("OutputTank", outputTag);
+
+        // Save mixing blocked set
+        String[] blockedArray = mixingBlocked.toArray(new String[0]);
+        tag.putString("MixingBlocked", String.join(",", blockedArray));
+        tag.putString("MeltingBlocked", String.join(",", meltingBlocked));
         // Save recipe type and current recipe info
         if (currentRecipeType != null) tag.putString("RecipeType", currentRecipeType);
         tag.putInt("craftingProgress", craftingProgress);
@@ -603,6 +624,20 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         }
         if (tag.contains("RecipeType")) {
             currentRecipeType = tag.getString("RecipeType");
+        }
+        // Load mixing blocked set
+        if (tag.contains("MixingBlocked")) {
+            String raw = tag.getString("MixingBlocked");
+            mixingBlocked.clear();
+            if (!raw.isEmpty()) {
+                Collections.addAll(mixingBlocked, raw.split(","));
+            }
+        }
+
+        if (tag.contains("MeltingBlocked")) {
+            String raw = tag.getString("MeltingBlocked");
+            meltingBlocked.clear();
+            if (!raw.isEmpty()) Collections.addAll(meltingBlocked, raw.split(","));
         }
 
         if (tag.contains("slotProgress")) slotProgress = tag.getIntArray("slotProgress");
@@ -638,6 +673,9 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
             inv.setItem(i, be.itemHandler.getStackInSlot(i));
         }
 
+
+
+
         // First check for liquid mixing recipes (if not currently crafting a solid recipe)
         if (be.currentRecipeType == null || be.currentRecipeType.equals("solid")) {
             // Only start a new recipe if not already crafting
@@ -656,6 +694,16 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
                         return;
                     }
 
+                    // Check if the OUTPUT material is blocked from mixing
+                    AlloyMaterial outputMat = AlloyMaterial.fromFluid(recipe.output().getFluid());
+                    if (outputMat != null && be.mixingBlocked.contains(outputMat.getName())) {
+                        be.progress = 0;
+                        be.currentRecipeType = null;
+                        be.currentLiquidRecipe = null;
+                        setChanged(level, pos, state);
+                        return;
+                    }
+
                     // Set recipe type and max progress
                     be.currentRecipeType = "liquid";
                     be.maxProgress = recipe.craftTime();
@@ -666,12 +714,23 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
                     return;
                 }
             }
+
+
         }
 
         // If we're currently crafting a liquid recipe, continue it
         if (be.currentRecipeType != null && be.currentRecipeType.equals("liquid") && be.currentLiquidRecipe != null) {
             AlloyRecipeDefinitions.LiquidMixingRecipeDefinition recipe = be.currentLiquidRecipe;
 
+            // Check if the OUTPUT material is blocked from mixing
+            AlloyMaterial outputMat = AlloyMaterial.fromFluid(recipe.output().getFluid());
+            if (outputMat != null && be.mixingBlocked.contains(outputMat.getName())) {
+                be.progress = 0;
+                be.currentRecipeType = null;
+                be.currentLiquidRecipe = null;
+                setChanged(level, pos, state);
+                return;
+            }
             // Check if we still have the required fluids (in case they were drained externally)
             if (!recipe.canCraft(be.getAllOutputFluids())) {
                 // Recipe is no longer valid, cancel crafting
@@ -706,6 +765,15 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
                 be.slotMaxProgress[slotIndex] = 0;
                 continue;
             }
+            // Check if this material's melting is blocked
+            AlloyMaterial slotMat = AlloyMaterial.fromItem(slotItem.getItem());
+            if (slotMat != null && be.meltingBlocked.contains(slotMat.getName())) {
+                be.slotProgress[slotIndex] = 0;
+                be.slotMaxProgress[slotIndex] = 0;
+                continue;
+            }
+
+
 
             SimpleContainer singleInv = new SimpleContainer(9);
             singleInv.setItem(0, slotItem);
@@ -747,6 +815,8 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
             if (!be.consumeLavaFromTanks(lavaToConsume)) continue; // pause if lava runs out mid-craft
 
             be.slotProgress[slotIndex]++;
+
+
 
             if (be.slotProgress[slotIndex] >= be.slotMaxProgress[slotIndex]) {
                 // Craft

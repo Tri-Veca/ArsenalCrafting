@@ -321,6 +321,7 @@ public enum AlloyMaterial {
         if (item == Items.IRON_INGOT) return IRON;
         if (item == Items.GOLD_INGOT) return GOLD;
         if (item == Items.DIAMOND) return DIAMOND;
+        if (item == Items.COAL) return COAL;
         if (item == Items.NETHERITE_INGOT) return NETHERITE;
 
 
@@ -348,6 +349,15 @@ public enum AlloyMaterial {
             }
         }
         return highest;
+    }
+
+    @Nullable
+    public static AlloyMaterial fromFluid(net.minecraft.world.level.material.Fluid fluid) {
+        for (AlloyMaterial mat : values()) {
+            var source = com.arsenalcrafting.mod.registry.ModFluids.getSource(mat);
+            if (source != null && source == fluid) return mat;
+        }
+        return null;
     }
 
     public static TagKey<Block> getToolBreakTag(AlloyMaterial material){

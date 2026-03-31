@@ -1,6 +1,7 @@
 package com.arsenalcrafting.mod.compat.jei;
 
 import com.arsenalcrafting.mod.ArsenalCrafting;
+import com.arsenalcrafting.mod.client.gui.AlloySmelterScreen;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.core.alloy.AlloyRecipe;
 import com.arsenalcrafting.mod.core.alloy.AlloyRecipeType;
@@ -9,10 +10,7 @@ import com.arsenalcrafting.mod.registry.ModBlocks;
 import com.arsenalcrafting.mod.registry.ModItems;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
-import mezz.jei.api.registration.IRecipeCatalystRegistration;
-import mezz.jei.api.registration.IRecipeCategoryRegistration;
-import mezz.jei.api.registration.IRecipeRegistration;
-import mezz.jei.api.registration.IRecipeTransferRegistration;
+import mezz.jei.api.registration.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -63,6 +61,11 @@ public class ArsenalCraftingJeiPlugin implements IModPlugin {
                 new ArrayList<>(AugmentManager.getAll());
         System.out.println("[JEI] Registering " + augmentRecipes.size() + " augment info recipes");
         registration.addRecipes(AugmentInfoCategory.RECIPE_TYPE, augmentRecipes);
+    }
+
+    @Override
+    public void registerGuiHandlers(IGuiHandlerRegistration registration) {
+        registration.addGuiContainerHandler(AlloySmelterScreen.class, new AlloySmelterGuiHandler());
     }
 
     @Override
