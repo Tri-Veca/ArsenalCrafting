@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "arsenalcrafting:block/valve_faucet", "y": 0},
+    "facing=south": { "model": "arsenalcrafting:block/valve_faucet", "y": 180   },
+    "facing=east":  { "model": "arsenalcrafting:block/valve_faucet", "y": 90},
+    "facing=west":  { "model": "arsenalcrafting:block/valve_faucet", "y": -90  }
+  }
+}

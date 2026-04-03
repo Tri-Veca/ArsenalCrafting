@@ -208,15 +208,16 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
             int[] pos = getFluidButtonPos(popoutX, popoutY, i);
             if (isOver(mouseX, mouseY, pos[0], pos[1], BTN_SIZE, BTN_SIZE)) {
                 if (button == 1) {
-                    // Right click — yellow highlight for dump
+                    // Right click — yellow highlight for dump (client-side only for now)
                     highlightedFluid = mat.getName().equals(highlightedFluid) ? null : mat.getName();
                 } else {
-                    // Left click — mark as cast target (green), only one at a time
-                    if (mat.getName().equals(castTargetFluid)) {
-                        castTargetFluid = null; // deselect if already green
-                    } else {
-                        castTargetFluid = mat.getName();
-                    }
+                    // Left click — mark as cast target (green), send to server
+                    String newTarget = mat.getName().equals(castTargetFluid) ? "" : mat.getName();
+                    castTargetFluid = newTarget.isEmpty() ? null : newTarget;
+
+                    // Send packet to server to sync the cast target
+                    PacketHandler.sendToServer(new SetCastTargetPacket(menu.blockEntity.getBlockPos(), newTarget));
+
                     // Clear yellow if this was highlighted
                     if (mat.getName().equals(highlightedFluid)) highlightedFluid = null;
                 }

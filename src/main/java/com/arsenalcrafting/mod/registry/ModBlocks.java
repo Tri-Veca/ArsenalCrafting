@@ -56,6 +56,30 @@ public class ModBlocks {
             ));
 
 
+    public static final DeferredHolder<Block, CastingStationBlock> CASTING_STATION =
+            registerBlock("casting_station",
+                    () -> new CastingStationBlock(BlockBehaviour.Properties.of()
+                            .strength(3.5f)
+                            .requiresCorrectToolForDrops()
+                            .sound(SoundType.STONE)
+                            .noOcclusion()));
+
+    public static final DeferredHolder<Block, Block> FOUNDRY_BASIN =
+            registerBlock("foundry_basin",
+                    () -> new Block(BlockBehaviour.Properties.of()
+                            .strength(3.5f)
+                            .requiresCorrectToolForDrops()
+                            .sound(SoundType.STONE)));
+
+    public static final DeferredHolder<Block, ValveFaucetBlock> VALVE_FAUCET =
+            registerBlock("valve_faucet",
+                    () -> new ValveFaucetBlock(BlockBehaviour.Properties.of()
+                            .strength(2.5f)
+                            .requiresCorrectToolForDrops()
+                            .sound(SoundType.METAL)
+                            .noOcclusion()));
+
+
     // --- Functional Blocks ---
 
 
@@ -162,6 +186,12 @@ public class ModBlocks {
 
      */
 
+
+    public static final DeferredHolder<Block, MoldBlock> INGOT_MOLD =
+            registerBlock("ingot_mold", MoldBlock::new);
+
+    public static final DeferredHolder<Block, MoldBlock> BRONZE_INGOT_MOLD =
+            registerBlock("bronze_ingot_mold", MoldBlock::new);
 
     public static void registerMolds() {
         System.out.println("[ModBlocks] Automating Mold Registration (Standard & Bronze)...");

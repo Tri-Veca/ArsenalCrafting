@@ -57,6 +57,8 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
     private int[] slotProgress = new int[9];
     private int[] slotMaxProgress = new int[9];
 
+    public String castTargetFluid = null; // The material name of the fluid selected for casting
+
     private final ItemStackHandler itemHandler = new ItemStackHandler(10) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -535,6 +537,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         CompoundTag outputTag = new CompoundTag();
         OUTPUT_TANK.save(outputTag, registries);
         tag.put("OutputTank", outputTag);
+        if (castTargetFluid != null) tag.putString("CastTarget", castTargetFluid);
 
         tag.putString("MeltingBlocked", String.join(",", meltingBlocked));
         tag.putString("MixingBlocked", String.join(",", mixingBlocked));
@@ -562,12 +565,17 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         if (tag.contains("RecipeType")) {
             currentRecipeType = tag.getString("RecipeType");
         }
+        if (tag.contains("CastTarget")) {
+            castTargetFluid = tag.getString("CastTarget");
+            if (castTargetFluid.isEmpty()) castTargetFluid = null;
+        }
 
         if (tag.contains("MixingBlocked")) {
             String raw = tag.getString("MixingBlocked");
             mixingBlocked.clear();
             if (!raw.isEmpty()) Collections.addAll(mixingBlocked, raw.split(","));
         }
+
 
         if (tag.contains("MeltingBlocked")) {
             String raw = tag.getString("MeltingBlocked");
@@ -598,6 +606,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         CompoundTag outputTag = new CompoundTag();
         OUTPUT_TANK.save(outputTag, registries);
         tag.put("OutputTank", outputTag);
+        if (castTargetFluid != null) tag.putString("CastTarget", castTargetFluid);
 
         // Save mixing blocked set
         String[] blockedArray = mixingBlocked.toArray(new String[0]);
@@ -632,6 +641,10 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
             if (!raw.isEmpty()) {
                 Collections.addAll(mixingBlocked, raw.split(","));
             }
+        }
+        if (tag.contains("CastTarget")) {
+            castTargetFluid = tag.getString("CastTarget");
+            if (castTargetFluid.isEmpty()) castTargetFluid = null;
         }
 
         if (tag.contains("MeltingBlocked")) {

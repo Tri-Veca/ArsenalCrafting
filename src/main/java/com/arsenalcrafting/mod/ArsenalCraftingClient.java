@@ -1,6 +1,8 @@
 package com.arsenalcrafting.mod;
 
+import com.arsenalcrafting.mod.client.render.CastingStationRenderer;
 import com.arsenalcrafting.mod.client.render.ToolKitRenderer;
+import com.arsenalcrafting.mod.client.render.ValveFaucetRenderer;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.registry.ModBlockEntities;
 import com.arsenalcrafting.mod.registry.ModBlocks;
@@ -52,6 +54,16 @@ public class ArsenalCraftingClient {
                     ToolKitRenderer::new
             );
         });
+
+        BlockEntityRenderers.register(
+                ModBlockEntities.CASTING_STATION.get(),
+                CastingStationRenderer::new
+        );
+
+        BlockEntityRenderers.register(
+                ModBlockEntities.VALVE_FAUCET.get(),
+                ValveFaucetRenderer::new
+        );
 
         for (AlloyMaterial material : AlloyMaterial.values()) {
             ItemBlockRenderTypes.setRenderLayer(

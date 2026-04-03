@@ -77,6 +77,12 @@ public class PacketHandler {
                 DumpFluidPacket.STREAM_CODEC,
                 DumpFluidPacket::handle
         );
+
+        registrar.playToServer(
+                SetCastTargetPacket.TYPE,
+                SetCastTargetPacket.STREAM_CODEC,
+                SetCastTargetPacket::handle
+        );
     }
 
     public static void sendToPlayer(ServerPlayer player, CustomPacketPayload packet) {

@@ -34,6 +34,15 @@ public class ModBlockEntities {
                     BlockEntityType.Builder.of(AlloySmelterBlockEntity::new,
                             ModBlocks.ALLOY_SMELTER.get()).build(null));
 
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CastingStationBlockEntity>> CASTING_STATION =
+            BLOCK_ENTITIES.register("casting_station", () ->
+                    BlockEntityType.Builder.of(CastingStationBlockEntity::new,
+                            ModBlocks.CASTING_STATION.get()).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ValveFaucetBlockEntity>> VALVE_FAUCET =
+            BLOCK_ENTITIES.register("valve_faucet", () ->
+                    BlockEntityType.Builder.of(ValveFaucetBlockEntity::new,
+                            ModBlocks.VALVE_FAUCET.get()).build(null));
     // ── GENERATORS ────────────────────────────────────────────────────────────
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GeneratorBlockEntity>> FOSSIL_GENERATOR =
