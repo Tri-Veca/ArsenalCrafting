@@ -17,7 +17,7 @@ import net.neoforged.neoforge.fluids.FluidStack;
 public class ValveFaucetBlockEntity extends BlockEntity {
 
     // MB to transfer per tick — gradual like Tinkers
-    public static final int MB_PER_TICK = 5;
+    public static final int MB_PER_TICK = 50;
 
     public enum PourState { OFF, POURING }
 

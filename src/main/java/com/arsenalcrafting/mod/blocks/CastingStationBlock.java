@@ -64,13 +64,44 @@ public class CastingStationBlock extends BaseEntityBlock {
         BlockEntity be = level.getBlockEntity(pos);
         if (!(be instanceof CastingStationBlockEntity station)) return ItemInteractionResult.FAIL;
 
-        // Take finished item
+        // ── SHIFT CLICK — remove mold or bucket ───────────────────────────────
+        if (player.isShiftKeyDown()) {
+            if (station.isSetting()) {
+                player.displayClientMessage(Component.literal("Cannot remove while casting"), true);
+                return ItemInteractionResult.SUCCESS;
+            }
+            if (station.getMode() == CastingStationBlockEntity.CastMode.MOLD
+                    && station.getMoldComponentId() != null
+                    && station.getFluidAmount() == 0) {
+                String moldId = station.getMoldComponentId();
+                ToolComponentType type = ToolComponentType.fromId(moldId);
+                if (type != null) {
+                    var moldHolder = station.isBronzeMold()
+                            ? ModBlocks.BRONZE_MOLD_BLOCKS.get(type)
+                            : ModBlocks.MOLD_BLOCKS.get(type);
+                    if (moldHolder != null)
+                        Block.popResource(level, pos, new ItemStack(moldHolder.get().asItem()));
+                }
+                station.clearMold();
+                player.displayClientMessage(Component.literal("Mold removed"), true);
+                return ItemInteractionResult.SUCCESS;
+            }
+            if (station.getMode() == CastingStationBlockEntity.CastMode.BUCKET
+                    && station.getFluidAmount() == 0) {
+                Block.popResource(level, pos, new ItemStack(Items.BUCKET));
+                station.clearBucket();
+                player.displayClientMessage(Component.literal("Bucket removed"), true);
+                return ItemInteractionResult.SUCCESS;
+            }
+            player.displayClientMessage(Component.literal("Nothing to remove"), true);
+            return ItemInteractionResult.SUCCESS;
+        }
+
+        // ── TAKE FINISHED ITEM ────────────────────────────────────────────────
         if (station.isReady()) {
             ItemStack result = station.collectOutput();
             if (!result.isEmpty()) {
-                if (!player.addItem(result)) {
-                    player.drop(result, false);
-                }
+                if (!player.addItem(result)) player.drop(result, false);
                 player.displayClientMessage(
                         Component.literal("Collected " + result.getHoverName().getString()), true);
                 return ItemInteractionResult.SUCCESS;
@@ -83,7 +114,7 @@ public class CastingStationBlock extends BaseEntityBlock {
         if (station.getFluidAmount() > 0) return ItemInteractionResult.FAIL;
         if (station.getMode() != CastingStationBlockEntity.CastMode.NONE) return ItemInteractionResult.FAIL;
 
-        // Empty bucket
+        // ── EMPTY BUCKET ──────────────────────────────────────────────────────
         if (stack.getItem() == Items.BUCKET) {
             station.setBucket();
             if (!player.isCreative()) stack.shrink(1);
@@ -92,7 +123,7 @@ public class CastingStationBlock extends BaseEntityBlock {
             return ItemInteractionResult.SUCCESS;
         }
 
-        // Standard molds
+        // ── STANDARD MOLDS ────────────────────────────────────────────────────
         for (var entry : ModBlocks.MOLD_BLOCKS.entrySet()) {
             if (stack.getItem() == entry.getValue().get().asItem()) {
                 station.setMold(entry.getKey().getId(), false);
@@ -103,7 +134,7 @@ public class CastingStationBlock extends BaseEntityBlock {
             }
         }
 
-        // Bronze molds
+        // ── BRONZE MOLDS ──────────────────────────────────────────────────────
         for (var entry : ModBlocks.BRONZE_MOLD_BLOCKS.entrySet()) {
             if (stack.getItem() == entry.getValue().get().asItem()) {
                 station.setMold(entry.getKey().getId(), true);
@@ -114,7 +145,7 @@ public class CastingStationBlock extends BaseEntityBlock {
             }
         }
 
-        // TODO: ingot mold — uncomment when added
+        // TODO: ingot mold
         // if (stack.getItem() == ModBlocks.INGOT_MOLD.get().asItem()) { ... }
 
         return ItemInteractionResult.FAIL;
@@ -127,59 +158,12 @@ public class CastingStationBlock extends BaseEntityBlock {
         BlockEntity be = level.getBlockEntity(pos);
         if (!(be instanceof CastingStationBlockEntity station)) return InteractionResult.PASS;
 
-        // ── SNEAK RIGHT CLICK — always check first ────────────────────────────
-        if (player.isShiftKeyDown()) {
-            if (station.isSetting()) {
-                player.displayClientMessage(
-                        Component.literal("Cannot remove while casting"), true);
-                return InteractionResult.SUCCESS;
-            }
-
-            // Remove mold — no fluid required check so mold can be removed even mid-pour
-            // but only if no fluid is present yet
-            if (station.getMode() == CastingStationBlockEntity.CastMode.MOLD
-                    && station.getMoldComponentId() != null
-                    && station.getFluidAmount() == 0) {
-
-                String moldId = station.getMoldComponentId();
-                ToolComponentType type = ToolComponentType.fromId(moldId);
-                if (type != null) {
-                    var moldHolder = station.isBronzeMold()
-                            ? ModBlocks.BRONZE_MOLD_BLOCKS.get(type)
-                            : ModBlocks.MOLD_BLOCKS.get(type);
-                    if (moldHolder != null) {
-                        Block.popResource(level, pos, new ItemStack(moldHolder.get().asItem()));
-                    }
-                }
-                station.clearMold();
-                player.displayClientMessage(Component.literal("Mold removed"), true);
-                return InteractionResult.SUCCESS;
-            }
-
-            // Remove bucket
-            if (station.getMode() == CastingStationBlockEntity.CastMode.BUCKET
-                    && station.getFluidAmount() == 0) {
-                Block.popResource(level, pos, new ItemStack(Items.BUCKET));
-                station.clearBucket();
-                player.displayClientMessage(Component.literal("Bucket removed"), true);
-                return InteractionResult.SUCCESS;
-            }
-
-            // Nothing to remove
-            player.displayClientMessage(
-                    Component.literal("Nothing to remove"), true);
-            return InteractionResult.SUCCESS;
-        }
-
         // ── COLLECT OUTPUT ────────────────────────────────────────────────────
         if (station.isReady()) {
             ItemStack output = station.collectOutput();
             if (!output.isEmpty()) {
-                if (!player.addItem(output)) {
-                    player.drop(output, false);
-                }
-                player.displayClientMessage(
-                        Component.literal("Cast complete!"), true);
+                if (!player.addItem(output)) player.drop(output, false);
+                player.displayClientMessage(Component.literal("Cast complete!"), true);
             }
             return InteractionResult.SUCCESS;
         }
@@ -227,9 +211,8 @@ public class CastingStationBlock extends BaseEntityBlock {
                         var moldHolder = station.isBronzeMold()
                                 ? ModBlocks.BRONZE_MOLD_BLOCKS.get(type)
                                 : ModBlocks.MOLD_BLOCKS.get(type);
-                        if (moldHolder != null) {
+                        if (moldHolder != null)
                             Block.popResource(level, pos, new ItemStack(moldHolder.get().asItem()));
-                        }
                     }
                 }
             }

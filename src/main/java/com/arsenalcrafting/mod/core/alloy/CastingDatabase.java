@@ -46,9 +46,9 @@ public class CastingDatabase {
         // ── TIME SCALE BY INGOT COUNT ─────────────────────────────────────────
         // Base time = (material.meltTime * 1.5f) / 2f seconds
         // Then multiply by this scale based on ingot count
-        TIME_SCALE.put(1, 1.0f);   // 1 ingot → base time (≈1.5s for copper)
-        TIME_SCALE.put(2, 1.67f);  // 2 ingots → ~2.5s for copper
-        TIME_SCALE.put(3, 2.0f);   // 3 ingots → ~3.0s for copper
+        TIME_SCALE.put(1, 0.5f);   // 1 ingot → base time (≈1.5s for copper)
+        TIME_SCALE.put(2, 0.75f);  // 2 ingots → ~2.5s for copper
+        TIME_SCALE.put(3, 1f);   // 3 ingots → ~3.0s for copper
     }
 
     /**
@@ -74,7 +74,7 @@ public class CastingDatabase {
     public static int getSettingTicks(AlloyMaterial material, String moldId) {
         int ingotCount = getIngotCost(moldId);
         float timeScale = TIME_SCALE.getOrDefault(ingotCount, 1.0f);
-        float baseSeconds = (material.meltTime * 1.5f) / 2f;
+        float baseSeconds = (material.meltTime * 0.4f) / 2f;  // Changed from 1.2f to 0.6f
         float totalSeconds = baseSeconds * timeScale;
         return Math.max(20, (int) (totalSeconds * 20)); // minimum 1 second
     }
