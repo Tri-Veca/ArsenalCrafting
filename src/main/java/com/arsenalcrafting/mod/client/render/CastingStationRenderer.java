@@ -2,6 +2,7 @@ package com.arsenalcrafting.mod.client.render;
 
 import com.arsenalcrafting.mod.blocks.entity.CastingStationBlockEntity;
 import com.arsenalcrafting.mod.component.ToolComponentType;
+import com.arsenalcrafting.mod.core.ItemStackHelper;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.registry.ModBlocks;
 import com.arsenalcrafting.mod.registry.ModItems;
@@ -187,31 +188,131 @@ public class CastingStationRenderer implements BlockEntityRenderer<CastingStatio
         ItemStack output = getOutputItem(be, mat);
         if (output.isEmpty()) return;
 
-        // Convert brightness to packed light — fake it by scaling light value
-        // Full light = 0xF000F0, dark = scale both sky and block light down
         int adjustedLight = scalePackedLight(brightness);
 
         poseStack.pushPose();
 
-        // Sit flat in the mold at basin floor level
-        poseStack.translate(0.65f, BASIN_FLOOR_Y + 0.03f, 0.4f);
+        String moldId = be.getMoldComponentId();
+
+        // Default position (center of basin)
+        float translateX = 0.5f;
+        float translateY = BASIN_FLOOR_Y + 0.02f;
+        float translateZ = 0.5f;
+        float scale = 0.8f;
+
+        if (moldId != null) {
+            switch (moldId) {
+                case "ingot":
+                    translateX = 0.5f;
+                    translateY = BASIN_FLOOR_Y + 0.02f;
+                    translateZ = 0.5f;
+                    scale = 0.8f;
+                    break;
+
+                case "core":
+                    translateX = 0.5f;
+                    translateY = BASIN_FLOOR_Y + 0.02f;
+                    translateZ = 0.5f;
+                    scale = 0.9f;
+                    break;
+
+                case "pickaxe_head":
+                    translateX = 0.65f;
+                    translateY = BASIN_FLOOR_Y + 0.02f;
+                    translateZ = 0.5f;
+                    scale = 1.0f;
+                    break;
+
+                case "axe_head":
+                    translateX = 0.65f;
+                    translateY = BASIN_FLOOR_Y + 0.02f;
+                    translateZ = 0.35f;
+                    scale = 1.0f;
+                    break;
+
+                case "shovel_head":
+                    translateX = 0.75f;
+                    translateY = BASIN_FLOOR_Y + 0.02f;
+                    translateZ = 0.3f;
+                    scale = 1.0f;
+                    break;
+
+                case "katana_blade_head":
+                    translateX = 0.7f;
+                    translateY = BASIN_FLOOR_Y + 0.02f;
+                    translateZ = 0.35f;
+                    scale = 1f;
+                    break;
+
+                case "broadsword_blade_head":
+                    translateX = 0.7f;
+                    translateY = BASIN_FLOOR_Y + 0.02f;
+                    translateZ = 0.35f;
+                    scale = 1f;
+                    break;
+
+                case "dagger_blade_head":
+                    translateX = 0.65f;
+                    translateY = BASIN_FLOOR_Y + 0.02f;
+                    translateZ = 0.35f;
+                    scale = 1f;
+                    break;
+
+                case "tool_rod":
+                    translateX = 0.45f;
+                    translateY = BASIN_FLOOR_Y + 0.02f;
+                    translateZ = 0.6f;
+                    scale = 1f;
+                    break;
+
+                case "shovel_tool_rod":
+                    translateX = 0.4f;
+                    translateY = BASIN_FLOOR_Y + 0.02f;
+                    translateZ = 0.65f;
+                    scale = 1f;
+                    break;
+
+                case "katana_hilt_rod":
+                    translateX = 0.25f;
+                    translateY = BASIN_FLOOR_Y + 0.02f;
+                    translateZ = 0.75f;
+                    scale = 1f;
+                    break;
+
+                case "broadsword_hilt_rod":
+                    translateX = 0.35f;
+                    translateY = BASIN_FLOOR_Y + 0.02f;
+                    translateZ = 0.69f;
+                    scale = 1f;
+                    break;
+
+                case "dagger_hilt_rod":
+                    translateX = 0.3f;
+                    translateY = BASIN_FLOOR_Y + 0.02f;
+                    translateZ = 0.69f;
+                    scale = 1f;
+                    break;
+
+                default:
+                    translateX = 0.5f;
+                    translateY = BASIN_FLOOR_Y + 0.02f;
+                    translateZ = 0.5f;
+                    scale = 0.8f;
+                    break;
+            }
+        }
+
+        // Apply translations
+        poseStack.translate(translateX, translateY, translateZ);
         poseStack.mulPose(Axis.XP.rotationDegrees(90f));
-        poseStack.scale(1f, 1f, 1f);
+        poseStack.scale(scale, scale, scale);
 
         Minecraft.getInstance().getItemRenderer().renderStatic(
-                output,
-                ItemDisplayContext.FIXED,
-                adjustedLight,
-                packedOverlay,
-                poseStack,
-                bufferSource,
-                be.getLevel(),
-                0
-        );
+                output, ItemDisplayContext.FIXED, adjustedLight, packedOverlay,
+                poseStack, bufferSource, be.getLevel(), 0);
 
         poseStack.popPose();
     }
-
     /**
      * Scale packed light value by brightness factor.
      * Packed light format: sky light in bits 20-16, block light in bits 4-0 (shifted by 4).
@@ -226,27 +327,22 @@ public class CastingStationRenderer implements BlockEntityRenderer<CastingStatio
     private void spawnSettingParticles(CastingStationBlockEntity be, float partialTick) {
         if (be.getLevel() == null || !be.getLevel().isClientSide) return;
 
-        // Only spawn occasionally — every ~10 ticks worth
-        if (RANDOM.nextFloat() > 0.15f) return;
+        // Reduced from 0.15f to 0.05f (about 1/3 as many particles)
+        if (RANDOM.nextFloat() > 0.05f) return;
+
+        // Only spawn flame particles occasionally, not with every smoke
+        boolean spawnFlame = RANDOM.nextFloat() > 0.8f; // Only 20% of smoke particles get flame
 
         double x = be.getBlockPos().getX() + 0.25 + RANDOM.nextDouble() * 0.5;
         double y = be.getBlockPos().getY() + BASIN_FLOOR_Y + 0.05;
         double z = be.getBlockPos().getZ() + 0.25 + RANDOM.nextDouble() * 0.5;
 
-        // Smoke particles
-        be.getLevel().addParticle(
-                ParticleTypes.SMOKE,
-                x, y, z,
-                0, 0.01, 0
-        );
+        // Smoke particles (always)
+        be.getLevel().addParticle(ParticleTypes.SMOKE, x, y, z, 0, 0.01, 0);
 
-        // Occasional flame particle
-        if (RANDOM.nextFloat() > 0.6f) {
-            be.getLevel().addParticle(
-                    ParticleTypes.FLAME,
-                    x, y, z,
-                    0, 0.005, 0
-            );
+        // Occasional flame particle (reduced)
+        if (spawnFlame) {
+            be.getLevel().addParticle(ParticleTypes.FLAME, x, y, z, 0, 0.005, 0);
         }
     }
 
@@ -262,8 +358,16 @@ public class CastingStationRenderer implements BlockEntityRenderer<CastingStatio
         if (moldId == null) return ItemStack.EMPTY;
 
         if (moldId.equals("ingot")) {
-            var ingotHolder = ModItems.ALLOY_ITEMS.get(mat);
-            return ingotHolder != null ? new ItemStack(ingotHolder.get()) : ItemStack.EMPTY;
+            // Return vanilla ingot for vanilla materials, modded ingot for modded materials
+            switch (mat) {
+                case COPPER: return new ItemStack(Items.COPPER_INGOT);
+                case IRON: return new ItemStack(Items.IRON_INGOT);
+                case GOLD: return new ItemStack(Items.GOLD_INGOT);
+                case DIAMOND: return new ItemStack(Items.DIAMOND);
+                case NETHERITE: return new ItemStack(Items.NETHERITE_INGOT);
+                case COAL: return new ItemStack(Items.COAL);
+                default: return ItemStackHelper.getAlloyStack(mat);
+            }
         }
 
         ToolComponentType type = ToolComponentType.fromId(moldId);

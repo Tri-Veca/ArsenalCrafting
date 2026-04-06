@@ -74,13 +74,23 @@ public class CastingStationBlock extends BaseEntityBlock {
                     && station.getMoldComponentId() != null
                     && station.getFluidAmount() == 0) {
                 String moldId = station.getMoldComponentId();
-                ToolComponentType type = ToolComponentType.fromId(moldId);
-                if (type != null) {
-                    var moldHolder = station.isBronzeMold()
-                            ? ModBlocks.BRONZE_MOLD_BLOCKS.get(type)
-                            : ModBlocks.MOLD_BLOCKS.get(type);
-                    if (moldHolder != null)
-                        Block.popResource(level, pos, new ItemStack(moldHolder.get().asItem()));
+
+                // Check if it's an ingot mold first
+                if (moldId.equals("ingot")) {
+                    if (station.isBronzeMold()) {
+                        Block.popResource(level, pos, new ItemStack(ModBlocks.BRONZE_INGOT_MOLD.get().asItem()));
+                    } else {
+                        Block.popResource(level, pos, new ItemStack(ModBlocks.INGOT_MOLD.get().asItem()));
+                    }
+                } else {
+                    ToolComponentType type = ToolComponentType.fromId(moldId);
+                    if (type != null) {
+                        var moldHolder = station.isBronzeMold()
+                                ? ModBlocks.BRONZE_MOLD_BLOCKS.get(type)
+                                : ModBlocks.MOLD_BLOCKS.get(type);
+                        if (moldHolder != null)
+                            Block.popResource(level, pos, new ItemStack(moldHolder.get().asItem()));
+                    }
                 }
                 station.clearMold();
                 player.displayClientMessage(Component.literal("Mold removed"), true);
@@ -101,12 +111,12 @@ public class CastingStationBlock extends BaseEntityBlock {
         if (station.isReady()) {
             ItemStack result = station.collectOutput();
             if (!result.isEmpty()) {
-                if (!player.addItem(result)) player.drop(result, false);
-                player.displayClientMessage(
-                        Component.literal("Collected " + result.getHoverName().getString()), true);
+                if (!player.addItem(result)) {
+                    player.drop(result, false);
+                }
+                player.displayClientMessage(Component.literal("Collected " + result.getHoverName().getString()), true);
                 return ItemInteractionResult.SUCCESS;
             }
-            return ItemInteractionResult.FAIL;
         }
 
         // Don't allow changes while active
@@ -120,6 +130,22 @@ public class CastingStationBlock extends BaseEntityBlock {
             if (!player.isCreative()) stack.shrink(1);
             player.displayClientMessage(
                     Component.literal("Bucket placed — ready to receive fluid"), true);
+            return ItemInteractionResult.SUCCESS;
+        }
+
+        // ── INGOT MOLD (regular) ──────────────────────────────────────────────
+        if (stack.getItem() == ModBlocks.INGOT_MOLD.get().asItem()) {
+            station.setMold("ingot", false);
+            if (!player.isCreative()) stack.shrink(1);
+            player.displayClientMessage(Component.literal("Ingot mold placed"), true);
+            return ItemInteractionResult.SUCCESS;
+        }
+
+        // ── BRONZE INGOT MOLD ─────────────────────────────────────────────────
+        if (stack.getItem() == ModBlocks.BRONZE_INGOT_MOLD.get().asItem()) {
+            station.setMold("ingot", true);
+            if (!player.isCreative()) stack.shrink(1);
+            player.displayClientMessage(Component.literal("Bronze ingot mold placed"), true);
             return ItemInteractionResult.SUCCESS;
         }
 
@@ -144,9 +170,6 @@ public class CastingStationBlock extends BaseEntityBlock {
                 return ItemInteractionResult.SUCCESS;
             }
         }
-
-        // TODO: ingot mold
-        // if (stack.getItem() == ModBlocks.INGOT_MOLD.get().asItem()) { ... }
 
         return ItemInteractionResult.FAIL;
     }
@@ -206,13 +229,23 @@ public class CastingStationBlock extends BaseEntityBlock {
                         && station.getMoldComponentId() != null
                         && station.getFluidAmount() == 0) {
                     String moldId = station.getMoldComponentId();
-                    ToolComponentType type = ToolComponentType.fromId(moldId);
-                    if (type != null) {
-                        var moldHolder = station.isBronzeMold()
-                                ? ModBlocks.BRONZE_MOLD_BLOCKS.get(type)
-                                : ModBlocks.MOLD_BLOCKS.get(type);
-                        if (moldHolder != null)
-                            Block.popResource(level, pos, new ItemStack(moldHolder.get().asItem()));
+
+                    // Check if it's an ingot mold
+                    if (moldId.equals("ingot")) {
+                        if (station.isBronzeMold()) {
+                            Block.popResource(level, pos, new ItemStack(ModBlocks.BRONZE_INGOT_MOLD.get().asItem()));
+                        } else {
+                            Block.popResource(level, pos, new ItemStack(ModBlocks.INGOT_MOLD.get().asItem()));
+                        }
+                    } else {
+                        ToolComponentType type = ToolComponentType.fromId(moldId);
+                        if (type != null) {
+                            var moldHolder = station.isBronzeMold()
+                                    ? ModBlocks.BRONZE_MOLD_BLOCKS.get(type)
+                                    : ModBlocks.MOLD_BLOCKS.get(type);
+                            if (moldHolder != null)
+                                Block.popResource(level, pos, new ItemStack(moldHolder.get().asItem()));
+                        }
                     }
                 }
             }

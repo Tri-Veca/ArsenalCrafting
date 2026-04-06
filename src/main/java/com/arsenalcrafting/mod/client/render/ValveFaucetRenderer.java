@@ -10,6 +10,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.fluids.FluidStack;
 
@@ -50,6 +51,8 @@ public class ValveFaucetRenderer implements BlockEntityRenderer<ValveFaucetBlock
         float g = ((color >>  8) & 0xFF) / 255f;
         float b = ( color        & 0xFF) / 255f;
         float a = 0.9f;
+
+        renderStream(poseStack, bufferSource, r, g, b, a, sprite, packedLight);
 
         float u0 = sprite.getU0();
         float u1 = sprite.getU1();
@@ -103,6 +106,64 @@ public class ValveFaucetRenderer implements BlockEntityRenderer<ValveFaucetBlock
         buffer.addVertex(pose, STREAM_X, streamBottom, STREAM_Z - half)
                 .setColor(r, g, b, a).setUv(u1, v1).setLight(packedLight).setNormal(1, 0, 0);
         buffer.addVertex(pose, STREAM_X, streamTop,    STREAM_Z - half)
+                .setColor(r, g, b, a).setUv(u1, v0).setLight(packedLight).setNormal(1, 0, 0);
+    }
+
+
+
+    private void renderStream(PoseStack poseStack, MultiBufferSource bufferSource,
+                              float r, float g, float b, float a, TextureAtlasSprite sprite,
+                              int packedLight) {
+        var buffer = bufferSource.getBuffer(RenderType.translucent());
+        PoseStack.Pose pose = poseStack.last();
+
+        float u0 = sprite.getU0();
+        float u1 = sprite.getU1();
+        float v0 = sprite.getV0();
+        float v1 = sprite.getV1();
+
+        float half = STREAM_WIDTH / 2f;
+        float top = STREAM_Y_TOP;
+        float bottom = -1.0f;
+
+        // North face
+        buffer.addVertex(pose, STREAM_X - half, top, STREAM_Z)
+                .setColor(r, g, b, a).setUv(u0, v0).setLight(packedLight).setNormal(0, 0, -1);
+        buffer.addVertex(pose, STREAM_X - half, bottom, STREAM_Z)
+                .setColor(r, g, b, a).setUv(u0, v1).setLight(packedLight).setNormal(0, 0, -1);
+        buffer.addVertex(pose, STREAM_X + half, bottom, STREAM_Z)
+                .setColor(r, g, b, a).setUv(u1, v1).setLight(packedLight).setNormal(0, 0, -1);
+        buffer.addVertex(pose, STREAM_X + half, top, STREAM_Z)
+                .setColor(r, g, b, a).setUv(u1, v0).setLight(packedLight).setNormal(0, 0, -1);
+
+        // South face
+        buffer.addVertex(pose, STREAM_X + half, top, STREAM_Z)
+                .setColor(r, g, b, a).setUv(u0, v0).setLight(packedLight).setNormal(0, 0, 1);
+        buffer.addVertex(pose, STREAM_X + half, bottom, STREAM_Z)
+                .setColor(r, g, b, a).setUv(u0, v1).setLight(packedLight).setNormal(0, 0, 1);
+        buffer.addVertex(pose, STREAM_X - half, bottom, STREAM_Z)
+                .setColor(r, g, b, a).setUv(u1, v1).setLight(packedLight).setNormal(0, 0, 1);
+        buffer.addVertex(pose, STREAM_X - half, top, STREAM_Z)
+                .setColor(r, g, b, a).setUv(u1, v0).setLight(packedLight).setNormal(0, 0, 1);
+
+        // West face
+        buffer.addVertex(pose, STREAM_X, top, STREAM_Z - half)
+                .setColor(r, g, b, a).setUv(u0, v0).setLight(packedLight).setNormal(-1, 0, 0);
+        buffer.addVertex(pose, STREAM_X, bottom, STREAM_Z - half)
+                .setColor(r, g, b, a).setUv(u0, v1).setLight(packedLight).setNormal(-1, 0, 0);
+        buffer.addVertex(pose, STREAM_X, bottom, STREAM_Z + half)
+                .setColor(r, g, b, a).setUv(u1, v1).setLight(packedLight).setNormal(-1, 0, 0);
+        buffer.addVertex(pose, STREAM_X, top, STREAM_Z + half)
+                .setColor(r, g, b, a).setUv(u1, v0).setLight(packedLight).setNormal(-1, 0, 0);
+
+        // East face
+        buffer.addVertex(pose, STREAM_X, top, STREAM_Z + half)
+                .setColor(r, g, b, a).setUv(u0, v0).setLight(packedLight).setNormal(1, 0, 0);
+        buffer.addVertex(pose, STREAM_X, bottom, STREAM_Z + half)
+                .setColor(r, g, b, a).setUv(u0, v1).setLight(packedLight).setNormal(1, 0, 0);
+        buffer.addVertex(pose, STREAM_X, bottom, STREAM_Z - half)
+                .setColor(r, g, b, a).setUv(u1, v1).setLight(packedLight).setNormal(1, 0, 0);
+        buffer.addVertex(pose, STREAM_X, top, STREAM_Z - half)
                 .setColor(r, g, b, a).setUv(u1, v0).setLight(packedLight).setNormal(1, 0, 0);
     }
 }

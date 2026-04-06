@@ -1,6 +1,6 @@
 {
   "type": "arsenalcrafting:alloy_smelting",
-  "craftTime": 20,
+  "craftTime": 30,
   "ingredients": [
     {
       "item": "minecraft:coal"

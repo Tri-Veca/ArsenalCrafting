@@ -13,6 +13,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
 public class ValveFaucetBlockEntity extends BlockEntity {
 
@@ -25,7 +26,9 @@ public class ValveFaucetBlockEntity extends BlockEntity {
 
     // Fluid currently being poured — used for rendering the stream
     private String pouringMaterialName = null;
-    private int remainingToPour = 0; // mb still to transfer to casting station
+    private int remainingToPour = 0;
+    private int pouredAmount = 0;
+    private int totalNeeded = 0;// mb still to transfer to casting station
 
     public ValveFaucetBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.VALVE_FAUCET.get(), pos, state);
@@ -182,6 +185,8 @@ public class ValveFaucetBlockEntity extends BlockEntity {
         return null;
     }
 
+
+
     // ── RENDER BOUNDING BOX ───────────────────────────────────────────────────
     // Extend downward so the stream renders even when looking from below
 
@@ -195,6 +200,8 @@ public class ValveFaucetBlockEntity extends BlockEntity {
         tag.putString("PourState", pourState.name());
         if (pouringMaterialName != null) tag.putString("PouringMaterial", pouringMaterialName);
         tag.putInt("RemainingToPour", remainingToPour);
+        tag.putInt("pouredAmount", pouredAmount);
+        tag.putInt("totalNeeded", totalNeeded);
     }
 
     @Override
@@ -204,6 +211,8 @@ public class ValveFaucetBlockEntity extends BlockEntity {
         catch (Exception e) { pourState = PourState.OFF; }
         pouringMaterialName = tag.contains("PouringMaterial") ? tag.getString("PouringMaterial") : null;
         remainingToPour     = tag.getInt("RemainingToPour");
+        pouredAmount = tag.getInt("pouredAmount");
+        totalNeeded = tag.getInt("totalNeeded");
     }
 
     @Override

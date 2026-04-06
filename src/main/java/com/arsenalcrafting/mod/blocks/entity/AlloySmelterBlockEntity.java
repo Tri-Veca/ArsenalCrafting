@@ -770,8 +770,10 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
 
         // If no liquid recipe, check solid recipes
 
+
         // Process each input slot independently
         for (int slotIndex = 0; slotIndex < 9; slotIndex++) {
+
             ItemStack slotItem = be.itemHandler.getStackInSlot(slotIndex);
             if (slotItem.isEmpty()) {
                 be.slotProgress[slotIndex] = 0;
@@ -823,9 +825,14 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
             int totalTicks = be.slotMaxProgress[slotIndex];
             int baseLavaPerTick = totalLavaNeeded / totalTicks;
             int remainder = totalLavaNeeded % totalTicks;
+            int totalLavaAvailable = be.getTotalLavaInTanks();
+            int lavaUsedThisTick = 0;
             int lavaToConsume = baseLavaPerTick + (be.slotProgress[slotIndex] < remainder ? 1 : 0);
-
-            if (!be.consumeLavaFromTanks(lavaToConsume)) continue; // pause if lava runs out mid-craft
+            if (lavaUsedThisTick + lavaToConsume > totalLavaAvailable) {
+                continue; // Skip this slot, not enough lava
+            }
+            if (!be.consumeLavaFromTanks(lavaToConsume)) continue;
+            lavaUsedThisTick += lavaToConsume;
 
             be.slotProgress[slotIndex]++;
 
