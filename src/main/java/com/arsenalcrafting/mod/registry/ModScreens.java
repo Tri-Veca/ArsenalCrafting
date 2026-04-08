@@ -28,5 +28,7 @@ public class ModScreens {
         event.register(ModMenus.ALLOY_SMELTER_MENU.get(), AlloySmelterScreen::new);
         event.register(ModMenus.POWER_BANK.get(), PowerBankScreen::new);
         event.register(ModMenus.FOSSIL_GENERATOR.get(), FossilGeneratorScreen::new);
+        event.register(ModMenus.BLUEPRINT_CASTING_TABLE_MENU.get(),BlueprintCastingTableScreen::new);
+        event.register(ModMenus.CASTING_PACKAGE_MENU.get(),CastingPackageScreen::new);
     }
 }

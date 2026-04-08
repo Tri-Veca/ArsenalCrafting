@@ -83,6 +83,21 @@ public class PacketHandler {
                 SetCastTargetPacket.STREAM_CODEC,
                 SetCastTargetPacket::handle
         );
+
+        registrar.playToServer(
+                ExtractMoldPacket.TYPE,
+                ExtractMoldPacket.STREAM_CODEC,
+                ExtractMoldPacket::handle
+        );
+
+
+        registrar.playToServer(
+               SelectPackagePacket.TYPE,
+                SelectPackagePacket.STREAM_CODEC,
+                SelectPackagePacket::handle
+        );
+
+
     }
 
     public static void sendToPlayer(ServerPlayer player, CustomPacketPayload packet) {

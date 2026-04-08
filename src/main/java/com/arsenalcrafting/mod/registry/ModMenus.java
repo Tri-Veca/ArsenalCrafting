@@ -9,6 +9,8 @@ import net.neoforged.neoforge.common.extensions.IMenuTypeExtension; // <-- CORRE
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
+import java.util.function.Supplier;
+
 public class ModMenus {
     public static final DeferredRegister<MenuType<?>> MENUS =
             DeferredRegister.create(Registries.MENU, ArsenalCrafting.MOD_ID);
@@ -35,6 +37,13 @@ public class ModMenus {
     public static final DeferredHolder<MenuType<?>, MenuType<FossilGeneratorMenu>> FOSSIL_GENERATOR =
             MENUS.register("fossil_generator", () ->
                     IMenuTypeExtension.create(FossilGeneratorMenu::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<BlueprintCastingTableMenu>> BLUEPRINT_CASTING_TABLE_MENU =
+            MENUS.register("blueprint_casting_table", () ->
+                    IMenuTypeExtension.create(BlueprintCastingTableMenu::new));
+    public static final DeferredHolder<MenuType<?>, MenuType<CastingPackageMenu>> CASTING_PACKAGE_MENU =
+            MENUS.register("casting_package_menu", () ->
+                    IMenuTypeExtension.create(CastingPackageMenu::new));
 
     // Alloy Smelter Menu (Placeholder for liquid management/smelting GUI)
     // public static final DeferredHolder<MenuType<?>, MenuType<AlloySmelterMenu>> ALLOY_SMELTER =

@@ -35,6 +35,7 @@ public class ModBlockLootTableProvider extends BlockLootSubProvider {
         dropSelf(ModBlocks.FOUNDRY_BASIN.get());
         dropSelf(ModBlocks.INGOT_MOLD.get());
         dropSelf(ModBlocks.BRONZE_INGOT_MOLD.get());
+        dropSelf(ModBlocks.BLUEPRINT_CASTING_TABLE.get());
 
         // Fossil generators
         dropSelf(ModBlocks.COPPER_FOSSIL_GENERATOR.get());

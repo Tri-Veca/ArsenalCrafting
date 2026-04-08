@@ -3,7 +3,9 @@ package com.arsenalcrafting.mod.registry;
 import com.arsenalcrafting.mod.ArsenalCrafting;
 import com.arsenalcrafting.mod.core.alloy.AlloyItem;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
+import com.arsenalcrafting.mod.core.alloy.PackageType;
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
+import com.arsenalcrafting.mod.items.CastingPackageItem;
 import com.arsenalcrafting.mod.items.RepairKitItem;
 import com.arsenalcrafting.mod.items.augments.UniversalAugmentItem;
 import com.arsenalcrafting.mod.items.gadgets.ArsenalDrillItem;
@@ -35,6 +37,7 @@ public class ModItems {
     public static final Map<AlloyMaterial, Map<ToolComponentType, DeferredHolder<Item, ToolComponentItem>>> TOOL_COMPONENTS = new HashMap<>();
     public static final Map<AlloyMaterial, DeferredHolder<Item, BucketItem>> ALLOY_BUCKETS =
             new HashMap<>();
+    public static final Map<PackageType, DeferredHolder<Item, CastingPackageItem>> CASTING_PACKAGES = new HashMap<>();
 
     public static final DeferredHolder<Item, ArsenalSawItem> SAW =
             ITEMS.register("saw", () -> new ArsenalSawItem(new Item.Properties()));
@@ -46,6 +49,8 @@ public class ModItems {
             () -> new RepairKitItem(new Item.Properties()));
 
 
+    public static final DeferredHolder<Item, Item> BLUEPRINT =
+            ITEMS.register("blueprint", () -> new Item(new Item.Properties()));
 
 
     // --- Tools & Weapons (Base items use the lightest alloy by default) ---
@@ -103,6 +108,8 @@ public class ModItems {
             throw e;
         }
     }
+
+
 
 
     public static void registerToolComponents() {
@@ -229,6 +236,12 @@ public class ModItems {
 
     // TODO add seperate gadgets registry
     public static void register(IEventBus eventBus) {
+
+        for (PackageType type : PackageType.values()) {
+            DeferredHolder<Item, CastingPackageItem> holder = ITEMS.register(
+                    type.getId(), () -> new CastingPackageItem(type, new Item.Properties()));
+            CASTING_PACKAGES.put(type, holder);
+        }
         try {
             System.out.println("[ModItems] ============ STARTING ITEM REGISTRATION ============");
 

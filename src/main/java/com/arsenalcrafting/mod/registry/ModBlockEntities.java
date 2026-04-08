@@ -43,6 +43,11 @@ public class ModBlockEntities {
             BLOCK_ENTITIES.register("valve_faucet", () ->
                     BlockEntityType.Builder.of(ValveFaucetBlockEntity::new,
                             ModBlocks.VALVE_FAUCET.get()).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlueprintCastingTableBlockEntity>> BLUEPRINT_CASTING_TABLE =
+            BLOCK_ENTITIES.register("blueprint_casting_table", () ->
+                    BlockEntityType.Builder.of(BlueprintCastingTableBlockEntity::new,
+                            ModBlocks.BLUEPRINT_CASTING_TABLE.get()).build(null));
     // ── GENERATORS ────────────────────────────────────────────────────────────
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GeneratorBlockEntity>> FOSSIL_GENERATOR =

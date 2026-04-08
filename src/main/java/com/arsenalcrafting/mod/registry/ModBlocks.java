@@ -79,6 +79,10 @@ public class ModBlocks {
                             .sound(SoundType.METAL)
                             .noOcclusion()));
 
+    public static final DeferredHolder<Block, BlueprintCastingTableBlock> BLUEPRINT_CASTING_TABLE =
+            registerBlock("blueprint_casting_table",
+                    () -> new BlueprintCastingTableBlock(BlockBehaviour.Properties.of()
+                            .strength(3.5f).requiresCorrectToolForDrops().sound(SoundType.WOOD)));
 
     // --- Functional Blocks ---
 
