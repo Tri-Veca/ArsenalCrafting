@@ -245,6 +245,11 @@ public class LangGenerator implements DataProvider {
 
             }
         }
+        // 10. Casting Packages
+
+        for (com.arsenalcrafting.mod.core.alloy.PackageType type : com.arsenalcrafting.mod.core.alloy.PackageType.values()) {
+            entries.put("item.arsenalcrafting." + type.getId(), type.getDisplayName());
+        }
 
         // ============ END OF ENTRIES ============
 

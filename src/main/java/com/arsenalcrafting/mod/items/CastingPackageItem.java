@@ -37,7 +37,7 @@ public class CastingPackageItem extends Item {
     // ========== INVENTORY HANDLER ==========
 
     public ItemStackHandler getInventory(ItemStack stack, RegistryAccess registryAccess) {
-        int maxSlots = packageType.getMolds().size();
+        int maxSlots = packageType.getMolds().size() + (packageType.includesIngotMold() ? 1 : 0);
         ItemStackHandler handler = new ItemStackHandler(maxSlots) {
             @Override
             protected void onContentsChanged(int slot) {
@@ -70,16 +70,18 @@ public class CastingPackageItem extends Item {
     }
 
     public boolean isValidMold(ItemStack stack) {
+        // Check ingot molds first
+        if (packageType.includesIngotMold()) {
+            if (stack.getItem() == ModBlocks.INGOT_MOLD.get().asItem()) return true;
+            if (stack.getItem() == ModBlocks.BRONZE_INGOT_MOLD.get().asItem()) return true;
+        }
+
         for (ToolComponentType type : packageType.getMolds()) {
             var standard = ModBlocks.MOLD_BLOCKS.get(type);
             var bronze = ModBlocks.BRONZE_MOLD_BLOCKS.get(type);
 
-            if (standard != null && stack.getItem() == standard.get().asItem()) {
-                return true;
-            }
-            if (bronze != null && stack.getItem() == bronze.get().asItem()) {
-                return true;
-            }
+            if (standard != null && stack.getItem() == standard.get().asItem()) return true;
+            if (bronze != null && stack.getItem() == bronze.get().asItem()) return true;
         }
         return false;
     }
@@ -88,7 +90,7 @@ public class CastingPackageItem extends Item {
 
     private void pullMoldsFromInventory(ItemStack stack, Player player, RegistryAccess registryAccess) {
         ItemStackHandler inventory = getInventory(stack, registryAccess);
-        int required = packageType.getMolds().size();
+        int required = packageType.getMolds().size() + (packageType.includesIngotMold() ? 1 : 0);
 
         // First, find empty slots in the package
         List<Integer> emptySlots = new ArrayList<>();
@@ -108,11 +110,28 @@ public class CastingPackageItem extends Item {
         for (int slotIndex : emptySlots) {
             if (pulled >= emptySlots.size()) break;
 
+            // Handle ingot mold slot separately
+            if (packageType.includesIngotMold() && slotIndex == packageType.getMolds().size()) {
+                for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+                    ItemStack invStack = player.getInventory().getItem(i);
+                    if (invStack.isEmpty()) continue;
+                    if (invStack.getItem() == ModBlocks.INGOT_MOLD.get().asItem() ||
+                            invStack.getItem() == ModBlocks.BRONZE_INGOT_MOLD.get().asItem()) {
+                        ItemStack moldToAdd = invStack.copy();
+                        moldToAdd.setCount(1);
+                        invStack.shrink(1);
+                        inventory.insertItem(slotIndex, moldToAdd, false);
+                        pulled++;
+                        break;
+                    }
+                }
+                continue;
+            }
+
             ToolComponentType expectedType = packageType.getMolds().get(slotIndex);
             var standard = ModBlocks.MOLD_BLOCKS.get(expectedType);
             var bronze = ModBlocks.BRONZE_MOLD_BLOCKS.get(expectedType);
 
-            // Search player inventory for matching mold
             for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
                 ItemStack invStack = player.getInventory().getItem(i);
                 if (invStack.isEmpty()) continue;
@@ -147,7 +166,7 @@ public class CastingPackageItem extends Item {
 
     private void pushMoldsToInventory(ItemStack stack, Player player, RegistryAccess registryAccess) {
         ItemStackHandler inventory = getInventory(stack, registryAccess);
-        int required = packageType.getMolds().size();
+        int required = packageType.getMolds().size() + (packageType.includesIngotMold() ? 1 : 0);
 
         int pushed = 0;
         for (int i = 0; i < required; i++) {
@@ -176,7 +195,7 @@ public class CastingPackageItem extends Item {
 
     public boolean isComplete(ItemStack stack, RegistryAccess registryAccess) {
         ItemStackHandler inv = getInventory(stack, registryAccess);
-        int required = packageType.getMolds().size();
+        int required = packageType.getMolds().size() + (packageType.includesIngotMold() ? 1 : 0);
         int filled = 0;
 
         for (int i = 0; i < required && filled < required; i++) {
@@ -190,7 +209,7 @@ public class CastingPackageItem extends Item {
 
     public int getFilledCount(ItemStack stack, RegistryAccess registryAccess) {
         ItemStackHandler inv = getInventory(stack, registryAccess);
-        int required = packageType.getMolds().size();
+        int required = packageType.getMolds().size() + (packageType.includesIngotMold() ? 1 : 0);
         int filled = 0;
 
         for (int i = 0; i < required; i++) {
@@ -245,7 +264,7 @@ public class CastingPackageItem extends Item {
                                 List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         RegistryAccess registryAccess = (RegistryAccess) context.registries();
         int filled = getFilledCount(stack, registryAccess);
-        int required = packageType.getMolds().size();
+        int required = packageType.getMolds().size() + (packageType.includesIngotMold() ? 1 : 0);
 
         tooltipComponents.add(Component.literal(filled + "/" + required + " Molds")
                 .withStyle(net.minecraft.ChatFormatting.GRAY));

@@ -120,6 +120,15 @@ public class BlueprintCastingTableBlockEntity extends BlockEntity implements Men
                 }
             }
 
+            // Ingot mold goes in the slot after all ToolComponentType molds
+            if (packageType.includesIngotMold()) {
+                int ingotSlot = packageType.getMolds().size();
+                ItemStack ingotMold = useBronzeMolds
+                        ? new ItemStack(ModBlocks.BRONZE_INGOT_MOLD.get().asItem())
+                        : new ItemStack(ModBlocks.INGOT_MOLD.get().asItem());
+                inventory.insertItem(ingotSlot, ingotMold, false);
+            }
+
             packageItem.saveInventory(packageStack, inventory, registryAccess);
         }
 
@@ -152,26 +161,28 @@ public class BlueprintCastingTableBlockEntity extends BlockEntity implements Men
         }
     }
 
+    private boolean isCrafting = false;
+
     public void tryCrafting() {
         if (level == null || level.isClientSide) return;
+        if (isCrafting) return;  // ADD THIS
         if (selectedPackageType == null) return;
         if (!itemHandler.getStackInSlot(2).isEmpty()) return;
         if (!canCraft(selectedPackageType)) return;
 
-        // CHECK BRONZE STATUS BEFORE EXTRACTING THE INGOT
-        boolean useBronzeMolds = isUsingBronzeMolds();
-
-        // NOW extract items
-        itemHandler.extractItem(0, 1, false);
-        itemHandler.extractItem(1, selectedPackageType.getIngotCost(), false);
-
-        // Use the stored value
-        ItemStack result = createFilledPackage(selectedPackageType, useBronzeMolds);
-        itemHandler.setStackInSlot(2, result);
-
-        selectedPackageType = null;
-        setChanged();
-        level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
+        isCrafting = true;  // ADD THIS
+        try {
+            boolean useBronzeMolds = isUsingBronzeMolds();
+            itemHandler.extractItem(0, 1, false);
+            itemHandler.extractItem(1, selectedPackageType.getIngotCost(), false);
+            ItemStack result = createFilledPackage(selectedPackageType, useBronzeMolds);
+            itemHandler.setStackInSlot(2, result);
+            selectedPackageType = null;
+            setChanged();
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
+        } finally {
+            isCrafting = false;  // ADD THIS
+        }
     }
 
     public boolean canCraft(PackageType packageType) {

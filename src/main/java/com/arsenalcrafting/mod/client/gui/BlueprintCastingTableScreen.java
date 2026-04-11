@@ -166,7 +166,7 @@ public class BlueprintCastingTableScreen extends AbstractContainerScreen<Bluepri
         if (selectedPackage != null && menu.getSelectedPackage() == selectedPackage) {
             // Only show ghost if no result exists yet
             if (menu.getResultItem().isEmpty()) {
-                ItemStack result = getPackageItem(selectedPackage);
+                ItemStack result = getPackageIcon(selectedPackage);
                 int resultX = leftPos + RESULT_SLOT_X;
                 int resultY = topPos + RESULT_SLOT_Y;
                 renderGhostItem(guiGraphics, result, resultX, resultY);
@@ -215,6 +215,12 @@ public class BlueprintCastingTableScreen extends AbstractContainerScreen<Bluepri
             tooltip.add(Component.literal("  • " + mold.getDisplayName())
                     .withStyle(ChatFormatting.YELLOW));
         }
+      
+
+        if (pkg.includesIngotMold()) {
+            tooltip.add(Component.literal("  • Ingot Mold")
+                    .withStyle(ChatFormatting.YELLOW));
+        }
 
         guiGraphics.renderComponentTooltip(font, tooltip, mouseX, mouseY);
     }
@@ -259,19 +265,9 @@ public class BlueprintCastingTableScreen extends AbstractContainerScreen<Bluepri
     }
 
     private ItemStack getPackageIcon(PackageType pkg) {
-        // Return first mold's item as icon, or a default
-        if (!pkg.getMolds().isEmpty()) {
-            ToolComponentType first = pkg.getMolds().get(0);
-            var moldBlock = ModBlocks.MOLD_BLOCKS.get(first);
-            if (moldBlock != null) {
-                return new ItemStack(moldBlock.get().asItem());
-            }
-        }
-        return new ItemStack(ModItems.CASTING_PACKAGES.get(pkg).get());
-    }
-
-    private ItemStack getPackageItem(PackageType pkg) {
         var holder = ModItems.CASTING_PACKAGES.get(pkg);
         return holder != null ? new ItemStack(holder.get()) : ItemStack.EMPTY;
     }
+
+
 }

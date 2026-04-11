@@ -90,14 +90,49 @@ public class ModBlocks {
     public static final DeferredHolder<Block, ToolkitBlock> TOOLKIT = registerBlock("toolkit",
             () -> new ToolkitBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.SMITHING_TABLE).noOcclusion()));
 
-    // ── CASINGS ───────────────────────────────────────────────────────────────
 
-    public static final DeferredHolder<Block, Block> VOID_CASING = registerBlock("void_casing",
-            () -> new Block(BlockBehaviour.Properties.ofFullCopy(Blocks.END_STONE)
-                    .sound(SoundType.GLASS).strength(2.0f)));
 
-    public static final DeferredHolder<Block, Block> IRON_CASING = registerBlock("iron_casing",
-            () -> new Block(BlockBehaviour.Properties.ofFullCopy(Blocks.IRON_BLOCK).strength(5.0f)));
+    // ── CASING BLOCKS ─────────────────────────────────────────────────────────────
+
+    public static final DeferredHolder<Block, CasingBlock> COPPER_CASING =
+            registerBlock("copper_casing",
+                    () -> new CasingBlock(BlockBehaviour.Properties.of()
+                            .strength(3.5f)
+                            .requiresCorrectToolForDrops()
+                            .sound(SoundType.METAL)
+                            .mapColor(MapColor.COLOR_ORANGE)));
+
+    public static final DeferredHolder<Block, CasingBlock> IRON_CASING =
+            registerBlock("iron_casing",
+                    () -> new CasingBlock(BlockBehaviour.Properties.of()
+                            .strength(3.5f)
+                            .requiresCorrectToolForDrops()
+                            .sound(SoundType.METAL)
+                            .mapColor(MapColor.METAL)));
+
+    public static final DeferredHolder<Block, CasingBlock> BRONZE_CASING =
+            registerBlock("bronze_casing",
+                    () -> new CasingBlock(BlockBehaviour.Properties.of()
+                            .strength(3.5f)
+                            .requiresCorrectToolForDrops()
+                            .sound(SoundType.METAL)
+                            .mapColor(MapColor.COLOR_ORANGE)));
+
+    public static final DeferredHolder<Block, CasingBlock> STEEL_CASING =
+            registerBlock("steel_casing",
+                    () -> new CasingBlock(BlockBehaviour.Properties.of()
+                            .strength(5.0f)
+                            .requiresCorrectToolForDrops()
+                            .sound(SoundType.METAL)
+                            .mapColor(MapColor.METAL)));
+
+    public static final DeferredHolder<Block, CasingBlock> TITANIUM_CASING =
+            registerBlock("titanium_casing",
+                    () -> new CasingBlock(BlockBehaviour.Properties.of()
+                            .strength(6.0f)
+                            .requiresCorrectToolForDrops()
+                            .sound(SoundType.METAL)
+                            .mapColor(MapColor.COLOR_LIGHT_BLUE)));
 
     // ── CABLE ─────────────────────────────────────────────────────────────────
     // No BlockEntity — pure graph node. One universal type.

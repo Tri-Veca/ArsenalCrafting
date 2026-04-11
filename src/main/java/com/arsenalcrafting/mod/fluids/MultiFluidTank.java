@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 public abstract class MultiFluidTank implements IFluidHandler {
     private final Map<Fluid, Integer> fluids = new HashMap<>();
-    private final int capacity;
+    private int capacity;
 
     public MultiFluidTank(int capacity) {
         this.capacity = capacity;
@@ -46,6 +46,11 @@ public abstract class MultiFluidTank implements IFluidHandler {
     @Override
     public boolean isFluidValid(int tank, FluidStack stack) {
         return true;
+    }
+
+    public void setCapacity(int newCapacity) {
+        this.capacity = newCapacity;
+        onContentsChanged();
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.arsenalcrafting.mod.blocks;
 
 import com.arsenalcrafting.mod.blocks.entity.AlloySmelterBlockEntity;
+import com.arsenalcrafting.mod.core.smeltery.SmelteryData;
 import com.arsenalcrafting.mod.registry.ModBlockEntities;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
@@ -58,13 +59,20 @@ public class AlloySmelterBlock extends BaseEntityBlock {
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
                                                Player player, BlockHitResult hitResult) {
-        if (!level.isClientSide()) {
-            BlockEntity entity = level.getBlockEntity(pos);
-            if (entity instanceof AlloySmelterBlockEntity smelter) {
-                player.openMenu(smelter, pos);
-            }
+        if (level.isClientSide) return InteractionResult.SUCCESS;
+
+        BlockEntity be = level.getBlockEntity(pos);
+        if (!(be instanceof AlloySmelterBlockEntity controller)) return InteractionResult.PASS;
+
+        controller.validateIfNeeded();
+
+        if (controller.isFormed()) {
+            player.openMenu(controller, buf -> buf.writeBlockPos(pos));
+        } else {
+            player.displayClientMessage(Component.literal("§cSmeltery not formed!"), true);
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+
+        return InteractionResult.SUCCESS;
     }
 
     @Override

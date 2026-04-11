@@ -2,6 +2,7 @@ package com.arsenalcrafting.mod.generator;
 
 import com.arsenalcrafting.mod.ArsenalCrafting;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
+import com.arsenalcrafting.mod.core.alloy.PackageType;
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
 import com.arsenalcrafting.mod.registry.ModBlocks;
 import net.minecraft.client.renderer.block.model.BlockModel;
@@ -35,6 +36,7 @@ public class ArsenalItemModelProvider extends ItemModelProvider {
         generateAlloyItemModels();
         generateAugmentModels();
         generateMoldItemModels();
+        generateCastingPackageModels();
         generateAlloyBucketModels();
     }
 
@@ -181,12 +183,21 @@ public class ArsenalItemModelProvider extends ItemModelProvider {
         }
     }
 
+    private void generateCastingPackageModels() {
+        for (PackageType type : PackageType.values()) {
+            getBuilder(type.getId())
+                    .parent(new ModelFile.UncheckedModelFile(mcLoc("item/generated")))
+                    .texture("layer0", modLoc("item/" + type.getId()));
+        }
+    }
+
     private void generateMoldItemModels() {
         ModBlocks.MOLD_BLOCKS.values().forEach(holder -> {
             String name = holder.getId().getPath();
             withExistingParent(name, "item/generated")
                     .texture("layer0", modLoc("item/" + name));
         });
+
 
         ModBlocks.BRONZE_MOLD_BLOCKS.values().forEach(holder -> {
             String name = holder.getId().getPath();

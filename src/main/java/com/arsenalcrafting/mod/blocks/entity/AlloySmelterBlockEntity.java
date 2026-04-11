@@ -5,6 +5,8 @@ import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.core.alloy.AlloyRecipe;
 import com.arsenalcrafting.mod.core.alloy.AlloyRecipeInput;
 import com.arsenalcrafting.mod.core.alloy.AlloyRecipeType;
+import com.arsenalcrafting.mod.core.smeltery.SmelteryData;
+import com.arsenalcrafting.mod.core.smeltery.SmelteryFormation;
 import com.arsenalcrafting.mod.fluids.MultiFluidTank;
 import com.arsenalcrafting.mod.generator.AlloyRecipeDefinitions;
 import com.arsenalcrafting.mod.network.PacketHandler;
@@ -617,6 +619,20 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         tag.putInt("craftingProgress", craftingProgress);
         tag.putInt("craftingTime", craftingTime);
         tag.putBoolean("isCrafting", isCrafting);
+
+
+        if (smelteryData != null) {
+            CompoundTag sd = new CompoundTag();
+            sd.putLong("ControllerPos", smelteryData.controllerPos().asLong());
+            sd.putLong("InteriorOrigin", smelteryData.interiorOrigin().asLong());
+            sd.putInt("Width", smelteryData.width());
+            sd.putInt("Depth", smelteryData.depth());
+            sd.putInt("Height", smelteryData.height());
+            sd.putBoolean("IsValid", smelteryData.isValid());
+            sd.putBoolean("NeedsRecheck", smelteryData.needsRecheck());
+            tag.put("SmelteryData", sd);
+        }
+
     }
 
     @Override
@@ -653,11 +669,32 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
             if (!raw.isEmpty()) Collections.addAll(meltingBlocked, raw.split(","));
         }
 
+        if (tag.contains("SmelteryData")) {
+            CompoundTag sd = tag.getCompound("SmelteryData");
+            smelteryData = new SmelteryData(
+                    BlockPos.of(sd.getLong("ControllerPos")),
+                    BlockPos.of(sd.getLong("InteriorOrigin")),
+                    sd.getInt("Width"),
+                    sd.getInt("Depth"),
+                    sd.getInt("Height"),
+                    sd.getBoolean("IsValid"),
+                    sd.getBoolean("NeedsRecheck")
+            );
+        } // <-- THIS BRACE WAS MISSING
+
         if (tag.contains("slotProgress")) slotProgress = tag.getIntArray("slotProgress");
         if (tag.contains("slotMaxProgress")) slotMaxProgress = tag.getIntArray("slotMaxProgress");
         craftingProgress = tag.getInt("craftingProgress");
         craftingTime = tag.getInt("craftingTime");
         isCrafting = tag.getBoolean("isCrafting");
+
+        if (tag.contains("slotProgress")) slotProgress = tag.getIntArray("slotProgress");
+        if (tag.contains("slotMaxProgress")) slotMaxProgress = tag.getIntArray("slotMaxProgress");
+        craftingProgress = tag.getInt("craftingProgress");
+        craftingTime = tag.getInt("craftingTime");
+        isCrafting = tag.getBoolean("isCrafting");
+
+
     }
 
     // ── TICK (updated for both liquid and solid recipes) ─────────────────────────────
@@ -935,6 +972,9 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
             }
         }
 
+
+
+
         // ── OLD ITEM OUTPUT (commented out — uncomment to revert) ────────────
         // ItemStack result = recipe.get().value().assemble(new AlloyRecipeInput(inv), level.registryAccess());
         // ItemStack out = be.itemHandler.getStackInSlot(9);
@@ -948,5 +988,38 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         if (be.level != null && !be.level.isClientSide) {
             be.level.sendBlockUpdated(be.worldPosition, be.getBlockState(), be.getBlockState(), 3);
         }
+    }
+
+
+    private SmelteryData smelteryData = null;
+
+    public void markNeedsRecheck() {
+        if (smelteryData != null) {
+            smelteryData = smelteryData.withNeedsRecheck();
+        } else {
+            // No cached data, just flag for recheck on next interaction
+            smelteryData = SmelteryData.invalid(worldPosition).withNeedsRecheck();
+        }
+        setChanged();
+    }
+
+    public void validateIfNeeded() {
+        if (level == null || level.isClientSide) return;
+        if (smelteryData == null || smelteryData.needsRecheck()) {
+            smelteryData = SmelteryFormation.validate(level, worldPosition);
+            // Scale output tank capacity based on interior volume
+            int volume = smelteryData.isValid() ? smelteryData.volume() : 0;
+            OUTPUT_TANK.setCapacity(Math.max(9000, volume * 1000));
+            setChanged();
+        }
+    }
+
+    public boolean isFormed() {
+        validateIfNeeded();
+        return smelteryData != null && smelteryData.isValid();
+    }
+
+    public SmelteryData getSmelteryData() {
+        return smelteryData;
     }
 }
