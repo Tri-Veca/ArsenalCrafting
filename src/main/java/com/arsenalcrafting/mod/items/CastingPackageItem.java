@@ -1,6 +1,7 @@
 package com.arsenalcrafting.mod.items;
 
 import com.arsenalcrafting.mod.component.ToolComponentType;
+import com.arsenalcrafting.mod.core.alloy.ExtraMoldType;
 import com.arsenalcrafting.mod.core.alloy.PackageType;
 import com.arsenalcrafting.mod.registry.ModBlocks;
 import net.minecraft.core.RegistryAccess;
@@ -10,7 +11,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.SimpleMenuProvider;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -37,7 +37,7 @@ public class CastingPackageItem extends Item {
     // ========== INVENTORY HANDLER ==========
 
     public ItemStackHandler getInventory(ItemStack stack, RegistryAccess registryAccess) {
-        int maxSlots = packageType.getMolds().size() + (packageType.includesIngotMold() ? 1 : 0);
+        int maxSlots = packageType.getTotalMoldCount();
         ItemStackHandler handler = new ItemStackHandler(maxSlots) {
             @Override
             protected void onContentsChanged(int slot) {
@@ -70,18 +70,17 @@ public class CastingPackageItem extends Item {
     }
 
     public boolean isValidMold(ItemStack stack) {
-        // Check ingot molds first
-        if (packageType.includesIngotMold()) {
-            if (stack.getItem() == ModBlocks.INGOT_MOLD.get().asItem()) return true;
-            if (stack.getItem() == ModBlocks.BRONZE_INGOT_MOLD.get().asItem()) return true;
-        }
-
+        // Check tool component molds
         for (ToolComponentType type : packageType.getMolds()) {
             var standard = ModBlocks.MOLD_BLOCKS.get(type);
             var bronze = ModBlocks.BRONZE_MOLD_BLOCKS.get(type);
-
             if (standard != null && stack.getItem() == standard.get().asItem()) return true;
             if (bronze != null && stack.getItem() == bronze.get().asItem()) return true;
+        }
+        // Check extra molds (ingot, etc.)
+        for (ExtraMoldType extra : packageType.getExtraMolds()) {
+            if (stack.getItem() == extra.getMold(false)) return true;
+            if (stack.getItem() == extra.getMold(true)) return true;
         }
         return false;
     }
@@ -90,9 +89,8 @@ public class CastingPackageItem extends Item {
 
     private void pullMoldsFromInventory(ItemStack stack, Player player, RegistryAccess registryAccess) {
         ItemStackHandler inventory = getInventory(stack, registryAccess);
-        int required = packageType.getMolds().size() + (packageType.includesIngotMold() ? 1 : 0);
+        int required = packageType.getTotalMoldCount();
 
-        // First, find empty slots in the package
         List<Integer> emptySlots = new ArrayList<>();
         for (int i = 0; i < required; i++) {
             if (inventory.getStackInSlot(i).isEmpty()) {
@@ -105,52 +103,57 @@ public class CastingPackageItem extends Item {
             return;
         }
 
-        // Scan player inventory for molds
         int pulled = 0;
         for (int slotIndex : emptySlots) {
             if (pulled >= emptySlots.size()) break;
 
-            // Handle ingot mold slot separately
-            if (packageType.includesIngotMold() && slotIndex == packageType.getMolds().size()) {
+            // Check if this slot is for a tool component mold
+            if (slotIndex < packageType.getMolds().size()) {
+                ToolComponentType expectedType = packageType.getMolds().get(slotIndex);
+                var standard = ModBlocks.MOLD_BLOCKS.get(expectedType);
+                var bronze = ModBlocks.BRONZE_MOLD_BLOCKS.get(expectedType);
+
                 for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
                     ItemStack invStack = player.getInventory().getItem(i);
                     if (invStack.isEmpty()) continue;
-                    if (invStack.getItem() == ModBlocks.INGOT_MOLD.get().asItem() ||
-                            invStack.getItem() == ModBlocks.BRONZE_INGOT_MOLD.get().asItem()) {
-                        ItemStack moldToAdd = invStack.copy();
+
+                    ItemStack moldToAdd = ItemStack.EMPTY;
+                    if (standard != null && invStack.getItem() == standard.get().asItem()) {
+                        moldToAdd = invStack.copy();
                         moldToAdd.setCount(1);
                         invStack.shrink(1);
+                    } else if (bronze != null && invStack.getItem() == bronze.get().asItem()) {
+                        moldToAdd = invStack.copy();
+                        moldToAdd.setCount(1);
+                        invStack.shrink(1);
+                    }
+
+                    if (!moldToAdd.isEmpty()) {
                         inventory.insertItem(slotIndex, moldToAdd, false);
                         pulled++;
                         break;
                     }
                 }
-                continue;
-            }
+            } else {
+                // This slot is for an extra mold (ingot, etc.)
+                int extraIndex = slotIndex - packageType.getMolds().size();
+                if (extraIndex < packageType.getExtraMolds().size()) {
+                    ExtraMoldType extraType = packageType.getExtraMolds().get(extraIndex);
 
-            ToolComponentType expectedType = packageType.getMolds().get(slotIndex);
-            var standard = ModBlocks.MOLD_BLOCKS.get(expectedType);
-            var bronze = ModBlocks.BRONZE_MOLD_BLOCKS.get(expectedType);
+                    for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+                        ItemStack invStack = player.getInventory().getItem(i);
+                        if (invStack.isEmpty()) continue;
 
-            for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
-                ItemStack invStack = player.getInventory().getItem(i);
-                if (invStack.isEmpty()) continue;
-
-                ItemStack moldToAdd = ItemStack.EMPTY;
-                if (standard != null && invStack.getItem() == standard.get().asItem()) {
-                    moldToAdd = invStack.copy();
-                    moldToAdd.setCount(1);
-                    invStack.shrink(1);
-                } else if (bronze != null && invStack.getItem() == bronze.get().asItem()) {
-                    moldToAdd = invStack.copy();
-                    moldToAdd.setCount(1);
-                    invStack.shrink(1);
-                }
-
-                if (!moldToAdd.isEmpty()) {
-                    inventory.insertItem(slotIndex, moldToAdd, false);
-                    pulled++;
-                    break;
+                        if (invStack.getItem() == extraType.getMold(false) ||
+                                invStack.getItem() == extraType.getMold(true)) {
+                            ItemStack moldToAdd = invStack.copy();
+                            moldToAdd.setCount(1);
+                            invStack.shrink(1);
+                            inventory.insertItem(slotIndex, moldToAdd, false);
+                            pulled++;
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -166,7 +169,7 @@ public class CastingPackageItem extends Item {
 
     private void pushMoldsToInventory(ItemStack stack, Player player, RegistryAccess registryAccess) {
         ItemStackHandler inventory = getInventory(stack, registryAccess);
-        int required = packageType.getMolds().size() + (packageType.includesIngotMold() ? 1 : 0);
+        int required = packageType.getTotalMoldCount();
 
         int pushed = 0;
         for (int i = 0; i < required; i++) {
@@ -195,7 +198,7 @@ public class CastingPackageItem extends Item {
 
     public boolean isComplete(ItemStack stack, RegistryAccess registryAccess) {
         ItemStackHandler inv = getInventory(stack, registryAccess);
-        int required = packageType.getMolds().size() + (packageType.includesIngotMold() ? 1 : 0);
+        int required = packageType.getTotalMoldCount();
         int filled = 0;
 
         for (int i = 0; i < required && filled < required; i++) {
@@ -209,7 +212,7 @@ public class CastingPackageItem extends Item {
 
     public int getFilledCount(ItemStack stack, RegistryAccess registryAccess) {
         ItemStackHandler inv = getInventory(stack, registryAccess);
-        int required = packageType.getMolds().size() + (packageType.includesIngotMold() ? 1 : 0);
+        int required = packageType.getTotalMoldCount();
         int filled = 0;
 
         for (int i = 0; i < required; i++) {
@@ -264,7 +267,7 @@ public class CastingPackageItem extends Item {
                                 List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         RegistryAccess registryAccess = (RegistryAccess) context.registries();
         int filled = getFilledCount(stack, registryAccess);
-        int required = packageType.getMolds().size() + (packageType.includesIngotMold() ? 1 : 0);
+        int required = packageType.getTotalMoldCount();
 
         tooltipComponents.add(Component.literal(filled + "/" + required + " Molds")
                 .withStyle(net.minecraft.ChatFormatting.GRAY));

@@ -215,10 +215,8 @@ public class BlueprintCastingTableScreen extends AbstractContainerScreen<Bluepri
             tooltip.add(Component.literal("  • " + mold.getDisplayName())
                     .withStyle(ChatFormatting.YELLOW));
         }
-      
-
-        if (pkg.includesIngotMold()) {
-            tooltip.add(Component.literal("  • Ingot Mold")
+        for (var extra : pkg.getExtraMolds()) {
+            tooltip.add(Component.literal("  • " + extra.getDisplayName())
                     .withStyle(ChatFormatting.YELLOW));
         }
 

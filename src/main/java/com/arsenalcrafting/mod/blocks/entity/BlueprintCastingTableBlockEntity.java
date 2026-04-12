@@ -1,15 +1,12 @@
 package com.arsenalcrafting.mod.blocks.entity;
 
-import com.arsenalcrafting.mod.component.ToolComponentType;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.core.alloy.PackageType;
-import com.arsenalcrafting.mod.items.CastingPackageItem;
+import com.arsenalcrafting.mod.core.alloy.PrefilledPackageRegistry;
 import com.arsenalcrafting.mod.registry.ModBlockEntities;
-import com.arsenalcrafting.mod.registry.ModBlocks;
 import com.arsenalcrafting.mod.registry.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -35,8 +32,7 @@ public class BlueprintCastingTableBlockEntity extends BlockEntity implements Men
             setChanged();
             if (level != null && !level.isClientSide) {
                 level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
-                // ONLY craft when slot 0 or 1 changes
-                if (slot == 0 || slot == 1) {
+                if ((slot == 0 || slot == 1) && !isCrafting) {
                     tryCrafting();
                 }
             }
@@ -59,97 +55,21 @@ public class BlueprintCastingTableBlockEntity extends BlockEntity implements Men
     };
 
     private PackageType selectedPackageType = null;
-    private ItemStack lastOutput = ItemStack.EMPTY; // Track output to prevent loops
+    private boolean isCrafting = false;
 
     public BlueprintCastingTableBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.BLUEPRINT_CASTING_TABLE.get(), pos, state);
     }
 
     private boolean isBronzeIngot(ItemStack stack) {
-        var bronzeHolder = ModItems.ALLOY_ITEMS.get(
-                com.arsenalcrafting.mod.core.alloy.AlloyMaterial.BRONZE);
+        var bronzeHolder = ModItems.ALLOY_ITEMS.get(AlloyMaterial.BRONZE);
         return bronzeHolder != null && stack.getItem() == bronzeHolder.get();
     }
 
-    private boolean isUsingBronzeMolds() {
-        System.out.println("=== isUsingBronzeMolds START ===");
-
+    private boolean isUsingBronze() {
         ItemStack ingot = itemHandler.getStackInSlot(1);
-        System.out.println("Ingot in slot 1: " + ingot);
-        System.out.println("Ingot item class: " + (ingot.isEmpty() ? "EMPTY" : ingot.getItem().getClass().getName()));
-
-        if (ingot.isEmpty()) {
-            System.out.println("Ingot is empty, returning false");
-            return false;
-        }
-
-        var bronzeHolder = ModItems.ALLOY_ITEMS.get(AlloyMaterial.BRONZE);
-        System.out.println("Bronze holder from ALLOY_ITEMS: " + bronzeHolder);
-
-        if (bronzeHolder == null) {
-            System.out.println("BRONZE HOLDER IS NULL - Check ModItems.ALLOY_ITEMS registration!");
-            return false;
-        }
-
-        System.out.println("Bronze holder item: " + bronzeHolder.get());
-        System.out.println("Ingot item: " + ingot.getItem());
-        System.out.println("Items match: " + (ingot.getItem() == bronzeHolder.get()));
-
-        boolean isBronze = ingot.getItem() == bronzeHolder.get();
-        System.out.println("IsBronze: " + isBronze);
-
-        return isBronze;
-    }
-
-    private ItemStack createFilledPackage(PackageType packageType, boolean useBronzeMolds) {
-        var packageHolder = ModItems.CASTING_PACKAGES.get(packageType);
-        if (packageHolder == null) return ItemStack.EMPTY;
-
-        ItemStack packageStack = new ItemStack(packageHolder.get());
-
-        if (packageStack.getItem() instanceof CastingPackageItem packageItem) {
-            RegistryAccess registryAccess = level != null ? level.registryAccess() : RegistryAccess.EMPTY;
-            ItemStackHandler inventory = packageItem.getInventory(packageStack, registryAccess);
-
-            for (int i = 0; i < packageType.getMolds().size(); i++) {
-                ToolComponentType moldType = packageType.getMolds().get(i);
-                // Pass useBronzeMolds to get the correct mold type
-                ItemStack moldStack = getMoldItemStack(moldType, useBronzeMolds);
-                if (!moldStack.isEmpty()) {
-                    inventory.insertItem(i, moldStack, false);
-                }
-            }
-
-            // Ingot mold goes in the slot after all ToolComponentType molds
-            if (packageType.includesIngotMold()) {
-                int ingotSlot = packageType.getMolds().size();
-                ItemStack ingotMold = useBronzeMolds
-                        ? new ItemStack(ModBlocks.BRONZE_INGOT_MOLD.get().asItem())
-                        : new ItemStack(ModBlocks.INGOT_MOLD.get().asItem());
-                inventory.insertItem(ingotSlot, ingotMold, false);
-            }
-
-            packageItem.saveInventory(packageStack, inventory, registryAccess);
-        }
-
-        return packageStack;
-    }
-
-
-
-    private ItemStack getMoldItemStack(ToolComponentType moldType, boolean useBronze) {
-        if (useBronze) {
-            var bronzeMold = ModBlocks.BRONZE_MOLD_BLOCKS.get(moldType);
-            if (bronzeMold != null) {
-                return new ItemStack(bronzeMold.get().asItem());
-            }
-        } else {
-            var standardMold = ModBlocks.MOLD_BLOCKS.get(moldType);
-            if (standardMold != null) {
-                return new ItemStack(standardMold.get().asItem());
-            }
-        }
-        return ItemStack.EMPTY;
+        if (ingot.isEmpty()) return false;
+        return isBronzeIngot(ingot);
     }
 
     public void setSelectedPackage(PackageType packageType) {
@@ -161,27 +81,30 @@ public class BlueprintCastingTableBlockEntity extends BlockEntity implements Men
         }
     }
 
-    private boolean isCrafting = false;
-
     public void tryCrafting() {
         if (level == null || level.isClientSide) return;
-        if (isCrafting) return;  // ADD THIS
+        if (isCrafting) return;
         if (selectedPackageType == null) return;
         if (!itemHandler.getStackInSlot(2).isEmpty()) return;
         if (!canCraft(selectedPackageType)) return;
 
-        isCrafting = true;  // ADD THIS
+        isCrafting = true;
         try {
-            boolean useBronzeMolds = isUsingBronzeMolds();
+            boolean useBronze = isUsingBronze();
+
+            // Extract payment
             itemHandler.extractItem(0, 1, false);
             itemHandler.extractItem(1, selectedPackageType.getIngotCost(), false);
-            ItemStack result = createFilledPackage(selectedPackageType, useBronzeMolds);
+
+            // Get pre-filled package from registry
+            ItemStack result = PrefilledPackageRegistry.getPrefilledPackage(selectedPackageType, useBronze);
             itemHandler.setStackInSlot(2, result);
+
             selectedPackageType = null;
             setChanged();
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
         } finally {
-            isCrafting = false;  // ADD THIS
+            isCrafting = false;
         }
     }
 
@@ -247,20 +170,13 @@ public class BlueprintCastingTableBlockEntity extends BlockEntity implements Men
 
     @Override
     public ItemStack removeItem(int slot, int amount) {
-        ItemStack stack = itemHandler.extractItem(slot, amount, false);
-        if (level != null && !level.isClientSide && (slot == 0 || slot == 1)) {
-            tryCrafting();
-        }
-        return stack;
+        return itemHandler.extractItem(slot, amount, false);
     }
 
     @Override
     public ItemStack removeItemNoUpdate(int slot) {
         ItemStack stack = itemHandler.getStackInSlot(slot);
         itemHandler.setStackInSlot(slot, ItemStack.EMPTY);
-        if (level != null && !level.isClientSide && (slot == 0 || slot == 1)) {
-            tryCrafting();
-        }
         return stack;
     }
 

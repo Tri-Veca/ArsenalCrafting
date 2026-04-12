@@ -57,7 +57,7 @@ public class CastingPackageMenu extends AbstractContainerMenu {
         this.inventory = packageItem.getInventory(packageStack, registryAccess);
 
         // Add mold slots - 9 per row, new row after every 9 slots
-        int requiredMolds = packageType.getMolds().size() + (packageType.includesIngotMold() ? 1 : 0);
+        int requiredMolds = packageType.getTotalMoldCount();
 
         for (int i = 0; i < requiredMolds; i++) {
             int row = i / SLOTS_PER_ROW;
@@ -100,7 +100,7 @@ public class CastingPackageMenu extends AbstractContainerMenu {
     }
 
     public int getTotalRequired() {
-        return packageType.getMolds().size() + (packageType.includesIngotMold() ? 1 : 0);
+        return packageType.getTotalMoldCount();
     }
 
     public boolean isComplete() {

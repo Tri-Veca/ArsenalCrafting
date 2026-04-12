@@ -4,6 +4,8 @@ import com.arsenalcrafting.mod.ArsenalCrafting;
 import com.arsenalcrafting.mod.component.ToolComponentType;
 import com.arsenalcrafting.mod.core.ItemStackHelper;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
+import com.arsenalcrafting.mod.core.alloy.PackageType;
+import com.arsenalcrafting.mod.core.alloy.PrefilledPackageRegistry;
 import com.arsenalcrafting.mod.items.tool.toolparts.ToolComponentItem;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -14,6 +16,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -29,12 +32,19 @@ public class ModCreativeTabs {
                     .icon(() -> new ItemStack(ItemStackHelper.getAlloyStack(AlloyMaterial.TITANIUM).getItem()))
                     .title(Component.translatable("itemGroup." + ArsenalCrafting.MOD_ID + ".0_arsenal_tab"))
                     .displayItems((parameters, output) -> {
+                        // Augments
                         ModItems.UNIVERSAL_AUGMENTS.forEach(item -> output.accept(item.get()));
+
+                        // Alloy Items
                         ModItems.ALLOY_ITEMS.forEach((key, value) -> output.accept(value.get()));
+
+                        // Blocks (skip fluid blocks)
                         ModBlocks.BLOCKS.getEntries().forEach(block -> {
                             if (block.get() instanceof LiquidBlock) { return; }
                             output.accept(block.get());
                         });
+
+                        // Tools and Weapons
                         output.accept(ModItems.DRILL.get());
                         output.accept(ModItems.SAW.get());
                         output.accept(ModItems.ARSENAL_PICKAXE.get());
@@ -43,8 +53,17 @@ public class ModCreativeTabs {
                         output.accept(ModItems.ARSENAL_KATANA.get());
                         output.accept(ModItems.ARSENAL_BROADSWORD.get());
                         output.accept(ModItems.ARSENAL_DAGGER.get());
-                        output.accept(ModItems.REPAIR_KIT.get());
 
+                        // Utilities
+                        output.accept(ModItems.REPAIR_KIT.get());
+                        output.accept(ModItems.BLUEPRINT.get());
+
+                        // ========== CASTING PACKAGES (Pre-filled) ==========
+                        // Add both standard and bronze versions for all package types
+                        for (PackageType type : PackageType.values()) {
+                            output.accept(PrefilledPackageRegistry.getStandardPackage(type));
+                            //output.accept(PrefilledPackageRegistry.getBronzePackage(type));
+                        }
                     })
                     .build());
 
