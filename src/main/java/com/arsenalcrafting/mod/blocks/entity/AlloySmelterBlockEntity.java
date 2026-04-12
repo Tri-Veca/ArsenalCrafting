@@ -1,12 +1,14 @@
 package com.arsenalcrafting.mod.blocks.entity;
 
 import com.arsenalcrafting.mod.client.menu.AlloySmelterMenu;
+import com.arsenalcrafting.mod.core.ItemStackHelper;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.core.alloy.AlloyRecipe;
 import com.arsenalcrafting.mod.core.alloy.AlloyRecipeInput;
 import com.arsenalcrafting.mod.core.alloy.AlloyRecipeType;
 import com.arsenalcrafting.mod.core.smeltery.SmelteryData;
 import com.arsenalcrafting.mod.core.smeltery.SmelteryFormation;
+import com.arsenalcrafting.mod.core.smeltery.SmelteryTier;
 import com.arsenalcrafting.mod.fluids.MultiFluidTank;
 import com.arsenalcrafting.mod.generator.AlloyRecipeDefinitions;
 import com.arsenalcrafting.mod.network.PacketHandler;
@@ -30,6 +32,7 @@ import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
@@ -48,20 +51,37 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
 
     public Set<String> mixingBlocked = new HashSet<>();
     public Set<String> meltingBlocked = new HashSet<>();
-    // Slots: 0–8 = inputs, 9 = unused (was item output — now fluid output via OUTPUT_TANK)
 
-    public String currentRecipeType = null; // "solid" or "liquid"
-    private AlloyRecipe currentSolidRecipe = null; // Changed from AlloyRecipeDefinition to AlloyRecipe
+    public String currentRecipeType = null;
+    private AlloyRecipe currentSolidRecipe = null;
     private AlloyRecipeDefinitions.LiquidMixingRecipeDefinition currentLiquidRecipe = null;
-    private int craftingProgress = 0; // Add this field for liquid recipe progress
-    private int craftingTime = 0;     // Add this field for liquid recipe time
-    private boolean isCrafting = false; // Add this field to track crafting state
-    private int[] slotProgress = new int[9];
-    private int[] slotMaxProgress = new int[9];
+    private int craftingProgress = 0;
+    private int craftingTime = 0;
+    private boolean isCrafting = false;
 
-    public String castTargetFluid = null; // The material name of the fluid selected for casting
+    // Max 45 slots (Titanium tier max)
+    private int[] slotProgress = new int[45];
+    private int[] slotMaxProgress = new int[45];
 
-    private final ItemStackHandler itemHandler = new ItemStackHandler(10) {
+    public String castTargetFluid = null;
+
+    // ── SLOT COUNT ────────────────────────────────────────────────────────────
+    private int currentSlotCount = 9;
+
+    public void updateSlotCount() {
+        if (smelteryData != null && smelteryData.isValid()) {
+            currentSlotCount = smelteryData.getTotalSlots();
+        } else {
+            currentSlotCount = 9;
+        }
+    }
+
+    public int getCurrentSlotCount() {
+        return currentSlotCount;
+    }
+
+    // ── ITEM HANDLER ──────────────────────────────────────────────────────────
+    private final ItemStackHandler itemHandler = new ItemStackHandler(45) {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
@@ -70,14 +90,12 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
 
         @Override
         public int getSlotLimit(int slot) {
-            if (slot < 9) return 1;
-            return super.getSlotLimit(slot);
+            return 1;
         }
 
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            if (slot >= 9) return false;
-
+            if (slot >= currentSlotCount) return false;
             return AlloyRecipeDefinitions.RECIPES.values().stream()
                     .anyMatch(recipe -> recipe.ingredients().stream()
                             .anyMatch(ing -> ing instanceof Item item && item == stack.getItem()));
@@ -90,8 +108,41 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         }
     }
 
+    // ── NUGGET ACCUMULATOR ────────────────────────────────────────────────────
+    private final Map<String, Integer> nuggetAccumulator = new HashMap<>();
+
+    public int addNuggets(String materialName, int nuggets) {
+        int current = nuggetAccumulator.getOrDefault(materialName, 0);
+        int total = current + nuggets;
+        int fullIngots = total / 9;
+        int remainder = total % 9;
+        nuggetAccumulator.put(materialName, remainder);
+        setChanged();
+        return fullIngots;
+    }
+
+    public int getNuggetCount(String materialName) {
+        return nuggetAccumulator.getOrDefault(materialName, 0);
+    }
+
+    public void dropAccumulatedNuggets() {
+        if (level == null) return;
+        for (Map.Entry<String, Integer> entry : nuggetAccumulator.entrySet()) {
+            int nuggets = entry.getValue();
+            if (nuggets >= 5) {
+                AlloyMaterial mat = AlloyMaterial.fromName(entry.getKey());
+                if (mat != null) {
+                    ItemStack ingot = ItemStackHelper.getAlloyStack(mat);
+                    Block.popResource(level, worldPosition, ingot);
+                }
+            }
+        }
+        nuggetAccumulator.clear();
+    }
+
     public void drops() {
         if (this.level == null) return;
+        dropAccumulatedNuggets();
         SimpleContainer inventory = new SimpleContainer(itemHandler.getSlots());
         for (int i = 0; i < itemHandler.getSlots(); i++) {
             inventory.setItem(i, itemHandler.getStackInSlot(i));
@@ -99,7 +150,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         Containers.dropContents(this.level, this.worldPosition, inventory);
     }
 
-    // ── LAVA DISPLAY TANK (existing — unchanged) ──────────────────────────────
+    // ── LAVA DISPLAY TANK ─────────────────────────────────────────────────────
     public final DisplayTank DISPLAY_TANK = new DisplayTank();
 
     public class DisplayTank extends FluidTank {
@@ -158,7 +209,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         }
     }
 
-    // ── OUTPUT TANK (new — holds molten alloy produced by recipes) ────────────
+    // ── OUTPUT TANK ───────────────────────────────────────────────────────────
     public final MultiFluidTank OUTPUT_TANK = new MultiFluidTank(9000) {
         @Override
         protected void onContentsChanged() {
@@ -168,7 +219,6 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
 
         @Override
         public boolean isFluidValid(FluidStack stack) {
-            // Accept any alloy fluid — validated at fill time
             return true;
         }
     };
@@ -176,52 +226,23 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
     private void syncOutputTankToClient() {
         if (level != null && !level.isClientSide) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
-            // Re-use existing fluid sync packet with a different position offset if needed,
-            // or add a new packet. For now: block update triggers getUpdateTag() sync.
         }
     }
 
-    // ── FLUID HELPER METHODS (updated to use OUTPUT_TANK) ─────────────────────
+    // ── FLUID HELPER METHODS ──────────────────────────────────────────────────
 
     public void drainFromOutputTank(Fluid fluid, int amount) {
-      /*  System.out.println("[DEBUG] drainFromOutputTank called: " + amount + "mb of " +
-                fluid.getFluidType().getDescription().getString());
-
-       */
-
         int remaining = amount;
         int tanksCount = OUTPUT_TANK.getTanks();
-
         for (int i = 0; i < tanksCount; i++) {
             FluidStack fluidStack = OUTPUT_TANK.getFluidInTank(i);
             if (fluidStack != null && !fluidStack.isEmpty() && fluidStack.getFluid() == fluid) {
-                int currentAmount = fluidStack.getAmount();
-                int toDrain = Math.min(remaining, currentAmount);
-
-                /*System.out.println("[DEBUG] Draining " + toDrain + "mb from tank " + i +
-                        " (had " + currentAmount + "mb)");
-
-                 */
-
-                // Create a copy to drain
-                FluidStack drainStack = new FluidStack(fluid, toDrain);
-                OUTPUT_TANK.drain(drainStack, IFluidHandler.FluidAction.EXECUTE);
-
+                int toDrain = Math.min(remaining, fluidStack.getAmount());
+                OUTPUT_TANK.drain(new FluidStack(fluid, toDrain), IFluidHandler.FluidAction.EXECUTE);
                 remaining -= toDrain;
-
                 if (remaining <= 0) break;
             }
         }
-
-        if (remaining > 0) {
-            /*System.out.println("[DEBUG] WARNING: Could only drain " + (amount - remaining) +
-                    "mb of " + amount + "mb required!");
-
-             */
-        } else {
-            //System.out.println("[DEBUG] Successfully drained all " + amount + "mb");
-        }
-
         setChanged();
     }
 
@@ -232,7 +253,6 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
 
     public List<FluidStack> getAllOutputFluids() {
         List<FluidStack> fluids = new ArrayList<>();
-        // Get all fluids from OUTPUT_TANK (MultiFluidTank handles multiple fluids)
         for (int i = 0; i < OUTPUT_TANK.getTanks(); i++) {
             FluidStack fluid = OUTPUT_TANK.getFluidInTank(i);
             if (fluid != null && !fluid.isEmpty()) {
@@ -242,48 +262,24 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         return fluids;
     }
 
-    public int getOutputFluidCapacity() {
-        return OUTPUT_TANK.getCapacity(); // Use OUTPUT_TANK's capacity
-    }
+    public int getOutputFluidCapacity() { return OUTPUT_TANK.getCapacity(); }
+    public int getOutputFluidAmount() { return OUTPUT_TANK.getTotalAmount(); }
+    public int getOutputTankTotalAmount() { return OUTPUT_TANK.getTotalAmount(); }
+    public int getOutputTankCapacity() { return OUTPUT_TANK.getCapacity(); }
 
-    public int getOutputFluidAmount() {
-        return OUTPUT_TANK.getTotalAmount(); // Use MultiFluidTank's total amount
-    }
-
-    // Helper method to get total amount from output tank (for compatibility)
-    public int getOutputTankTotalAmount() {
-        return OUTPUT_TANK.getTotalAmount();
-    }
-
-    // Helper method to get output tank capacity (for compatibility)
-    public int getOutputTankCapacity() {
-        return OUTPUT_TANK.getCapacity();
-    }
-
-    // Add this to your tick method or crafting method
     public void checkAndCraftLiquidRecipe() {
         if (level == null || level.isClientSide) return;
-
         Optional<AlloyRecipeDefinitions.LiquidMixingRecipeDefinition> recipe = findValidLiquidRecipe();
-
         if (recipe.isPresent()) {
             AlloyRecipeDefinitions.LiquidMixingRecipeDefinition liquidRecipe = recipe.get();
-
-            // Check if we have the required fluids
             if (liquidRecipe.canCraft(getAllOutputFluids())) {
-                // Consume input fluids
                 for (FluidStack input : liquidRecipe.getConsumedFluids()) {
                     drainFromOutputTank(input.getFluid(), input.getAmount());
                 }
-
-                // Add output fluid
                 addToOutputTank(liquidRecipe.output().copy());
-
-                // Set crafting progress if needed
                 this.craftingProgress = 0;
                 this.craftingTime = liquidRecipe.craftTime();
                 this.isCrafting = true;
-
                 setChanged();
             }
         }
@@ -291,35 +287,12 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
 
     public Optional<AlloyRecipeDefinitions.LiquidMixingRecipeDefinition> findValidLiquidRecipe() {
         List<FluidStack> availableFluids = getAllOutputFluids();
-
-        // Debug logging
-        /*System.out.println("[DEBUG] Checking liquid recipes. Available fluids:");
-        for (FluidStack fluid : availableFluids) {
-            System.out.println("  - " + fluid.getAmount() + "mb " +
-                    fluid.getFluid().getFluidType().getDescription().getString());
-        }
-
-         */
-
-        Optional<AlloyRecipeDefinitions.LiquidMixingRecipeDefinition> recipe =
-                AlloyRecipeDefinitions.LIQUID_MIXING_RECIPES.values().stream()
-                        .filter(r -> {
-                            boolean canCraft = r.canCraft(availableFluids);
-                            if (canCraft) {
-                                //System.out.println("[DEBUG] Recipe " + r.name() + " can craft!");
-                            }
-                            return canCraft;
-                        })
-                        .findFirst();
-
-        if (recipe.isEmpty()) {
-            //System.out.println("[DEBUG] No valid liquid recipe found");
-        }
-
-        return recipe;
+        return AlloyRecipeDefinitions.LIQUID_MIXING_RECIPES.values().stream()
+                .filter(r -> r.canCraft(availableFluids))
+                .findFirst();
     }
 
-    // ── CONNECTED TANKS (existing — unchanged) ────────────────────────────────
+    // ── CONNECTED TANKS ───────────────────────────────────────────────────────
     private final List<ConnectedTankInfo> connectedTanks = new ArrayList<>();
     private int refreshCooldown = 0;
     private static final int REFRESH_RATE = 20;
@@ -336,7 +309,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         }
     }
 
-    // ── PROGRESS (existing — unchanged) ───────────────────────────────────────
+    // ── PROGRESS ──────────────────────────────────────────────────────────────
     private int progress = 0;
     private int maxProgress = 200;
 
@@ -360,34 +333,20 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
                 switch (i) {
                     case 0 -> progress = v;
                     case 1 -> maxProgress = v;
-                    default -> {
-                    }
+                    default -> {}
                 }
             }
 
             @Override
-            public int getCount() {
-                return 3;
-            }
+            public int getCount() { return 3; }
         };
     }
 
-    // ── PUBLIC ACCESSORS (existing + new) ─────────────────────────────────────
-    public ItemStackHandler getItemHandler() {
-        return itemHandler;
-    }
-
-    public ContainerData getData() {
-        return data;
-    }
-
-    public int getConnectedTanksCount() {
-        return connectedTanks.size();
-    }
-
-    public int getTotalTankCapacity() {
-        return DISPLAY_TANK.getCapacity();
-    }
+    // ── PUBLIC ACCESSORS ──────────────────────────────────────────────────────
+    public ItemStackHandler getItemHandler() { return itemHandler; }
+    public ContainerData getData() { return data; }
+    public int getConnectedTanksCount() { return connectedTanks.size(); }
+    public int getTotalTankCapacity() { return DISPLAY_TANK.getCapacity(); }
 
     public List<String> getConnectedTanksInfo() {
         List<String> info = new ArrayList<>();
@@ -400,7 +359,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         return info;
     }
 
-    // ── FLUID SYNC (existing — unchanged) ────────────────────────────────────
+    // ── FLUID SYNC ────────────────────────────────────────────────────────────
     private void syncFluidToClient() {
         if (level != null && !level.isClientSide) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
@@ -410,7 +369,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         }
     }
 
-    // ── TANK SCANNING (existing — unchanged) ─────────────────────────────────
+    // ── TANK SCANNING ─────────────────────────────────────────────────────────
     private void refreshConnectedTanks() {
         if (level == null || level.isClientSide) return;
         List<ConnectedTankInfo> newTanks = new ArrayList<>();
@@ -452,7 +411,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         }
     }
 
- public int getTotalLavaInTanks() {
+    public int getTotalLavaInTanks() {
         int total = 0;
         for (ConnectedTankInfo info : connectedTanks) {
             FluidStack fluid = info.handler.getFluidInTank(0);
@@ -527,7 +486,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         return new AlloySmelterMenu(id, inv, this, data);
     }
 
-    // ── NBT (existing + OUTPUT_TANK added) ────────────────────────────────────
+    // ── NBT ───────────────────────────────────────────────────────────────────
 
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
@@ -535,19 +494,16 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         DISPLAY_TANK.writeToNBT(registries, tag);
         tag.putInt("TankCount", connectedTanks.size());
         tag.put("inv", itemHandler.serializeNBT(registries));
-        // Output tank sync
         CompoundTag outputTag = new CompoundTag();
         OUTPUT_TANK.save(outputTag, registries);
         tag.put("OutputTank", outputTag);
         if (castTargetFluid != null) tag.putString("CastTarget", castTargetFluid);
-
         tag.putString("MeltingBlocked", String.join(",", meltingBlocked));
         tag.putString("MixingBlocked", String.join(",", mixingBlocked));
-        // Save recipe type and progress
         if (currentRecipeType != null) tag.putString("RecipeType", currentRecipeType);
         tag.putInt("Progress", progress);
         tag.putInt("MaxProgress", maxProgress);
-
+        tag.putInt("CurrentSlotCount", currentSlotCount);
         return tag;
     }
 
@@ -558,27 +514,18 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         if (level != null && level.isClientSide) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
         }
-        if (tag.contains("inv")) {
-            itemHandler.deserializeNBT(registries, tag);
-        }
-        if (tag.contains("OutputTank")) {
-            OUTPUT_TANK.load(tag.getCompound("OutputTank"), registries);
-        }
-        if (tag.contains("RecipeType")) {
-            currentRecipeType = tag.getString("RecipeType");
-        }
+        if (tag.contains("inv")) itemHandler.deserializeNBT(registries, tag);
+        if (tag.contains("OutputTank")) OUTPUT_TANK.load(tag.getCompound("OutputTank"), registries);
+        if (tag.contains("RecipeType")) currentRecipeType = tag.getString("RecipeType");
         if (tag.contains("CastTarget")) {
             castTargetFluid = tag.getString("CastTarget");
             if (castTargetFluid.isEmpty()) castTargetFluid = null;
         }
-
         if (tag.contains("MixingBlocked")) {
             String raw = tag.getString("MixingBlocked");
             mixingBlocked.clear();
             if (!raw.isEmpty()) Collections.addAll(mixingBlocked, raw.split(","));
         }
-
-
         if (tag.contains("MeltingBlocked")) {
             String raw = tag.getString("MeltingBlocked");
             meltingBlocked.clear();
@@ -586,6 +533,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         }
         progress = tag.getInt("Progress");
         maxProgress = tag.getInt("MaxProgress");
+        if (tag.contains("CurrentSlotCount")) currentSlotCount = tag.getInt("CurrentSlotCount");
     }
 
     @Override
@@ -604,22 +552,17 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         CompoundTag tankTag = new CompoundTag();
         DISPLAY_TANK.writeToNBT(registries, tankTag);
         tag.put("DisplayTank", tankTag);
-        // Save output tank
         CompoundTag outputTag = new CompoundTag();
         OUTPUT_TANK.save(outputTag, registries);
         tag.put("OutputTank", outputTag);
         if (castTargetFluid != null) tag.putString("CastTarget", castTargetFluid);
-
-        // Save mixing blocked set
-        String[] blockedArray = mixingBlocked.toArray(new String[0]);
-        tag.putString("MixingBlocked", String.join(",", blockedArray));
+        tag.putString("MixingBlocked", String.join(",", mixingBlocked));
         tag.putString("MeltingBlocked", String.join(",", meltingBlocked));
-        // Save recipe type and current recipe info
         if (currentRecipeType != null) tag.putString("RecipeType", currentRecipeType);
         tag.putInt("craftingProgress", craftingProgress);
         tag.putInt("craftingTime", craftingTime);
         tag.putBoolean("isCrafting", isCrafting);
-
+        tag.putInt("CurrentSlotCount", currentSlotCount);
 
         if (smelteryData != null) {
             CompoundTag sd = new CompoundTag();
@@ -630,9 +573,16 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
             sd.putInt("Height", smelteryData.height());
             sd.putBoolean("IsValid", smelteryData.isValid());
             sd.putBoolean("NeedsRecheck", smelteryData.needsRecheck());
+            sd.putString("Tier", smelteryData.tier().name());
+            if (smelteryData.failReason() != null) sd.putString("FailReason", smelteryData.failReason());
             tag.put("SmelteryData", sd);
         }
 
+        CompoundTag nuggetTag = new CompoundTag();
+        for (Map.Entry<String, Integer> entry : nuggetAccumulator.entrySet()) {
+            nuggetTag.putInt(entry.getKey(), entry.getValue());
+        }
+        tag.put("NuggetAccumulator", nuggetTag);
     }
 
     @Override
@@ -641,36 +591,45 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         itemHandler.deserializeNBT(registries, tag.getCompound("inv"));
         progress = tag.getInt("prog");
         maxProgress = tag.getInt("maxprog");
-        if (tag.contains("DisplayTank")) {
-            DISPLAY_TANK.readFromNBT(registries, tag.getCompound("DisplayTank"));
-        }
-        if (tag.contains("OutputTank")) {
-            OUTPUT_TANK.load(tag.getCompound("OutputTank"), registries);
-        }
-        if (tag.contains("RecipeType")) {
-            currentRecipeType = tag.getString("RecipeType");
-        }
-        // Load mixing blocked set
+        if (tag.contains("slotProgress")) slotProgress = tag.getIntArray("slotProgress");
+        if (tag.contains("slotMaxProgress")) slotMaxProgress = tag.getIntArray("slotMaxProgress");
+        craftingProgress = tag.getInt("craftingProgress");
+        craftingTime = tag.getInt("craftingTime");
+        isCrafting = tag.getBoolean("isCrafting");
+        if (tag.contains("CurrentSlotCount")) currentSlotCount = tag.getInt("CurrentSlotCount");
+
+        if (tag.contains("DisplayTank")) DISPLAY_TANK.readFromNBT(registries, tag.getCompound("DisplayTank"));
+        if (tag.contains("OutputTank")) OUTPUT_TANK.load(tag.getCompound("OutputTank"), registries);
+        if (tag.contains("RecipeType")) currentRecipeType = tag.getString("RecipeType");
+
         if (tag.contains("MixingBlocked")) {
             String raw = tag.getString("MixingBlocked");
             mixingBlocked.clear();
-            if (!raw.isEmpty()) {
-                Collections.addAll(mixingBlocked, raw.split(","));
-            }
+            if (!raw.isEmpty()) Collections.addAll(mixingBlocked, raw.split(","));
         }
         if (tag.contains("CastTarget")) {
             castTargetFluid = tag.getString("CastTarget");
             if (castTargetFluid.isEmpty()) castTargetFluid = null;
         }
-
         if (tag.contains("MeltingBlocked")) {
             String raw = tag.getString("MeltingBlocked");
             meltingBlocked.clear();
             if (!raw.isEmpty()) Collections.addAll(meltingBlocked, raw.split(","));
         }
 
+        nuggetAccumulator.clear();
+        if (tag.contains("NuggetAccumulator")) {
+            CompoundTag nuggetTag = tag.getCompound("NuggetAccumulator");
+            for (String key : nuggetTag.getAllKeys()) {
+                nuggetAccumulator.put(key, nuggetTag.getInt(key));
+            }
+        }
+
         if (tag.contains("SmelteryData")) {
             CompoundTag sd = tag.getCompound("SmelteryData");
+            SmelteryTier tier = SmelteryTier.COPPER;
+            try { tier = SmelteryTier.valueOf(sd.getString("Tier")); } catch (Exception ignored) {}
+            String failReason = sd.contains("FailReason") ? sd.getString("FailReason") : null;
             smelteryData = new SmelteryData(
                     BlockPos.of(sd.getLong("ControllerPos")),
                     BlockPos.of(sd.getLong("InteriorOrigin")),
@@ -678,26 +637,14 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
                     sd.getInt("Depth"),
                     sd.getInt("Height"),
                     sd.getBoolean("IsValid"),
-                    sd.getBoolean("NeedsRecheck")
+                    sd.getBoolean("NeedsRecheck"),
+                    tier,
+                    failReason
             );
-        } // <-- THIS BRACE WAS MISSING
-
-        if (tag.contains("slotProgress")) slotProgress = tag.getIntArray("slotProgress");
-        if (tag.contains("slotMaxProgress")) slotMaxProgress = tag.getIntArray("slotMaxProgress");
-        craftingProgress = tag.getInt("craftingProgress");
-        craftingTime = tag.getInt("craftingTime");
-        isCrafting = tag.getBoolean("isCrafting");
-
-        if (tag.contains("slotProgress")) slotProgress = tag.getIntArray("slotProgress");
-        if (tag.contains("slotMaxProgress")) slotMaxProgress = tag.getIntArray("slotMaxProgress");
-        craftingProgress = tag.getInt("craftingProgress");
-        craftingTime = tag.getInt("craftingTime");
-        isCrafting = tag.getBoolean("isCrafting");
-
-
+        }
     }
 
-    // ── TICK (updated for both liquid and solid recipes) ─────────────────────────────
+    // ── TICK ──────────────────────────────────────────────────────────────────
 
     public static void tick(Level level, BlockPos pos, BlockState state, AlloySmelterBlockEntity be) {
         if (level.isClientSide) return;
@@ -718,24 +665,12 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         }
         be.updateDisplayTank();
 
-        SimpleContainer inv = new SimpleContainer(be.itemHandler.getSlots());
-        for (int i = 0; i < be.itemHandler.getSlots(); i++) {
-            inv.setItem(i, be.itemHandler.getStackInSlot(i));
-        }
-
-
-
-
-        // First check for liquid mixing recipes (if not currently crafting a solid recipe)
+        // Check for liquid mixing recipes
         if (be.currentRecipeType == null || be.currentRecipeType.equals("solid")) {
-            // Only start a new recipe if not already crafting
-            if (be.progress == 0) {  // Add this check
+            if (be.progress == 0) {
                 Optional<AlloyRecipeDefinitions.LiquidMixingRecipeDefinition> liquidRecipe = be.findValidLiquidRecipe();
-
                 if (liquidRecipe.isPresent()) {
                     AlloyRecipeDefinitions.LiquidMixingRecipeDefinition recipe = liquidRecipe.get();
-
-                    // Check if we have enough room in output tank
                     int resultMb = recipe.output().getAmount();
                     int consumedMb = recipe.getConsumedFluids().stream().mapToInt(FluidStack::getAmount).sum();
                     if (be.OUTPUT_TANK.getTotalAmount() - consumedMb + resultMb > be.OUTPUT_TANK.getCapacity()) {
@@ -743,8 +678,6 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
                         setChanged(level, pos, state);
                         return;
                     }
-
-                    // Check if the OUTPUT material is blocked from mixing
                     AlloyMaterial outputMat = AlloyMaterial.fromFluid(recipe.output().getFluid());
                     if (outputMat != null && be.mixingBlocked.contains(outputMat.getName())) {
                         be.progress = 0;
@@ -753,26 +686,19 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
                         setChanged(level, pos, state);
                         return;
                     }
-
-                    // Set recipe type and max progress
                     be.currentRecipeType = "liquid";
                     be.maxProgress = recipe.craftTime();
                     be.currentLiquidRecipe = recipe;
-                    be.progress = 1; // Start at 1, not incrementing immediately
-
+                    be.progress = 1;
                     setChanged(level, pos, state);
                     return;
                 }
             }
-
-
         }
 
-        // If we're currently crafting a liquid recipe, continue it
+        // Continue liquid recipe
         if (be.currentRecipeType != null && be.currentRecipeType.equals("liquid") && be.currentLiquidRecipe != null) {
             AlloyRecipeDefinitions.LiquidMixingRecipeDefinition recipe = be.currentLiquidRecipe;
-
-            // Check if the OUTPUT material is blocked from mixing
             AlloyMaterial outputMat = AlloyMaterial.fromFluid(recipe.output().getFluid());
             if (outputMat != null && be.mixingBlocked.contains(outputMat.getName())) {
                 be.progress = 0;
@@ -781,9 +707,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
                 setChanged(level, pos, state);
                 return;
             }
-            // Check if we still have the required fluids (in case they were drained externally)
             if (!recipe.canCraft(be.getAllOutputFluids())) {
-                // Recipe is no longer valid, cancel crafting
                 be.progress = 0;
                 be.currentRecipeType = null;
                 be.currentLiquidRecipe = null;
@@ -791,9 +715,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
                 setChanged(level, pos, state);
                 return;
             }
-
             be.progress++;
-
             if (be.progress >= be.maxProgress) {
                 craftLiquidRecipe(be);
                 be.progress = 0;
@@ -805,27 +727,20 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
             return;
         }
 
-        // If no liquid recipe, check solid recipes
-
-
-        // Process each input slot independently
-        for (int slotIndex = 0; slotIndex < 9; slotIndex++) {
-
+        // Process solid recipes per slot
+        for (int slotIndex = 0; slotIndex < be.currentSlotCount; slotIndex++) {
             ItemStack slotItem = be.itemHandler.getStackInSlot(slotIndex);
             if (slotItem.isEmpty()) {
                 be.slotProgress[slotIndex] = 0;
                 be.slotMaxProgress[slotIndex] = 0;
                 continue;
             }
-            // Check if this material's melting is blocked
             AlloyMaterial slotMat = AlloyMaterial.fromItem(slotItem.getItem());
             if (slotMat != null && be.meltingBlocked.contains(slotMat.getName())) {
                 be.slotProgress[slotIndex] = 0;
                 be.slotMaxProgress[slotIndex] = 0;
                 continue;
             }
-
-
 
             SimpleContainer singleInv = new SimpleContainer(9);
             singleInv.setItem(0, slotItem);
@@ -842,22 +757,23 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
 
             var recipe = recipeOpt.get().value();
 
-            // Set max progress if not already set
+            // Apply speed multiplier from tier
+            int baseCraftTime = recipe.getCraftTime();
+            int adjustedCraftTime = (be.smelteryData != null && be.smelteryData.isValid())
+                    ? be.smelteryData.tier().getCraftTime(baseCraftTime)
+                    : baseCraftTime;
+
             if (be.slotMaxProgress[slotIndex] == 0) {
-                be.slotMaxProgress[slotIndex] = recipe.getCraftTime();
+                be.slotMaxProgress[slotIndex] = adjustedCraftTime;
             }
 
-            // Check output tank has room
             int resultMb = recipe.getResultAmountMb();
             if (be.OUTPUT_TANK.getTotalAmount() + resultMb > be.OUTPUT_TANK.getCapacity()) continue;
 
-
-            // Check lava availability on first tick
             if (be.slotProgress[slotIndex] == 0) {
                 if (be.getTotalLavaInTanks() < recipe.getLavaCost()) continue;
             }
 
-// Drain lava gradually across craft time
             int totalLavaNeeded = recipe.getLavaCost();
             int totalTicks = be.slotMaxProgress[slotIndex];
             int baseLavaPerTick = totalLavaNeeded / totalTicks;
@@ -865,18 +781,12 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
             int totalLavaAvailable = be.getTotalLavaInTanks();
             int lavaUsedThisTick = 0;
             int lavaToConsume = baseLavaPerTick + (be.slotProgress[slotIndex] < remainder ? 1 : 0);
-            if (lavaUsedThisTick + lavaToConsume > totalLavaAvailable) {
-                continue; // Skip this slot, not enough lava
-            }
+            if (lavaUsedThisTick + lavaToConsume > totalLavaAvailable) continue;
             if (!be.consumeLavaFromTanks(lavaToConsume)) continue;
-            lavaUsedThisTick += lavaToConsume;
 
             be.slotProgress[slotIndex]++;
 
-
-
             if (be.slotProgress[slotIndex] >= be.slotMaxProgress[slotIndex]) {
-                // Craft
                 be.itemHandler.extractItem(slotIndex, 1, false);
                 AlloyMaterial resultMat = AlloyMaterial.fromName(recipe.getResultMaterial());
                 if (resultMat != null) {
@@ -897,107 +807,51 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         setChanged(level, pos, state);
     }
 
-    // In AlloySmelterBlockEntity.java - update craftLiquidRecipe
     private static void craftLiquidRecipe(AlloySmelterBlockEntity be) {
         if (be.currentLiquidRecipe != null) {
             AlloyRecipeDefinitions.LiquidMixingRecipeDefinition recipe = be.currentLiquidRecipe;
-
-            //System.out.println("[DEBUG] Crafting liquid recipe: " + recipe.name());
-            //System.out.println("[DEBUG] Before consumption - Output tank contents:");
-            for (FluidStack fluid : be.getAllOutputFluids()) {
-               /*System.out.println("  - " + fluid.getAmount() + "mb " +
-                        fluid.getFluid().getFluidType().getDescription().getString());
-
-                */
-            }
-
-            // Consume input fluids
             for (FluidStack input : recipe.getConsumedFluids()) {
-                /*System.out.println("[DEBUG] Consuming: " + input.getAmount() + "mb " +
-                        input.getFluid().getFluidType().getDescription().getString());
-
-                 */
                 be.drainFromOutputTank(input.getFluid(), input.getAmount());
             }
-
-            // Add output fluid
-            /*System.out.println("[DEBUG] Adding output: " + recipe.output().getAmount() + "mb " +
-                    recipe.output().getFluid().getFluidType().getDescription().getString());
-
-             */
             be.addToOutputTank(recipe.output().copy());
-
-            //System.out.println("[DEBUG] After consumption - Output tank contents:");
-            for (FluidStack fluid : be.getAllOutputFluids()) {
-                /*System.out.println("  - " + fluid.getAmount() + "mb " +
-                        fluid.getFluid().getFluidType().getDescription().getString());
-
-                 */
-            }
-
             be.setChanged();
         }
     }
 
     private static void craftItem(AlloySmelterBlockEntity be) {
         Level level = be.level;
-
         SimpleContainer inv = new SimpleContainer(be.itemHandler.getSlots());
         for (int i = 0; i < be.itemHandler.getSlots(); i++) {
             inv.setItem(i, be.itemHandler.getStackInSlot(i));
         }
-
         var recipeOpt = level.getRecipeManager().getRecipeFor(
                 AlloyRecipeType.ALLOY_SMELTING.get(),
                 new AlloyRecipeInput(inv), level);
         if (recipeOpt.isEmpty()) return;
-
         var recipe = recipeOpt.get().value();
-
-        // Consume inputs (slots 0-8) — unchanged
-        for (int i = 0; i < 9; i++) {
-            be.itemHandler.extractItem(i, 1, false);
-        }
-
-        // ── FLUID OUTPUT (new) ────────────────────────────────────────────────
-        // In craftItem() - check what fluid is being created
+        for (int i = 0; i < 9; i++) be.itemHandler.extractItem(i, 1, false);
         AlloyMaterial resultMat = AlloyMaterial.fromName(recipe.getResultMaterial());
         if (resultMat != null) {
             var sourceFluid = ModFluids.getSource(resultMat);
             if (sourceFluid != null) {
-                FluidStack output = new FluidStack(sourceFluid, recipe.getResultAmountMb());
-                System.out.println("[DEBUG] Creating fluid: " + output.getAmount() + "mb " +
-                        output.getFluid().getFluidType().getDescription().getString());
-                be.OUTPUT_TANK.fill(output, IFluidHandler.FluidAction.EXECUTE);
+                be.OUTPUT_TANK.fill(
+                        new FluidStack(sourceFluid, recipe.getResultAmountMb()),
+                        IFluidHandler.FluidAction.EXECUTE);
             }
         }
-
-
-
-
-        // ── OLD ITEM OUTPUT (commented out — uncomment to revert) ────────────
-        // ItemStack result = recipe.get().value().assemble(new AlloyRecipeInput(inv), level.registryAccess());
-        // ItemStack out = be.itemHandler.getStackInSlot(9);
-        // if (out.isEmpty()) {
-        //     be.itemHandler.setStackInSlot(9, result.copy());
-        // } else {
-        //     out.grow(result.getCount());
-        // }
-
         be.setChanged();
         if (be.level != null && !be.level.isClientSide) {
             be.level.sendBlockUpdated(be.worldPosition, be.getBlockState(), be.getBlockState(), 3);
         }
     }
 
-
+    // ── SMELTERY MULTIBLOCK ───────────────────────────────────────────────────
     private SmelteryData smelteryData = null;
 
     public void markNeedsRecheck() {
         if (smelteryData != null) {
             smelteryData = smelteryData.withNeedsRecheck();
         } else {
-            // No cached data, just flag for recheck on next interaction
             smelteryData = SmelteryData.invalid(worldPosition).withNeedsRecheck();
         }
         setChanged();
@@ -1007,9 +861,9 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         if (level == null || level.isClientSide) return;
         if (smelteryData == null || smelteryData.needsRecheck()) {
             smelteryData = SmelteryFormation.validate(level, worldPosition);
-            // Scale output tank capacity based on interior volume
             int volume = smelteryData.isValid() ? smelteryData.volume() : 0;
             OUTPUT_TANK.setCapacity(Math.max(9000, volume * 1000));
+            updateSlotCount();
             setChanged();
         }
     }

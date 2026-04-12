@@ -1,29 +1,37 @@
 package com.arsenalcrafting.mod.core.smeltery;
 
-import com.arsenalcrafting.mod.blocks.AlloySmelterBlock;
-import com.arsenalcrafting.mod.blocks.CasingBlock;
-import com.arsenalcrafting.mod.blocks.LavaTankBlock;
+import com.arsenalcrafting.mod.blocks.*;
 import com.arsenalcrafting.mod.blocks.entity.LavaTankBlockEntity;
+import com.arsenalcrafting.mod.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 
 public class SmelteryFormation {
 
+    // ── TIER DETECTION ────────────────────────────────────────────────────────
+
+    public static SmelteryTier getTierForBlock(Block block) {
+        if (block == ModBlocks.COPPER_CASING.get()) return SmelteryTier.COPPER;
+        if (block == ModBlocks.IRON_CASING.get()) return SmelteryTier.IRON;
+        if (block == ModBlocks.BRONZE_CASING.get()) return SmelteryTier.IRON;
+        if (block == ModBlocks.STEEL_CASING.get()) return SmelteryTier.STEEL;
+        if (block == ModBlocks.TITANIUM_CASING.get()) return SmelteryTier.TITANIUM;
+        return null;
+    }
+
     public static boolean isValidWallBlock(BlockState state) {
-        return state.getBlock() instanceof CasingBlock
+        return getTierForBlock(state.getBlock()) != null
                 || state.getBlock() instanceof AlloySmelterBlock
                 || state.getBlock() instanceof LavaTankBlock;
     }
 
     public static boolean isValidFloorBlock(BlockState state) {
-        return state.getBlock() instanceof CasingBlock;
+        return getTierForBlock(state.getBlock()) != null;
     }
 
     public static boolean isValidInteriorBlock(Level level, BlockPos pos) {
@@ -32,13 +40,21 @@ public class SmelteryFormation {
         return level.getBlockEntity(pos) instanceof LavaTankBlockEntity;
     }
 
+    // ── CORNER CHECK ─────────────────────────────────────────────────────────
+    // Corners are optional like nether portals — only the 4 wall faces are required
+
+    private static boolean isCorner(int x, int z, int minX, int maxX, int minZ, int maxZ) {
+        return (x == minX || x == maxX) && (z == minZ || z == maxZ);
+    }
+
+    // ── MAIN ENTRY POINT ─────────────────────────────────────────────────────
+
     public static SmelteryData validate(Level level, BlockPos controllerPos) {
         int controllerY = controllerPos.getY();
         int floorY = controllerY - 1;
 
         System.out.println("[Smeltery] === Starting validation ===");
         System.out.println("[Smeltery] Controller at: " + controllerPos);
-        System.out.println("[Smeltery] Controller block: " + level.getBlockState(controllerPos).getBlock());
 
         // Phase 1: Flood fill to find all connected wall blocks at controllerY
         Set<BlockPos> wallBlocks = new HashSet<>();
@@ -54,7 +70,10 @@ public class SmelteryFormation {
         while (!queue.isEmpty()) {
             BlockPos current = queue.poll();
             for (Direction dir : new Direction[]{Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST}) {
-                BlockPos neighbor = new BlockPos(current.getX() + dir.getStepX(), controllerY, current.getZ() + dir.getStepZ());
+                BlockPos neighbor = new BlockPos(
+                        current.getX() + dir.getStepX(),
+                        controllerY,
+                        current.getZ() + dir.getStepZ());
                 if (wallBlocks.contains(neighbor)) continue;
                 BlockState ns = level.getBlockState(neighbor);
                 if (isValidWallBlock(ns)) {
@@ -71,14 +90,14 @@ public class SmelteryFormation {
         int outerWidth = maxX - minX + 1;
         int outerDepth = maxZ - minZ + 1;
 
-        System.out.println("[Smeltery] Found bounds: X=" + minX + " to " + maxX + " Z=" + minZ + " to " + maxZ);
+        System.out.println("[Smeltery] Found bounds: X=" + minX + " to " + maxX +
+                " Z=" + minZ + " to " + maxZ);
         System.out.println("[Smeltery] Outer size: " + outerWidth + "x" + outerDepth);
 
         if (outerWidth < 3 || outerDepth < 3) {
-            System.out.println("[Smeltery] FAIL: Too small (need 3x3 minimum)");
+            System.out.println("[Smeltery] FAIL: Too small");
             return SmelteryData.invalid(controllerPos);
         }
-
         int interiorMinX = minX + 1;
         int interiorMaxX = maxX - 1;
         int interiorMinZ = minZ + 1;
@@ -86,10 +105,36 @@ public class SmelteryFormation {
         int interiorWidth = interiorMaxX - interiorMinX + 1;
         int interiorDepth = interiorMaxZ - interiorMinZ + 1;
 
-        System.out.println("[Smeltery] Interior bounds: X=" + interiorMinX + " to " + interiorMaxX +
-                " Z=" + interiorMinZ + " to " + interiorMaxZ);
+        // ── TIER DETECTION ────────────────────────────────────────────────────
+        // Scan all casing blocks at controllerY, ensure all same tier
+        SmelteryTier detectedTier = null;
+        for (int x = minX; x <= maxX; x++) {
+            for (int z = minZ; z <= maxZ; z++) {
+                boolean interior = x > minX && x < maxX && z > minZ && z < maxZ;
+                boolean corner = isCorner(x, z, minX, maxX, minZ, maxZ);
+                if (interior || corner) continue; // skip interior and corners
 
-        // Phase 2: Validate interior floor only
+                BlockState bs = level.getBlockState(new BlockPos(x, controllerY, z));
+                SmelteryTier blockTier = getTierForBlock(bs.getBlock());
+                if (blockTier == null) continue; // alloy smelter or lava tank — skip tier check
+
+                if (detectedTier == null) {
+                    detectedTier = blockTier;
+                } else if (detectedTier != blockTier) {
+                    System.out.println("[Smeltery] FAIL: Mixed casing tiers detected");
+                    return SmelteryData.invalid(controllerPos);
+                }
+            }
+        }
+
+        if (detectedTier == null) {
+            System.out.println("[Smeltery] FAIL: No casing blocks found");
+            return SmelteryData.invalid(controllerPos);
+        }
+
+        System.out.println("[Smeltery] Detected tier: " + detectedTier.getDisplayName());
+
+        // ── FLOOR CHECK ───────────────────────────────────────────────────────
         System.out.println("[Smeltery] Checking interior floor at Y=" + floorY);
         for (int x = interiorMinX; x <= interiorMaxX; x++) {
             for (int z = interiorMinZ; z <= interiorMaxZ; z++) {
@@ -99,64 +144,76 @@ public class SmelteryFormation {
                             x + "," + floorY + "," + z + " is " + fs.getBlock());
                     return SmelteryData.invalid(controllerPos);
                 }
-            }
-        }
-        System.out.println("[Smeltery] Floor check passed");
-
-        // Phase 2 continued: Validate interior at controllerY
-        System.out.println("[Smeltery] Checking interior at Y=" + controllerY);
-        for (int x = interiorMinX; x <= interiorMaxX; x++) {
-            for (int z = interiorMinZ; z <= interiorMaxZ; z++) {
-                BlockPos iPos = new BlockPos(x, controllerY, z);
-                if (!isValidInteriorBlock(level, iPos)) {
-                    BlockState is = level.getBlockState(iPos);
-                    System.out.println("[Smeltery] FAIL: Interior block at " +
-                            x + "," + controllerY + "," + z + " is " + is.getBlock());
+                // Floor must match tier
+                SmelteryTier floorTier = getTierForBlock(fs.getBlock());
+                if (floorTier != detectedTier) {
+                    System.out.println("[Smeltery] FAIL: Floor tier mismatch at " +
+                            x + "," + floorY + "," + z);
                     return SmelteryData.invalid(controllerPos);
                 }
             }
         }
-        System.out.println("[Smeltery] Interior check passed");
+        System.out.println("[Smeltery] Floor check passed");
 
-        // Validate walls at controllerY
-        System.out.println("[Smeltery] Checking walls at Y=" + controllerY);
+        // ── INTERIOR CHECK AT CONTROLLER Y ───────────────────────────────────
+        for (int x = interiorMinX; x <= interiorMaxX; x++) {
+            for (int z = interiorMinZ; z <= interiorMaxZ; z++) {
+                BlockPos iPos = new BlockPos(x, controllerY, z);
+                if (!isValidInteriorBlock(level, iPos)) {
+                    System.out.println("[Smeltery] FAIL: Interior block at " +
+                            x + "," + controllerY + "," + z + " is " +
+                            level.getBlockState(iPos).getBlock());
+                    return SmelteryData.invalid(controllerPos);
+                }
+            }
+        }
+
+        // ── WALL CHECK AT CONTROLLER Y (corners optional) ─────────────────────
         for (int x = minX; x <= maxX; x++) {
             for (int z = minZ; z <= maxZ; z++) {
-                boolean isInterior = x > minX && x < maxX && z > minZ && z < maxZ;
-                if (!isInterior) {
-                    BlockPos wPos = new BlockPos(x, controllerY, z);
-                    BlockState ws = level.getBlockState(wPos);
-                    if (!isValidWallBlock(ws)) {
-                        System.out.println("[Smeltery] FAIL: Wall block at " +
-                                x + "," + controllerY + "," + z + " is " + ws.getBlock());
-                        return SmelteryData.invalid(controllerPos);
-                    }
+                boolean interior = x > minX && x < maxX && z > minZ && z < maxZ;
+                boolean corner = isCorner(x, z, minX, maxX, minZ, maxZ);
+                if (interior || corner) continue;
+
+                BlockPos wPos = new BlockPos(x, controllerY, z);
+                BlockState ws = level.getBlockState(wPos);
+                if (!isValidWallBlock(ws)) {
+                    System.out.println("[Smeltery] FAIL: Wall block at " +
+                            x + "," + controllerY + "," + z + " is " + ws.getBlock());
+                    return SmelteryData.invalid(controllerPos);
                 }
             }
         }
         System.out.println("[Smeltery] Wall check passed");
 
-        // Phase 3: Scan upward to find roof
-        System.out.println("[Smeltery] Scanning upward from Y=" + (controllerY + 1));
+        // ── VERTICAL SCAN ─────────────────────────────────────────────────────
         int roofY = controllerY;
-        int maxHeight = 11;
+        int maxHeight = detectedTier.getMaxHeight();
 
         outer:
         for (int y = controllerY + 1; y <= controllerY + maxHeight; y++) {
             for (int x = minX; x <= maxX; x++) {
                 for (int z = minZ; z <= maxZ; z++) {
-                    boolean isInterior = x > minX && x < maxX && z > minZ && z < maxZ;
-                    if (isInterior) {
+                    boolean interior = x > minX && x < maxX && z > minZ && z < maxZ;
+                    boolean corner = isCorner(x, z, minX, maxX, minZ, maxZ);
+
+                    if (interior) {
                         if (!isValidInteriorBlock(level, new BlockPos(x, y, z))) {
-                            System.out.println("[Smeltery] Vertical scan stopped at Y=" + y +
-                                    " interior block: " + level.getBlockState(new BlockPos(x, y, z)).getBlock());
+                            System.out.println("[Smeltery] Vertical scan stopped at Y=" + y);
                             break outer;
                         }
-                    } else {
-                        if (!isValidWallBlock(level.getBlockState(new BlockPos(x, y, z)))) {
+                    } else if (!corner) {
+                        BlockState ws = level.getBlockState(new BlockPos(x, y, z));
+                        if (!isValidWallBlock(ws)) {
                             System.out.println("[Smeltery] Vertical scan stopped at Y=" + y +
-                                    " wall block: " + level.getBlockState(new BlockPos(x, y, z)).getBlock());
+                                    " wall: " + ws.getBlock());
                             break outer;
+                        }
+                        // Check tier consistency on upper walls
+                        SmelteryTier upperTier = getTierForBlock(ws.getBlock());
+                        if (upperTier != null && upperTier != detectedTier) {
+                            System.out.println("[Smeltery] FAIL: Mixed tier in upper wall at Y=" + y);
+                            return SmelteryData.invalid(controllerPos);
                         }
                     }
                 }
@@ -165,29 +222,48 @@ public class SmelteryFormation {
         }
 
         int interiorHeight = roofY - floorY;
-        System.out.println("[Smeltery] RoofY=" + roofY + " FloorY=" + floorY +
-                " InteriorHeight=" + interiorHeight);
+        System.out.println("[Smeltery] RoofY=" + roofY + " InteriorHeight=" + interiorHeight);
 
         if (interiorHeight < 1) {
-            System.out.println("[Smeltery] FAIL: Not tall enough (need height >= 1, got " + interiorHeight + ")");
+            System.out.println("[Smeltery] FAIL: Not tall enough");
             return SmelteryData.invalid(controllerPos);
         }
-        // Controller must be in wall
+
+        // ── MAX HEIGHT MESSAGE ────────────────────────────────────────────────
+        // Stored in SmelteryData — AlloySmelterBlock will show it to player
+        boolean exceededMaxHeight = interiorHeight > detectedTier.getMaxHeight();
+        if (exceededMaxHeight) {
+            System.out.println("[Smeltery] FAIL: Exceeds max height for " +
+                    detectedTier.getDisplayName() + " tier (" + detectedTier.getMaxHeight() + ")");
+            return SmelteryData.invalidWithReason(controllerPos,
+                    "§e" + detectedTier.getDisplayName() +
+                            " Tier supports a max wall height of " + detectedTier.getMaxHeight());
+        }
+
+        // ── CONTROLLER IN WALL ────────────────────────────────────────────────
         boolean controllerInWall =
                 controllerPos.getX() == minX || controllerPos.getX() == maxX ||
                         controllerPos.getZ() == minZ || controllerPos.getZ() == maxZ;
-
-        System.out.println("[Smeltery] Controller in wall: " + controllerInWall);
 
         if (!controllerInWall) {
             System.out.println("[Smeltery] FAIL: Controller not in wall");
             return SmelteryData.invalid(controllerPos);
         }
 
+        // ── LAVA TANK COUNT CHECK ─────────────────────────────────────────────
+        int lavaTankCount = countLavaTanks(level, minX, maxX, minZ, maxZ, floorY, roofY);
+        int maxLavaTanks = detectedTier.getMaxLavaTanks(interiorHeight);
+        if (lavaTankCount > maxLavaTanks) {
+            System.out.println("[Smeltery] FAIL: Too many lava tanks (" + lavaTankCount +
+                    " max " + maxLavaTanks + ")");
+            return SmelteryData.invalid(controllerPos);
+        }
+
         BlockPos interiorOrigin = new BlockPos(interiorMinX, floorY + 1, interiorMinZ);
 
-        System.out.println("[Smeltery] SUCCESS: " + interiorWidth + "x" + interiorDepth +
-                "x" + interiorHeight + " at " + interiorOrigin);
+        System.out.println("[Smeltery] SUCCESS: Tier=" + detectedTier.getDisplayName() +
+                " " + interiorWidth + "x" + interiorDepth + "x" + interiorHeight);
+
 
         return new SmelteryData(
                 controllerPos,
@@ -196,7 +272,24 @@ public class SmelteryFormation {
                 interiorDepth,
                 interiorHeight,
                 true,
-                false
+                false,
+                detectedTier,
+                null  // ADD THIS
         );
+    }
+
+    private static int countLavaTanks(Level level, int minX, int maxX,
+                                      int minZ, int maxZ, int floorY, int roofY) {
+        int count = 0;
+        for (int y = floorY; y <= roofY; y++) {
+            for (int x = minX; x <= maxX; x++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    if (level.getBlockEntity(new BlockPos(x, y, z)) instanceof LavaTankBlockEntity) {
+                        count++;
+                    }
+                }
+            }
+        }
+        return count;
     }
 }

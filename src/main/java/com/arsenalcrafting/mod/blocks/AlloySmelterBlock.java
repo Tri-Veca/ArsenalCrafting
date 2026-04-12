@@ -69,7 +69,11 @@ public class AlloySmelterBlock extends BaseEntityBlock {
         if (controller.isFormed()) {
             player.openMenu(controller, buf -> buf.writeBlockPos(pos));
         } else {
-            player.displayClientMessage(Component.literal("§cSmeltery not formed!"), true);
+            SmelteryData data = controller.getSmelteryData();
+            String reason = (data != null && data.failReason() != null)
+                    ? data.failReason()
+                    : "§cSmeltery not formed!";
+            player.displayClientMessage(Component.literal(reason), true);
         }
 
         return InteractionResult.SUCCESS;
