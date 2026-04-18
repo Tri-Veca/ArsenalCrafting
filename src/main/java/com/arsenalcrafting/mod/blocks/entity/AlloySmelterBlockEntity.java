@@ -14,6 +14,7 @@ import com.arsenalcrafting.mod.generator.AlloyRecipeDefinitions;
 import com.arsenalcrafting.mod.network.PacketHandler;
 import com.arsenalcrafting.mod.network.SyncAlloySmelterCapacityPacket;
 import com.arsenalcrafting.mod.network.SyncAlloySmelterFluidPacket;
+import com.arsenalcrafting.mod.network.SyncOutputTankCapacityPacket;
 import com.arsenalcrafting.mod.registry.ModBlockEntities;
 import com.arsenalcrafting.mod.registry.ModFluids;
 
@@ -23,6 +24,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.util.Mth;
 import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleContainer;
@@ -74,11 +76,18 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         } else {
             currentSlotCount = 9;
         }
+        System.out.println("[SlotCount] smelteryData=" + smelteryData +
+                " isValid=" + (smelteryData != null ? smelteryData.isValid() : "null") +
+                " height=" + (smelteryData != null ? smelteryData.height() : "null") +
+                " tier=" + (smelteryData != null ? smelteryData.tier() : "null") +
+                " getTotalSlots=" + (smelteryData != null ? smelteryData.getTotalSlots() : "null") +
+                " result=" + currentSlotCount);
     }
 
     public int getCurrentSlotCount() {
         return currentSlotCount;
     }
+
 
     // ── ITEM HANDLER ──────────────────────────────────────────────────────────
     private final ItemStackHandler itemHandler = new ItemStackHandler(45) {
@@ -106,6 +115,40 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         if (level != null && !level.isClientSide) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
         }
+    }
+
+    private int scrolledRow = 0;
+
+    public void setScrolledRow(int row) {
+        int maxRow = getMaxScrollRow();
+        this.scrolledRow = row;
+        setChanged();
+        if (level != null && !level.isClientSide) {
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
+        }
+    }
+    public void setScrolledRowClientOnly(int row) {
+        this.scrolledRow = Math.max(0, Math.min(getMaxScrollRow(), row));
+
+
+    }
+
+    public int getScrolledRow() {
+        return scrolledRow;
+    }
+
+    public int getMaxScrollRow() {
+        // Each scroll step shows 9 slots (full 3x3 page)
+        int totalPages = (int) Math.ceil((double) currentSlotCount / 9.0);
+        return Math.max(0, totalPages - 1);
+    }
+
+    public boolean isSlotVisible(int slotIndex) {
+        int pageStart = scrolledRow * 9;
+        int pageEnd   = pageStart + 9;
+        boolean visible = slotIndex >= pageStart && slotIndex < pageEnd;
+
+        return visible;
     }
 
     // ── NUGGET ACCUMULATOR ────────────────────────────────────────────────────
@@ -470,9 +513,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
     @Override
     public void setChanged() {
         super.setChanged();
-        if (level != null && !level.isClientSide) {
-            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
-        }
+
     }
 
     @Override
@@ -504,6 +545,9 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         tag.putInt("Progress", progress);
         tag.putInt("MaxProgress", maxProgress);
         tag.putInt("CurrentSlotCount", currentSlotCount);
+        tag.putInt("ScrolledRow", scrolledRow);
+        tag.putInt("OutputTankCapacity", OUTPUT_TANK.getCapacity());
+        System.out.println("[Server getUpdateTag] OutputTankCapacity=" + OUTPUT_TANK.getCapacity());
         return tag;
     }
 
@@ -516,6 +560,11 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         }
         if (tag.contains("inv")) itemHandler.deserializeNBT(registries, tag);
         if (tag.contains("OutputTank")) OUTPUT_TANK.load(tag.getCompound("OutputTank"), registries);
+        if (tag.contains("OutputTankCapacity")) {
+            OUTPUT_TANK.setCapacity(tag.getInt("OutputTankCapacity"));
+            System.out.println("[Client handleUpdateTag] set capacity=" + OUTPUT_TANK.getCapacity());
+        }
+
         if (tag.contains("RecipeType")) currentRecipeType = tag.getString("RecipeType");
         if (tag.contains("CastTarget")) {
             castTargetFluid = tag.getString("CastTarget");
@@ -534,6 +583,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         progress = tag.getInt("Progress");
         maxProgress = tag.getInt("MaxProgress");
         if (tag.contains("CurrentSlotCount")) currentSlotCount = tag.getInt("CurrentSlotCount");
+        if (tag.contains("ScrolledRow")) scrolledRow = tag.getInt("ScrolledRow");
     }
 
     @Override
@@ -663,7 +713,21 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
             be.refreshConnectedTanks();
             be.refreshCooldown = REFRESH_RATE;
         }
+        be.validateIfNeeded();
+        // Replace the entire capacity sync block in tick with just this:
+        if (be.smelteryData != null && be.smelteryData.isValid()) {
+            int correctCapacity = be.smelteryData.height() * 9000;
+            be.OUTPUT_TANK.setCapacity(correctCapacity);
+            PacketHandler.sendToAllTracking(
+                    new SyncOutputTankCapacityPacket(pos, correctCapacity),
+                    level, pos);
+        }
         be.updateDisplayTank();
+        if (be.currentSlotCount != 9) {
+            System.out.println("[SLOTS] count=" + be.currentSlotCount);
+        } else {
+            System.out.println("[SLOTS] still 9 - formed=" + (be.smelteryData != null && be.smelteryData.isValid()) + " smelteryData=" + be.smelteryData);
+        }
 
         // Check for liquid mixing recipes
         if (be.currentRecipeType == null || be.currentRecipeType.equals("solid")) {
@@ -861,8 +925,12 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         if (level == null || level.isClientSide) return;
         if (smelteryData == null || smelteryData.needsRecheck()) {
             smelteryData = SmelteryFormation.validate(level, worldPosition);
+            System.out.println("[VALIDATE] valid=" + smelteryData.isValid()
+                    + " h=" + smelteryData.height()
+                    + " tier=" + smelteryData.tier()
+                    + " slots=" + smelteryData.getTotalSlots());
             int volume = smelteryData.isValid() ? smelteryData.volume() : 0;
-            OUTPUT_TANK.setCapacity(Math.max(9000, volume * 1000));
+            OUTPUT_TANK.setCapacity(smelteryData.isValid() ? smelteryData.height() * 9000 : 9000);
             updateSlotCount();
             setChanged();
         }

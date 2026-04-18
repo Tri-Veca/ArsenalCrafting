@@ -40,43 +40,37 @@ public class AlloySmelterMenu extends AbstractContainerMenu {
         this.level       = playerInventory.player.level();
         this.data        = data;
 
-        addPlayerInventory(playerInventory);
-        addPlayerHotbar(playerInventory);
-
+        // Server constructor — replace the 3x3 loop with this:
         var handler = this.blockEntity.getItemHandler();
 
-        // Input grid (3x3) - slots 0-8 — unchanged
-        for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < 3; col++) {
-                int index = row * 3 + col;
-                this.addSlot(new SlotItemHandler(handler, index, 10 + col * 18, 19 + row * 18){
-                    @Override
-                    public int getMaxStackSize() { return 1; }
-                });
-
-                }
+// Base 9 slots — fixed, always visible
+        for (int i = 0; i < 45; i++) {
+            int windowRel = i % 9; // always maps to one of the 9 grid positions
+            int col = windowRel % 3;
+            int row = windowRel / 3;
+            this.addSlot(new ScrollableSlot(handler, i,
+                    10 + col * 18,
+                    19 + row * 18)); // all share y=19, same as base grid
         }
 
 
 
+        addPlayerInventory(playerInventory);
+        addPlayerHotbar(playerInventory);
+        addDataSlots(data);
 
-        // ── OLD ITEM OUTPUT SLOT (commented out — slot 9 now unused) ─────────
-        // this.addSlot(new SlotItemHandler(handler, 9, 143, 35) {
-        //     @Override
-        //     public boolean mayPlace(ItemStack stack) {
-        //         return false; // Output only
-        //     }
-        // });
+
 
         for (int i = 0; i < slots.size(); i++) {
             Slot slot = slots.get(i);
             if (slot instanceof SlotItemHandler) {
                 System.out.println("[Menu] Slot " + i + " is SlotItemHandler with index "
-                        + ((SlotItemHandler) slot).getSlotIndex());
+                        + slot.getSlotIndex());
             }
         }
 
-        addDataSlots(data);
+
+        //addDataSlots(data);
     }
 
     @Override
@@ -88,6 +82,8 @@ public class AlloySmelterMenu extends AbstractContainerMenu {
         }
         //System.out.println(getDebugInfo());
     }
+
+
 
     // ── LAVA DISPLAY TANK GETTERS (existing — unchanged) ─────────────────────
 
@@ -240,35 +236,40 @@ public class AlloySmelterMenu extends AbstractContainerMenu {
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
         Slot slot = slots.get(index);
-        if (slot == null || !slot.hasItem()) return ItemStack.EMPTY;
-
+        if (!slot.hasItem()) return ItemStack.EMPTY;
         ItemStack stack = slot.getItem();
         ItemStack copy = stack.copy();
 
-        // Actual slot layout:
-        // 0-26: Player inventory
-        // 27-35: Hotbar
-        // 36-44: Input slots
-
-        if (index < 36) {
-            // From player inventory/hotbar → try input slots
-            if (!moveItemStackTo(stack, 36, 45, false)) {
-                return ItemStack.EMPTY;
-            }
+        if (index < 45) {
+            // Machine → player inventory first, then hotbar
+            if (!moveItemStackTo(stack, 45, 81, false)) return ItemStack.EMPTY;
         } else {
-            // From input slots → move to player inventory then hotbar
-            if (!moveItemStackTo(stack, 0, 36, false)) {
-                return ItemStack.EMPTY;
-            }
+            // Player → machine, try all 45 slots (isItemValid blocks slots >= currentSlotCount)
+            if (!moveItemStackTo(stack, 0, 45, false)) return ItemStack.EMPTY;
         }
 
-        if (stack.isEmpty()) {
-            slot.set(ItemStack.EMPTY);
-        } else {
-            slot.setChanged();
-        }
-
+        if (stack.isEmpty()) slot.set(ItemStack.EMPTY);
+        else slot.setChanged();
         return copy;
+    }
+
+    public class ScrollableSlot extends SlotItemHandler {
+        private final int slotIndex;
+
+        public ScrollableSlot(net.neoforged.neoforge.items.IItemHandler handler,
+                              int index, int x, int y) {
+            super(handler, index, x, y);
+            this.slotIndex = index;
+        }
+
+        @Override
+        public boolean isActive() {
+            return slotIndex < blockEntity.getCurrentSlotCount()
+                    && blockEntity.isSlotVisible(slotIndex);
+        }
+
+        @Override
+        public int getMaxStackSize() { return 1; }
     }
 
     @Override

@@ -97,6 +97,17 @@ public class PacketHandler {
                 SelectPackagePacket::handle
         );
 
+        registrar.playToServer(
+                SyncScrolledRowPacket.TYPE,
+                SyncScrolledRowPacket.STREAM_CODEC,
+                SyncScrolledRowPacket::handle
+        );
+        registrar.playToClient(
+                SyncOutputTankCapacityPacket.TYPE,
+                SyncOutputTankCapacityPacket.STREAM_CODEC,
+                SyncOutputTankCapacityPacket::handle
+        );
+
 
     }
 

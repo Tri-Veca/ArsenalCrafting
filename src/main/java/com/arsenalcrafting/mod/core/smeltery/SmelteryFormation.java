@@ -77,59 +77,104 @@ public class SmelteryFormation {
             maxX++;
         }
 
+        System.out.println("[Smeltery] Phase 1: Z wall from " + minZ + " to " + maxZ);
+        System.out.println("[Smeltery] Phase 1: X wall from " + minX + " to " + maxX);
+
         // Phase 2: Use wall endpoints to find perpendicular walls
+        // Try the wall end position first, fall back to one block past if corners are missing
         boolean controllerOnZWall = (maxZ - minZ) >= (maxX - minX);
+        System.out.println("[Smeltery] controllerOnZWall: " + controllerOnZWall);
 
         if (controllerOnZWall) {
-            // Walk X from minZ row
+            // Controller is on Z face — find X extents
+            // Check if there are wall blocks at minZ and maxZ (with corners), or at minZ-1/maxZ+1 (without)
+            int searchMinZ = isValidWallBlock(level.getBlockState(
+                    new BlockPos(controllerPos.getX() - 1, controllerY, minZ))) ||
+                    isValidWallBlock(level.getBlockState(
+                            new BlockPos(controllerPos.getX() + 1, controllerY, minZ)))
+                    ? minZ : minZ - 1;
+            int searchMaxZ = isValidWallBlock(level.getBlockState(
+                    new BlockPos(controllerPos.getX() - 1, controllerY, maxZ))) ||
+                    isValidWallBlock(level.getBlockState(
+                            new BlockPos(controllerPos.getX() + 1, controllerY, maxZ)))
+                    ? maxZ : maxZ + 1;
+
+            System.out.println("[Smeltery] searchMinZ=" + searchMinZ + " searchMaxZ=" + searchMaxZ);
+
             int fromMinZ_minX = controllerPos.getX();
             int fromMinZ_maxX = controllerPos.getX();
             while (fromMinZ_minX > controllerPos.getX() - MAX_SIZE &&
-                    isValidWallBlock(level.getBlockState(new BlockPos(fromMinZ_minX - 1, controllerY, minZ)))) {
+                    isValidWallBlock(level.getBlockState(new BlockPos(fromMinZ_minX - 1, controllerY, searchMinZ)))) {
                 fromMinZ_minX--;
             }
             while (fromMinZ_maxX < controllerPos.getX() + MAX_SIZE &&
-                    isValidWallBlock(level.getBlockState(new BlockPos(fromMinZ_maxX + 1, controllerY, minZ)))) {
+                    isValidWallBlock(level.getBlockState(new BlockPos(fromMinZ_maxX + 1, controllerY, searchMinZ)))) {
                 fromMinZ_maxX++;
             }
-            // Walk X from maxZ row
+
             int fromMaxZ_minX = controllerPos.getX();
             int fromMaxZ_maxX = controllerPos.getX();
             while (fromMaxZ_minX > controllerPos.getX() - MAX_SIZE &&
-                    isValidWallBlock(level.getBlockState(new BlockPos(fromMaxZ_minX - 1, controllerY, maxZ)))) {
+                    isValidWallBlock(level.getBlockState(new BlockPos(fromMaxZ_minX - 1, controllerY, searchMaxZ)))) {
                 fromMaxZ_minX--;
             }
             while (fromMaxZ_maxX < controllerPos.getX() + MAX_SIZE &&
-                    isValidWallBlock(level.getBlockState(new BlockPos(fromMaxZ_maxX + 1, controllerY, maxZ)))) {
+                    isValidWallBlock(level.getBlockState(new BlockPos(fromMaxZ_maxX + 1, controllerY, searchMaxZ)))) {
                 fromMaxZ_maxX++;
             }
+
+            System.out.println("[Smeltery] fromMinZ_minX=" + fromMinZ_minX + " fromMinZ_maxX=" + fromMinZ_maxX);
+            System.out.println("[Smeltery] fromMaxZ_minX=" + fromMaxZ_minX + " fromMaxZ_maxX=" + fromMaxZ_maxX);
+
             minX = Math.min(fromMinZ_minX, fromMaxZ_minX);
             maxX = Math.max(fromMinZ_maxX, fromMaxZ_maxX);
+            minZ = searchMinZ;
+            maxZ = searchMaxZ;
+
         } else {
-            // Walk Z from minX column
+            // Controller is on X face — find Z extents
+            int searchMinX = isValidWallBlock(level.getBlockState(
+                    new BlockPos(minX, controllerY, controllerPos.getZ() - 1))) ||
+                    isValidWallBlock(level.getBlockState(
+                            new BlockPos(minX, controllerY, controllerPos.getZ() + 1)))
+                    ? minX : minX - 1;
+            int searchMaxX = isValidWallBlock(level.getBlockState(
+                    new BlockPos(maxX, controllerY, controllerPos.getZ() - 1))) ||
+                    isValidWallBlock(level.getBlockState(
+                            new BlockPos(maxX, controllerY, controllerPos.getZ() + 1)))
+                    ? maxX : maxX + 1;
+
+            System.out.println("[Smeltery] searchMinX=" + searchMinX + " searchMaxX=" + searchMaxX);
+
             int fromMinX_minZ = controllerPos.getZ();
             int fromMinX_maxZ = controllerPos.getZ();
             while (fromMinX_minZ > controllerPos.getZ() - MAX_SIZE &&
-                    isValidWallBlock(level.getBlockState(new BlockPos(minX, controllerY, fromMinX_minZ - 1)))) {
+                    isValidWallBlock(level.getBlockState(new BlockPos(searchMinX, controllerY, fromMinX_minZ - 1)))) {
                 fromMinX_minZ--;
             }
             while (fromMinX_maxZ < controllerPos.getZ() + MAX_SIZE &&
-                    isValidWallBlock(level.getBlockState(new BlockPos(minX, controllerY, fromMinX_maxZ + 1)))) {
+                    isValidWallBlock(level.getBlockState(new BlockPos(searchMinX, controllerY, fromMinX_maxZ + 1)))) {
                 fromMinX_maxZ++;
             }
-            // Walk Z from maxX column
+
             int fromMaxX_minZ = controllerPos.getZ();
             int fromMaxX_maxZ = controllerPos.getZ();
             while (fromMaxX_minZ > controllerPos.getZ() - MAX_SIZE &&
-                    isValidWallBlock(level.getBlockState(new BlockPos(maxX, controllerY, fromMaxX_minZ - 1)))) {
+                    isValidWallBlock(level.getBlockState(new BlockPos(searchMaxX, controllerY, fromMaxX_minZ - 1)))) {
                 fromMaxX_minZ--;
             }
             while (fromMaxX_maxZ < controllerPos.getZ() + MAX_SIZE &&
-                    isValidWallBlock(level.getBlockState(new BlockPos(maxX, controllerY, fromMaxX_maxZ + 1)))) {
+                    isValidWallBlock(level.getBlockState(new BlockPos(searchMaxX, controllerY, fromMaxX_maxZ + 1)))) {
                 fromMaxX_maxZ++;
             }
+
+            System.out.println("[Smeltery] fromMinX_minZ=" + fromMinX_minZ + " fromMinX_maxZ=" + fromMinX_maxZ);
+            System.out.println("[Smeltery] fromMaxX_minZ=" + fromMaxX_minZ + " fromMaxX_maxZ=" + fromMaxX_maxZ);
+
             minZ = Math.min(fromMinX_minZ, fromMaxX_minZ);
             maxZ = Math.max(fromMinX_maxZ, fromMaxX_maxZ);
+            minX = searchMinX;
+            maxX = searchMaxX;
         }
 
         int outerWidth = maxX - minX + 1;
@@ -151,13 +196,12 @@ public class SmelteryFormation {
         int interiorWidth = interiorMaxX - interiorMinX + 1;
         int interiorDepth = interiorMaxZ - interiorMinZ + 1;
 
-        // ── TIER DETECTION (skip corners) ────────────────────────────────────
+        // ── TIER DETECTION ────────────────────────────────────────────────────
         SmelteryTier detectedTier = null;
         for (int x = minX; x <= maxX; x++) {
             for (int z = minZ; z <= maxZ; z++) {
                 boolean interior = x > minX && x < maxX && z > minZ && z < maxZ;
                 boolean corner = isCorner(x, z, minX, maxX, minZ, maxZ);
-                // Skip corners and interior for tier detection
                 if (interior || corner) continue;
 
                 BlockState bs = level.getBlockState(new BlockPos(x, controllerY, z));
@@ -180,7 +224,7 @@ public class SmelteryFormation {
 
         System.out.println("[Smeltery] Detected tier: " + detectedTier.getDisplayName());
 
-        // ── FLOOR CHECK (corners optional) ───────────────────────────────────
+        // ── FLOOR CHECK ───────────────────────────────────────────────────────
         System.out.println("[Smeltery] Checking interior floor at Y=" + floorY);
         for (int x = interiorMinX; x <= interiorMaxX; x++) {
             for (int z = interiorMinZ; z <= interiorMaxZ; z++) {
@@ -218,7 +262,6 @@ public class SmelteryFormation {
             for (int z = minZ; z <= maxZ; z++) {
                 boolean interior = x > minX && x < maxX && z > minZ && z < maxZ;
                 boolean corner = isCorner(x, z, minX, maxX, minZ, maxZ);
-                // Skip interior and corners (corners are optional)
                 if (interior || corner) continue;
 
                 BlockPos wPos = new BlockPos(x, controllerY, z);
@@ -230,9 +273,9 @@ public class SmelteryFormation {
                 }
             }
         }
-        System.out.println("[Smeltery] Wall check passed (corners optional)");
+        System.out.println("[Smeltery] Wall check passed");
 
-        // ── VERTICAL SCAN (corners optional) ─────────────────────────────────────
+        // ── VERTICAL SCAN ─────────────────────────────────────────────────────
         int roofY = controllerY;
         int maxHeight = detectedTier.getMaxHeight();
 
@@ -249,7 +292,6 @@ public class SmelteryFormation {
                             break outer;
                         }
                     } else if (!corner) {
-                        // Only check non-corner wall positions
                         BlockState ws = level.getBlockState(new BlockPos(x, y, z));
                         if (!isValidWallBlock(ws)) {
                             System.out.println("[Smeltery] Vertical scan stopped at Y=" + y +
@@ -262,7 +304,6 @@ public class SmelteryFormation {
                             return SmelteryData.invalid(controllerPos);
                         }
                     }
-                    // Corners are completely skipped - no check needed
                 }
             }
             roofY = y;
