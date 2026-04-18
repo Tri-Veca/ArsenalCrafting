@@ -913,11 +913,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
     private SmelteryData smelteryData = null;
 
     public void markNeedsRecheck() {
-        if (smelteryData != null) {
-            smelteryData = smelteryData.withNeedsRecheck();
-        } else {
-            smelteryData = SmelteryData.invalid(worldPosition).withNeedsRecheck();
-        }
+        smelteryData = null; // force full revalidation, not just needsRecheck flag
         setChanged();
     }
 

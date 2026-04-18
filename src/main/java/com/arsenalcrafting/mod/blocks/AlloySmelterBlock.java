@@ -10,6 +10,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
@@ -46,14 +47,27 @@ public class AlloySmelterBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (state.getBlock() != newState.getBlock()) {
-            BlockEntity blockEntity = level.getBlockEntity(pos);
-            if (blockEntity instanceof AlloySmelterBlockEntity smelter) {
-                smelter.drops();
+    public void onRemove(BlockState state, Level level, BlockPos pos,
+                         BlockState newState, boolean movedByPiston) {
+        super.onRemove(state, level, pos, newState, movedByPiston);
+        notifyNearbyControllers(level, pos);
+    }
+
+    @Override
+    public void onPlace(BlockState state, Level level, BlockPos pos,
+                        BlockState oldState, boolean movedByPiston) {
+        super.onPlace(state, level, pos, oldState, movedByPiston);
+        notifyNearbyControllers(level, pos);
+    }
+
+    private void notifyNearbyControllers(Level level, BlockPos pos) {
+        // Search in a radius for the controller
+        for (BlockPos search : BlockPos.betweenClosed(
+                pos.offset(-6, -6, -6), pos.offset(6, 6, 6))) {
+            if (level.getBlockEntity(search) instanceof AlloySmelterBlockEntity be) {
+                be.markNeedsRecheck();
             }
         }
-        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     @Override
@@ -80,13 +94,19 @@ public class AlloySmelterBlock extends BaseEntityBlock {
     }
 
     @Override
-    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
+    public void neighborChanged(BlockState state, Level level, BlockPos pos,
+                                Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
         super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
-        if (!level.isClientSide) {
-            BlockEntity be = level.getBlockEntity(pos);
-            if (be instanceof AlloySmelterBlockEntity smelter) {
-                smelter.onNeighborChange(neighborPos);
-            }
+        if (level.getBlockEntity(pos) instanceof AlloySmelterBlockEntity be) {
+            be.markNeedsRecheck();
+        }
+    }
+
+    @Override
+    public void onNeighborChange(BlockState state, LevelReader level, BlockPos pos, BlockPos neighbor) {
+        super.onNeighborChange(state, level, pos, neighbor);
+        if (level.getBlockEntity(pos) instanceof AlloySmelterBlockEntity be) {
+            be.markNeedsRecheck();
         }
     }
 
