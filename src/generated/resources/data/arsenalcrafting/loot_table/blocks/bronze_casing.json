@@ -11,11 +11,11 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "arsenalcrafting:void_casing"
+          "name": "arsenalcrafting:bronze_casing"
         }
       ],
       "rolls": 1.0
     }
   ],
-  "random_sequence": "arsenalcrafting:blocks/void_casing"
+  "random_sequence": "arsenalcrafting:blocks/bronze_casing"
 }

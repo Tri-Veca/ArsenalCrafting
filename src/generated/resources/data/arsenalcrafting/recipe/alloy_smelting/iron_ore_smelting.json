@@ -1,0 +1,13 @@
+{
+  "type": "arsenalcrafting:alloy_smelting",
+  "craftTime": 60,
+  "ingredients": [
+    {
+      "item": "minecraft:raw_iron"
+    }
+  ],
+  "isOreRecipe": true,
+  "lavaCost": 500,
+  "resultAmountMb": 1000,
+  "resultMaterial": "Iron"
+}

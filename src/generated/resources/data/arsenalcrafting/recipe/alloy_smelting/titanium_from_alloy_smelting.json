@@ -1,0 +1,13 @@
+{
+  "type": "arsenalcrafting:alloy_smelting",
+  "craftTime": 100,
+  "ingredients": [
+    {
+      "item": "arsenalcrafting:titanium_alloy"
+    }
+  ],
+  "isOreRecipe": false,
+  "lavaCost": 500,
+  "resultAmountMb": 1000,
+  "resultMaterial": "Titanium"
+}

@@ -28,7 +28,10 @@ public class ModBlockLootTableProvider extends BlockLootSubProvider {
         dropSelf(ModBlocks.LAVA_TANK.get());
         dropSelf(ModBlocks.TOOLKIT.get());
         dropSelf(ModBlocks.IRON_CASING.get());
-        //dropSelf(ModBlocks.VOID_CASING.get());
+        dropSelf(ModBlocks.COPPER_CASING.get());
+        dropSelf(ModBlocks.TITANIUM_CASING.get());
+        dropSelf(ModBlocks.STEEL_CASING.get());
+        dropSelf(ModBlocks.BRONZE_CASING.get());
         dropSelf(ModBlocks.ALLOY_SMELTER.get());
         dropSelf(ModBlocks.CASTING_STATION.get());
         dropSelf(ModBlocks.VALVE_FAUCET.get());

@@ -6,6 +6,7 @@
       "item": "minecraft:copper_ingot"
     }
   ],
+  "isOreRecipe": false,
   "lavaCost": 500,
   "resultAmountMb": 1000,
   "resultMaterial": "Copper"

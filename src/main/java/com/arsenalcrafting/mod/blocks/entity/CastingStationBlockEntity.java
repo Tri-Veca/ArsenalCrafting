@@ -92,14 +92,15 @@ public class CastingStationBlockEntity extends BlockEntity {
         return true;
     }
 
-    public void receiveFluid(String materialName, int amount) {
+    public void receiveFluid(String materialName, int amount, float speedMultiplier) {
         this.fluidMaterialName = materialName;
         this.fluidAmount = amount;
 
         AlloyMaterial mat = AlloyMaterial.fromName(materialName);
         if (mat != null) {
             String moldId = mode == CastMode.MOLD ? moldComponentId : "ingot";
-            this.settingTime = CastingDatabase.getSettingTicks(mat, moldId);
+            int baseSettingTime = CastingDatabase.getSettingTicks(mat, moldId);
+            this.settingTime = Math.max(1, Math.round(baseSettingTime / speedMultiplier));
             this.settingProgress = 0;
             this.isSetting = true;
             this.isReady = false;

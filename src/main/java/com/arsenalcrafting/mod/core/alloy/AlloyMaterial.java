@@ -324,6 +324,10 @@ public enum AlloyMaterial {
         if (item == Items.COAL) return COAL;
         if (item == Items.NETHERITE_INGOT) return NETHERITE;
 
+        if (item == Items.RAW_COPPER) return COPPER;
+        if (item == Items.RAW_IRON)   return IRON;
+        if (item == Items.RAW_GOLD)   return GOLD;
+
 
         //Sets modded ingots to their respective materials for repair kit usage
         if (item == ItemStackHelper.getAlloyStack(AlloyMaterial.BRONZE).getItem()) return BRONZE;

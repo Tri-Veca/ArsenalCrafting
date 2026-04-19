@@ -87,6 +87,7 @@ public class AlloyRecipeProvider implements DataProvider {
 
         json.addProperty("lavaCost",   recipe.getLavaCost());
         json.addProperty("craftTime",  recipe.getCraftTime());
+        json.addProperty("isOreRecipe", recipe.isOreRecipe());
 
         Path path = packOutput.getOutputFolder(PackOutput.Target.DATA_PACK)
                 .resolve(ArsenalCrafting.MOD_ID)

@@ -17,55 +17,46 @@ import java.util.List;
 
 public class AlloyRecipe implements Recipe<AlloyRecipeInput> {
     private final NonNullList<Ingredient> ingredients;
-
-    // ── FLUID OUTPUT (new) ────────────────────────────────────────────────────
-    private final String resultMaterial; // AlloyMaterial name e.g. "Bronze"
-    private final int resultAmountMb;    // Output fluid in millibuckets
-
-    // ── ITEM OUTPUT (old — kept but unused, comment back in if reverting) ─────
-    // private final ItemStack result;
-
+    private final String resultMaterial;
+    private final int resultAmountMb;
     private final int lavaCost;
     private final int craftTime;
+    private final boolean isOreRecipe; // NEW
 
     public AlloyRecipe(List<Ingredient> ingredients,
                        String resultMaterial, int resultAmountMb,
-                       int lavaCost, int craftTime) {
+                       int lavaCost, int craftTime, boolean isOreRecipe) {
         this.ingredients = NonNullList.create();
         this.ingredients.addAll(ingredients);
         this.resultMaterial = resultMaterial;
         this.resultAmountMb = resultAmountMb;
         this.lavaCost = lavaCost;
         this.craftTime = craftTime;
+        this.isOreRecipe = isOreRecipe; // NEW
     }
 
-    public int getLavaCost()        { return lavaCost; }
-    public int getCraftTime()       { return craftTime; }
+    public int getLavaCost()          { return lavaCost; }
+    public int getCraftTime()         { return craftTime; }
     public String getResultMaterial() { return resultMaterial; }
-    public int getResultAmountMb()  { return resultAmountMb; }
+    public int getResultAmountMb()    { return resultAmountMb; }
+    public boolean isOreRecipe()      { return isOreRecipe; } // NEW
 
-    // Optional: Helper method to get the AlloyMaterial enum directly
     public AlloyMaterial getResultAlloyMaterial() {
         return AlloyMaterial.fromName(resultMaterial);
     }
 
     @Override
-    public NonNullList<Ingredient> getIngredients() {
-        return ingredients;
-    }
+    public NonNullList<Ingredient> getIngredients() { return ingredients; }
 
     @Override
     public boolean matches(AlloyRecipeInput input, Level level) {
         if (level.isClientSide()) return false;
-
         List<ItemStack> inputItems = new ArrayList<>();
         for (int i = 0; i < 9; i++) {
             ItemStack stack = input.getItem(i);
             if (!stack.isEmpty()) inputItems.add(stack);
         }
-
         if (inputItems.size() != ingredients.size()) return false;
-
         List<Ingredient> remaining = new ArrayList<>(ingredients);
         for (ItemStack inputItem : inputItems) {
             boolean matched = false;
@@ -81,22 +72,16 @@ public class AlloyRecipe implements Recipe<AlloyRecipeInput> {
         return remaining.isEmpty();
     }
 
-    // ── assemble / getResultItem kept for recipe system compatibility ─────────
-    // Returns EMPTY since output is now fluid — override if item output needed
     @Override
     public ItemStack assemble(AlloyRecipeInput input, HolderLookup.Provider registries) {
         return ItemStack.EMPTY;
     }
 
     @Override
-    public boolean canCraftInDimensions(int width, int height) {
-        return true;
-    }
+    public boolean canCraftInDimensions(int width, int height) { return true; }
 
     @Override
-    public ItemStack getResultItem(HolderLookup.Provider registries) {
-        return ItemStack.EMPTY;
-    }
+    public ItemStack getResultItem(HolderLookup.Provider registries) { return ItemStack.EMPTY; }
 
     @Override
     public RecipeSerializer<?> getSerializer() {
@@ -107,8 +92,6 @@ public class AlloyRecipe implements Recipe<AlloyRecipeInput> {
     public RecipeType<?> getType() {
         return AlloyRecipeType.ALLOY_SMELTING.get();
     }
-
-    // ── SERIALIZER ────────────────────────────────────────────────────────────
 
     public static class Serializer implements RecipeSerializer<AlloyRecipe> {
         public static final Serializer INSTANCE = new Serializer();
@@ -124,7 +107,9 @@ public class AlloyRecipe implements Recipe<AlloyRecipeInput> {
                         Codec.INT.optionalFieldOf("lavaCost", 1000)
                                 .forGetter(r -> r.lavaCost),
                         Codec.INT.optionalFieldOf("craftTime", 200)
-                                .forGetter(r -> r.craftTime)
+                                .forGetter(r -> r.craftTime),
+                        Codec.BOOL.optionalFieldOf("isOreRecipe", false) // NEW
+                                .forGetter(r -> r.isOreRecipe)
                 ).apply(instance, AlloyRecipe::new)
         );
 
@@ -139,6 +124,7 @@ public class AlloyRecipe implements Recipe<AlloyRecipeInput> {
                             buf.writeVarInt(recipe.resultAmountMb);
                             buf.writeVarInt(recipe.lavaCost);
                             buf.writeVarInt(recipe.craftTime);
+                            buf.writeBoolean(recipe.isOreRecipe); // NEW
                         },
                         buf -> {
                             int size = buf.readVarInt();
@@ -150,8 +136,9 @@ public class AlloyRecipe implements Recipe<AlloyRecipeInput> {
                             int resultAmountMb    = buf.readVarInt();
                             int lavaCost          = buf.readVarInt();
                             int craftTime         = buf.readVarInt();
+                            boolean isOreRecipe   = buf.readBoolean(); // NEW
                             return new AlloyRecipe(ingredients, resultMaterial, resultAmountMb,
-                                    lavaCost, craftTime);
+                                    lavaCost, craftTime, isOreRecipe);
                         }
                 );
 

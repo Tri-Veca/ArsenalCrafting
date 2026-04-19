@@ -3,6 +3,7 @@ package com.arsenalcrafting.mod.blocks.entity;
 
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.core.alloy.CastingDatabase;
+import com.arsenalcrafting.mod.core.smeltery.SmelteryData;
 import com.arsenalcrafting.mod.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -143,7 +144,14 @@ public class ValveFaucetBlockEntity extends BlockEntity {
                     station.getMode() == CastingStationBlockEntity.CastMode.MOLD
                             && station.getMoldComponentId() != null
                             ? station.getMoldComponentId() : "ingot");
-            station.receiveFluid(be.pouringMaterialName, needed);
+
+            float speedMultiplier = 1.0f;
+            SmelteryData sd = smelter.getSmelteryData();
+            if (sd != null && sd.isValid()) {
+                speedMultiplier = sd.tier().getSpeedMultiplier();
+            }
+
+            station.receiveFluid(be.pouringMaterialName, needed, speedMultiplier);
             be.reset();
         }
 

@@ -6,6 +6,7 @@
       "item": "arsenalcrafting:tin_alloy"
     }
   ],
+  "isOreRecipe": false,
   "lavaCost": 500,
   "resultAmountMb": 1000,
   "resultMaterial": "Tin"

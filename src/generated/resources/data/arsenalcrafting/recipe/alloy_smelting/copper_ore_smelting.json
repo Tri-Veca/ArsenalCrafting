@@ -1,0 +1,13 @@
+{
+  "type": "arsenalcrafting:alloy_smelting",
+  "craftTime": 30,
+  "ingredients": [
+    {
+      "item": "minecraft:raw_copper"
+    }
+  ],
+  "isOreRecipe": true,
+  "lavaCost": 500,
+  "resultAmountMb": 1000,
+  "resultMaterial": "Copper"
+}

@@ -61,6 +61,23 @@ public class AlloyRecipeDefinitions {
 
         );
 
+        addRecipe("steel_from_alloy_smelting", AlloyMaterial.STEEL, 1000, 750,
+                ItemStackHelper.getAlloyStack(AlloyMaterial.STEEL).getItem()
+
+        );
+        addRecipe("titanium_from_alloy_smelting", AlloyMaterial.TITANIUM, 1000, 500,
+                ItemStackHelper.getAlloyStack(AlloyMaterial.TITANIUM).getItem()
+
+        );
+
+
+        addOreRecipe("copper_ore_smelting", AlloyMaterial.COPPER, 1000, 500,
+                Items.RAW_COPPER);
+        addOreRecipe("iron_ore_smelting", AlloyMaterial.IRON, 1000, 500,
+                Items.RAW_IRON);
+        addOreRecipe("gold_ore_smelting", AlloyMaterial.GOLD, 1000, 500,
+                Items.RAW_GOLD);
+
 
 
 
@@ -110,6 +127,16 @@ public class AlloyRecipeDefinitions {
 
     }
 
+    private static void addOreRecipe(String name, AlloyMaterial resultMaterial,
+                                     int resultAmountMb, int lavaCost, Object... ingredients) {
+        List<Object> ingredientList = new ArrayList<>(List.of(ingredients));
+        int calculatedCraftTime = calculateCraftTime(ingredientList);
+        RECIPES.put(name, new AlloyRecipeDefinition(
+                name, resultMaterial, resultAmountMb, lavaCost,
+                ingredientList, calculatedCraftTime, true // isOreRecipe = true
+        ));
+    }
+
 
 
 
@@ -128,8 +155,11 @@ public class AlloyRecipeDefinitions {
                 resultAmountMb,
                 lavaCost,
                 ingredientList,
-                calculatedCraftTime
+                calculatedCraftTime,
+                false
         ));
+
+
 
 
 
@@ -273,7 +303,8 @@ public class AlloyRecipeDefinitions {
             AlloyMaterial resultMaterial,
             int resultAmountMb,
             int lavaCost, List<Object> ingredients,
-            int craftTime
+            int craftTime,
+            boolean isOreRecipe
 
     ) {
         public String getResultMaterialName() {

@@ -948,9 +948,11 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
             tooltip.add(Component.empty());
             tooltip.add(Component.literal(String.format("Total: %d / %d mb (%.1f%%)",
                     total, capacity, (total * 100f / capacity))).withStyle(ChatFormatting.GREEN));
-            System.out.println("[Tooltip] capacity=" + menu.getOutputFluidCapacity()
+            /*System.out.println("[Tooltip] capacity=" + menu.getOutputFluidCapacity()
                     + " bePos=" + menu.blockEntity.getBlockPos()
                     + " beCapacity=" + menu.blockEntity.OUTPUT_TANK.getCapacity());
+
+             */
         }
         guiGraphics.renderComponentTooltip(font, tooltip, mouseX, mouseY);
     }

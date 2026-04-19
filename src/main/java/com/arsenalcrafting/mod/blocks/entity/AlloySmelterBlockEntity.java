@@ -547,7 +547,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         tag.putInt("CurrentSlotCount", currentSlotCount);
         tag.putInt("ScrolledRow", scrolledRow);
         tag.putInt("OutputTankCapacity", OUTPUT_TANK.getCapacity());
-        System.out.println("[Server getUpdateTag] OutputTankCapacity=" + OUTPUT_TANK.getCapacity());
+        //System.out.println("[Server getUpdateTag] OutputTankCapacity=" + OUTPUT_TANK.getCapacity());
         return tag;
     }
 
@@ -724,9 +724,9 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         }
         be.updateDisplayTank();
         if (be.currentSlotCount != 9) {
-            System.out.println("[SLOTS] count=" + be.currentSlotCount);
+           // System.out.println("[SLOTS] count=" + be.currentSlotCount);
         } else {
-            System.out.println("[SLOTS] still 9 - formed=" + (be.smelteryData != null && be.smelteryData.isValid()) + " smelteryData=" + be.smelteryData);
+           // System.out.println("[SLOTS] still 9 - formed=" + (be.smelteryData != null && be.smelteryData.isValid()) + " smelteryData=" + be.smelteryData);
         }
 
         // Check for liquid mixing recipes
@@ -790,7 +790,11 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
             setChanged(level, pos, state);
             return;
         }
+        /*System.out.println("[TICK] smelteryData=" + be.smelteryData
+                + " valid=" + (be.smelteryData != null && be.smelteryData.isValid())
+                + " slotCount=" + be.currentSlotCount);
 
+         */
         // Process solid recipes per slot
         for (int slotIndex = 0; slotIndex < be.currentSlotCount; slotIndex++) {
             ItemStack slotItem = be.itemHandler.getStackInSlot(slotIndex);
@@ -832,7 +836,11 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
             }
 
             int resultMb = recipe.getResultAmountMb();
-            if (be.OUTPUT_TANK.getTotalAmount() + resultMb > be.OUTPUT_TANK.getCapacity()) continue;
+            int adjustedMb = resultMb;
+            if (recipe.isOreRecipe() && be.smelteryData != null && be.smelteryData.isValid()) {
+                adjustedMb = Math.round(resultMb * be.smelteryData.tier().getOreMultiplier());
+            }
+            if (be.OUTPUT_TANK.getTotalAmount() + adjustedMb > be.OUTPUT_TANK.getCapacity()) continue;
 
             if (be.slotProgress[slotIndex] == 0) {
                 if (be.getTotalLavaInTanks() < recipe.getLavaCost()) continue;
@@ -851,13 +859,23 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
             be.slotProgress[slotIndex]++;
 
             if (be.slotProgress[slotIndex] >= be.slotMaxProgress[slotIndex]) {
+                System.out.println("[MELT] slot=" + slotIndex
+                        + " baseCraftTime=" + recipe.getCraftTime()
+                        + " adjustedCraftTime=" + be.slotMaxProgress[slotIndex]
+                        + " tier=" + (be.smelteryData != null ? be.smelteryData.tier() : "null")
+                        + " multiplier=" + (be.smelteryData != null && be.smelteryData.isValid() ? be.smelteryData.tier().getSpeedMultiplier() : "none"));
                 be.itemHandler.extractItem(slotIndex, 1, false);
                 AlloyMaterial resultMat = AlloyMaterial.fromName(recipe.getResultMaterial());
                 if (resultMat != null) {
                     var sourceFluid = ModFluids.getSource(resultMat);
+                    System.out.println("[ORE] isOreRecipe=" + recipe.isOreRecipe()
+                            + " tier=" + (be.smelteryData != null ? be.smelteryData.tier() : "null")
+                            + " multiplier=" + (be.smelteryData != null && be.smelteryData.isValid() ? be.smelteryData.tier().getOreMultiplier() : "none")
+                            + " resultMb=" + resultMb
+                            + " adjustedMb=" + adjustedMb);
                     if (sourceFluid != null) {
                         be.OUTPUT_TANK.fill(
-                                new FluidStack(sourceFluid, resultMb),
+                                new FluidStack(sourceFluid, adjustedMb),
                                 IFluidHandler.FluidAction.EXECUTE);
                     }
                 }
@@ -913,7 +931,11 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
     private SmelteryData smelteryData = null;
 
     public void markNeedsRecheck() {
-        smelteryData = null; // force full revalidation, not just needsRecheck flag
+        if (smelteryData != null) {
+            smelteryData = smelteryData.withNeedsRecheck();
+        } else {
+            smelteryData = SmelteryData.invalid(worldPosition).withNeedsRecheck();
+        }
         setChanged();
     }
 

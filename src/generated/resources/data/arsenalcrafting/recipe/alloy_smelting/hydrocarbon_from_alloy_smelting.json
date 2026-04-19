@@ -6,6 +6,7 @@
       "item": "minecraft:coal"
     }
   ],
+  "isOreRecipe": false,
   "lavaCost": 500,
   "resultAmountMb": 1000,
   "resultMaterial": "Coal"
