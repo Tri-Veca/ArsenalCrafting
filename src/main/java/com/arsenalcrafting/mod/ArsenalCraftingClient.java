@@ -1,12 +1,9 @@
 package com.arsenalcrafting.mod;
 
-import com.arsenalcrafting.mod.client.render.CastingStationRenderer;
-import com.arsenalcrafting.mod.client.render.ToolKitRenderer;
-import com.arsenalcrafting.mod.client.render.ValveFaucetRenderer;
+import com.arsenalcrafting.mod.client.render.*;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.registry.ModBlockEntities;
 import com.arsenalcrafting.mod.registry.ModBlocks;
-import com.arsenalcrafting.mod.client.render.LavaTankRenderer;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
@@ -58,6 +55,10 @@ public class ArsenalCraftingClient {
         BlockEntityRenderers.register(
                 ModBlockEntities.CASTING_STATION.get(),
                 CastingStationRenderer::new
+        );
+        BlockEntityRenderers.register(
+                ModBlockEntities.FOUNDRY_BASIN.get(),
+                FoundryBasinRenderer::new
         );
 
         BlockEntityRenderers.register(

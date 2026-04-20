@@ -18,10 +18,10 @@ public class ValveFaucetRenderer implements BlockEntityRenderer<ValveFaucetBlock
 
     // Pipe tip position in the model — stream starts here
     // Based on the valve_faucet model: pipe tip is at Z=11, centered at X=8, Y=8
-    private static final float STREAM_X     = 8f  / 16f;
-    private static final float STREAM_Z     = 10.3f / 16f;
-    private static final float STREAM_Y_TOP = 9f  / 16f; // bottom of pipe tip
-    private static final float STREAM_WIDTH = 2f  / 16f; // thin stream
+    private static final float STREAM_X     = 6.5f  / 16f;
+    private static final float STREAM_Z     = 8f / 16f;
+    private static final float STREAM_Y_TOP = 10f  / 16f; // bottom of pipe tip
+    private static final float STREAM_WIDTH = 3f  / 16f; // thin stream
 
     public ValveFaucetRenderer(BlockEntityRendererProvider.Context context) {}
 

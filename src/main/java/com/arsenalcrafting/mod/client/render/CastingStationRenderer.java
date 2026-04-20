@@ -219,7 +219,7 @@ public class CastingStationRenderer implements BlockEntityRenderer<CastingStatio
                 case "pickaxe_head":
                     translateX = 0.65f;
                     translateY = BASIN_FLOOR_Y + 0.02f;
-                    translateZ = 0.5f;
+                    translateZ = 0.42f;
                     scale = 1.0f;
                     break;
 

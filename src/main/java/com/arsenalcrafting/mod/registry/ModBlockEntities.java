@@ -39,6 +39,12 @@ public class ModBlockEntities {
                     BlockEntityType.Builder.of(CastingStationBlockEntity::new,
                             ModBlocks.CASTING_STATION.get()).build(null));
 
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FoundryBasinBlockEntity>> FOUNDRY_BASIN=
+            BLOCK_ENTITIES.register("foundry_basin", () ->
+                    BlockEntityType.Builder.of(FoundryBasinBlockEntity::new,
+                            ModBlocks.FOUNDRY_BASIN.get()).build(null));
+
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ValveFaucetBlockEntity>> VALVE_FAUCET =
             BLOCK_ENTITIES.register("valve_faucet", () ->
                     BlockEntityType.Builder.of(ValveFaucetBlockEntity::new,

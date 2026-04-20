@@ -66,7 +66,7 @@ public class ModBlocks {
 
     public static final DeferredHolder<Block, Block> FOUNDRY_BASIN =
             registerBlock("foundry_basin",
-                    () -> new Block(BlockBehaviour.Properties.of()
+                    () -> new FoundryBasinBlock(BlockBehaviour.Properties.of()
                             .strength(3.5f)
                             .requiresCorrectToolForDrops()
                             .sound(SoundType.STONE)));

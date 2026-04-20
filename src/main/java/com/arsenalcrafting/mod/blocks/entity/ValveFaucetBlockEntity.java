@@ -60,47 +60,53 @@ public class ValveFaucetBlockEntity extends BlockEntity {
         if (smelter == null) return "No Alloy Smelter found adjacent to faucet";
 
         // Find casting station below
+
         BlockPos belowPos = pos.below();
-        if (!(level.getBlockEntity(belowPos) instanceof CastingStationBlockEntity station)) {
-            return "No Casting Station found below faucet";
-        }
+        BlockEntity below = level.getBlockEntity(belowPos);
 
-        if (!station.canReceiveFluid()) {
-            if (station.isReady())    return "Casting station has an item ready — collect it first";
-            if (station.isSetting())  return "Already setting...";
-            if (station.getMode() == CastingStationBlockEntity.CastMode.NONE)
-                return "Place a mold or empty bucket in the casting station first";
-            return "Casting station already has fluid";
-        }
-
-        // Determine fluid to pour
-        FluidStack toPour = resolveCastTarget(smelter);
-        if (toPour == null || toPour.isEmpty()) {
-            if (smelter.castTargetFluid != null && !smelter.castTargetFluid.isEmpty()) {
-                return "Cast target fluid (" + smelter.castTargetFluid + ") not found in tank";
+        if (below instanceof CastingStationBlockEntity station) {
+            if (!station.canReceiveFluid()) {
+                if (station.isReady()) return "Casting station has an item ready — collect it first";
+                if (station.isSetting()) return "Already setting...";
+                if (station.getMode() == CastingStationBlockEntity.CastMode.NONE)
+                    return "Place a mold or empty bucket in the casting station first";
+                return "Casting station already has fluid";
             }
-            return "No fluid in the Alloy Smelter output tank";
+            FluidStack toPour = resolveCastTarget(smelter);
+            if (toPour == null || toPour.isEmpty()) return "No fluid in the Alloy Smelter output tank";
+            AlloyMaterial mat = AlloyMaterial.fromFluid(toPour.getFluid());
+            if (mat == null) return "Unknown fluid type";
+            String moldId = station.getMode() == CastingStationBlockEntity.CastMode.MOLD
+                    ? station.getMoldComponentId() : "ingot";
+            int needed = CastingDatabase.getFluidCost(moldId != null ? moldId : "ingot");
+            if (toPour.getAmount() < needed)
+                return "Not enough fluid — need " + needed + "mb, have " + toPour.getAmount() + "mb";
+            this.pourState = PourState.POURING;
+            this.pouringMaterialName = mat.getName();
+            this.remainingToPour = needed;
+
+        } else if (below instanceof FoundryBasinBlockEntity basin) {
+            if (!basin.canReceiveFluid()) {
+                if (basin.isReady()) return "Basin has a block ready — collect it first";
+                if (basin.isSetting()) return "Already setting...";
+                return "Basin already has fluid";
+            }
+            FluidStack toPour = resolveCastTarget(smelter);
+            if (toPour == null || toPour.isEmpty()) return "No fluid in the Alloy Smelter output tank";
+            AlloyMaterial mat = AlloyMaterial.fromFluid(toPour.getFluid());
+            if (mat == null) return "Unknown fluid type";
+            if (toPour.getAmount() < 9000) return "Not enough fluid — need 9000mb, have " + toPour.getAmount() + "mb";
+            this.pourState = PourState.POURING;
+            this.pouringMaterialName = mat.getName();
+            this.remainingToPour = 9000;
+
+        } else {
+            return "No Casting Station or Foundry Basin found below faucet";
         }
 
-        AlloyMaterial mat = AlloyMaterial.fromFluid(toPour.getFluid());
-        if (mat == null) return "Unknown fluid type";
-
-        // Check enough fluid for the mold
-        String moldId = station.getMode() == CastingStationBlockEntity.CastMode.MOLD
-                ? station.getMoldComponentId() : "ingot";
-        int needed = CastingDatabase.getFluidCost(moldId != null ? moldId : "ingot");
-
-        if (toPour.getAmount() < needed) {
-            return "Not enough fluid — need " + needed + "mb, have " + toPour.getAmount() + "mb";
-        }
-
-        // Start pouring
-        this.pourState          = PourState.POURING;
-        this.pouringMaterialName = mat.getName();
-        this.remainingToPour    = needed;
         setChanged();
         syncToClient(level);
-        return null; // null = success
+        return null;
     }
 
     // ── TICK ─────────────────────────────────────────────────────────────────
@@ -114,11 +120,8 @@ public class ValveFaucetBlockEntity extends BlockEntity {
         if (smelter == null) { be.reset(); return; }
 
         BlockPos belowPos = pos.below();
-        if (!(level.getBlockEntity(belowPos) instanceof CastingStationBlockEntity station)) {
-            be.reset(); return;
-        }
+        BlockEntity below = level.getBlockEntity(belowPos);
 
-        // Drain MB_PER_TICK from smelter this tick
         int toDrain = Math.min(MB_PER_TICK, be.remainingToPour);
         AlloyMaterial mat = AlloyMaterial.fromName(be.pouringMaterialName);
         if (mat == null) { be.reset(); return; }
@@ -126,37 +129,44 @@ public class ValveFaucetBlockEntity extends BlockEntity {
         var fluidSource = com.arsenalcrafting.mod.registry.ModFluids.getSource(mat);
         if (fluidSource == null) { be.reset(); return; }
 
-        // Check smelter still has enough
         boolean hasFluid = smelter.getAllOutputFluids().stream()
                 .anyMatch(f -> AlloyMaterial.fromFluid(f.getFluid()) == mat
                         && f.getAmount() >= toDrain);
-
         if (!hasFluid) { be.reset(); return; }
 
         smelter.drainFromOutputTank(fluidSource, toDrain);
         be.remainingToPour -= toDrain;
-
         be.syncToClient(level);
 
-        // Done — notify casting station
-        if (be.remainingToPour <= 0) {
-            int needed = CastingDatabase.getFluidCost(
-                    station.getMode() == CastingStationBlockEntity.CastMode.MOLD
-                            && station.getMoldComponentId() != null
-                            ? station.getMoldComponentId() : "ingot");
-
-            float speedMultiplier = 1.0f;
-            SmelteryData sd = smelter.getSmelteryData();
-            if (sd != null && sd.isValid()) {
-                speedMultiplier = sd.tier().getSpeedMultiplier();
+        if (below instanceof CastingStationBlockEntity station) {
+            if (be.remainingToPour <= 0) {
+                int needed = CastingDatabase.getFluidCost(
+                        station.getMode() == CastingStationBlockEntity.CastMode.MOLD
+                                && station.getMoldComponentId() != null
+                                ? station.getMoldComponentId() : "ingot");
+                float speedMultiplier = 1.0f;
+                SmelteryData sd = smelter.getSmelteryData();
+                if (sd != null && sd.isValid()) speedMultiplier = sd.tier().getSpeedMultiplier();
+                station.receiveFluid(be.pouringMaterialName, needed, speedMultiplier);
+                be.reset();
             }
-
-            station.receiveFluid(be.pouringMaterialName, needed, speedMultiplier);
+        } else if (below instanceof FoundryBasinBlockEntity basin) {
+            if (be.remainingToPour <= 0) {
+                float speedMultiplier = 1.0f;
+                SmelteryData sd = smelter.getSmelteryData();
+                if (sd != null && sd.isValid()) speedMultiplier = sd.tier().getSpeedMultiplier();
+                basin.receiveFluid(be.pouringMaterialName, 9000, speedMultiplier);
+                be.reset();
+            }
+        } else {
             be.reset();
         }
 
         be.setChanged();
     }
+
+
+
 
     private void reset() {
         pourState         = PourState.OFF;
