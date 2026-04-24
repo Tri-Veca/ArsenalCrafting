@@ -1,0 +1,13 @@
+{
+  "type": "arsenalcrafting:alloy_smelting",
+  "craftTime": 20,
+  "ingredients": [
+    {
+      "item": "minecraft:gold_block"
+    }
+  ],
+  "isOreRecipe": false,
+  "lavaCost": 1000,
+  "resultAmountMb": 9000,
+  "resultMaterial": "Gold"
+}

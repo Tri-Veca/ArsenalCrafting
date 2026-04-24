@@ -63,11 +63,26 @@ public class AlloyRecipeDefinitions {
 
         addRecipe("steel_from_alloy_smelting", AlloyMaterial.STEEL, 1000, 750,
                 ItemStackHelper.getAlloyStack(AlloyMaterial.STEEL).getItem()
-
         );
         addRecipe("titanium_from_alloy_smelting", AlloyMaterial.TITANIUM, 1000, 500,
                 ItemStackHelper.getAlloyStack(AlloyMaterial.TITANIUM).getItem()
+        );
+        //blocks
+        addRecipe("gold_block_from_alloy_smelting", AlloyMaterial.GOLD, 9000, 1000,
+                Items.GOLD_BLOCK
+        );
+        addRecipe("iron_block_from_alloy_smelting", AlloyMaterial.IRON, 9000, 1000,
+                Items.IRON_BLOCK
+        );
 
+        addRecipe("copper_block_from_alloy_smelting", AlloyMaterial.COPPER, 9000, 1000,
+                Items.COPPER_BLOCK
+        );
+        addRecipe("diamond_block_from_alloy_smelting", AlloyMaterial.DIAMOND, 9000, 1000,
+                Items.DIAMOND_BLOCK
+        );
+        addRecipe("netherite_block_from_alloy_smelting", AlloyMaterial.NETHERITE, 9000, 1000,
+                Items.NETHERITE_BLOCK
         );
 
 
