@@ -164,7 +164,7 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
         int maxRows = getMaxScrollRows();
         currentScrollRow = Mth.clamp(currentScrollRow + delta, 0, maxRows);
         menu.blockEntity.setScrolledRowClientOnly(currentScrollRow);
-        System.out.println("[Scroll] row=" + currentScrollRow + "/" + maxRows + " slotCount=" + menu.blockEntity.getCurrentSlotCount());
+        //System.out.println("[Scroll] row=" + currentScrollRow + "/" + maxRows + " slotCount=" + menu.blockEntity.getCurrentSlotCount());
         return true;
     }
 
@@ -172,7 +172,7 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        System.out.println("mouseDragged: isScrolling=" + isScrolling + " shouldShowScrollbar=" + shouldShowScrollbar());
+       // System.out.println("mouseDragged: isScrolling=" + isScrolling + " shouldShowScrollbar=" + shouldShowScrollbar());
 
         if (isScrolling && shouldShowScrollbar()) {
             int x = (width - imageWidth) / 2;
@@ -186,25 +186,27 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        System.out.println("mouseClicked ENTRY - button=" + button);
+       // System.out.println("mouseClicked ENTRY - button=" + button);
 
         int x = (width - imageWidth) / 2;
         int y = (height - imageHeight) / 2;
         int scrollX = x + SCROLL_X;
         int scrollY = y + SCROLL_Y;
 
-        System.out.println("scrollbar area: X=" + scrollX + "-" + (scrollX + SCROLL_TRACK_W) +
+        /*System.out.println("scrollbar area: X=" + scrollX + "-" + (scrollX + SCROLL_TRACK_W) +
                 " Y=" + scrollY + "-" + (scrollY + SCROLL_TRACK_H));
         System.out.println("mouse position: " + mouseX + "," + mouseY);
         System.out.println("shouldShowScrollbar=" + shouldShowScrollbar());
 
+         */
+
         if (shouldShowScrollbar() && button == 0) {
             boolean inX = mouseX >= scrollX && mouseX <= scrollX + SCROLL_TRACK_W;
             boolean inY = mouseY >= scrollY && mouseY <= scrollY + SCROLL_TRACK_H;
-            System.out.println("in X range: " + inX + ", in Y range: " + inY);
+          //  System.out.println("in X range: " + inX + ", in Y range: " + inY);
 
             if (inX && inY) {
-                System.out.println("!!! CLICK DETECTED ON SCROLLBAR !!!");
+               // System.out.println("!!! CLICK DETECTED ON SCROLLBAR !!!");
                 isScrolling = true;
                 updateScrollFromMouse(mouseY, scrollY);
                 return true;

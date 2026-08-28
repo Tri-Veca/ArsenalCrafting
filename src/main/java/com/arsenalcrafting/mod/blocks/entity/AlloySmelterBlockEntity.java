@@ -76,12 +76,14 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         } else {
             currentSlotCount = 9;
         }
-        System.out.println("[SlotCount] smelteryData=" + smelteryData +
+        /*System.out.println("[SlotCount] smelteryData=" + smelteryData +
                 " isValid=" + (smelteryData != null ? smelteryData.isValid() : "null") +
                 " height=" + (smelteryData != null ? smelteryData.height() : "null") +
                 " tier=" + (smelteryData != null ? smelteryData.tier() : "null") +
                 " getTotalSlots=" + (smelteryData != null ? smelteryData.getTotalSlots() : "null") +
                 " result=" + currentSlotCount);
+
+         */
     }
 
     public int getCurrentSlotCount() {
@@ -547,6 +549,17 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         tag.putInt("CurrentSlotCount", currentSlotCount);
         tag.putInt("ScrolledRow", scrolledRow);
         tag.putInt("OutputTankCapacity", OUTPUT_TANK.getCapacity());
+        if (smelteryData != null) {
+            CompoundTag sd = new CompoundTag();
+            sd.putLong("ControllerPos", smelteryData.controllerPos().asLong());
+            sd.putLong("InteriorOrigin", smelteryData.interiorOrigin().asLong());
+            sd.putInt("Width", smelteryData.width());
+            sd.putInt("Depth", smelteryData.depth());
+            sd.putInt("Height", smelteryData.height());
+            sd.putBoolean("IsValid", smelteryData.isValid());
+            sd.putString("Tier", smelteryData.tier().name());
+            tag.put("SmelteryData", sd);
+        }
         //System.out.println("[Server getUpdateTag] OutputTankCapacity=" + OUTPUT_TANK.getCapacity());
         return tag;
     }
@@ -579,6 +592,23 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
             String raw = tag.getString("MeltingBlocked");
             meltingBlocked.clear();
             if (!raw.isEmpty()) Collections.addAll(meltingBlocked, raw.split(","));
+        }
+
+        if (tag.contains("SmelteryData")) {
+            CompoundTag sd = tag.getCompound("SmelteryData");
+            SmelteryTier tier = SmelteryTier.COPPER;
+            try { tier = SmelteryTier.valueOf(sd.getString("Tier")); } catch (Exception ignored) {}
+            smelteryData = new SmelteryData(
+                    BlockPos.of(sd.getLong("ControllerPos")),
+                    BlockPos.of(sd.getLong("InteriorOrigin")),
+                    sd.getInt("Width"),
+                    sd.getInt("Depth"),
+                    sd.getInt("Height"),
+                    sd.getBoolean("IsValid"),
+                    false,
+                    tier,
+                    null
+            );
         }
         progress = tag.getInt("Progress");
         maxProgress = tag.getInt("MaxProgress");
@@ -714,7 +744,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
             be.refreshCooldown = REFRESH_RATE;
         }
         be.validateIfNeeded();
-        // Replace the entire capacity sync block in tick with just this:
+
         if (be.smelteryData != null && be.smelteryData.isValid()) {
             int correctCapacity = be.smelteryData.height() * 9000;
             be.OUTPUT_TANK.setCapacity(correctCapacity);
@@ -723,11 +753,6 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
                     level, pos);
         }
         be.updateDisplayTank();
-        if (be.currentSlotCount != 9) {
-           // System.out.println("[SLOTS] count=" + be.currentSlotCount);
-        } else {
-           // System.out.println("[SLOTS] still 9 - formed=" + (be.smelteryData != null && be.smelteryData.isValid()) + " smelteryData=" + be.smelteryData);
-        }
 
         // Check for liquid mixing recipes
         if (be.currentRecipeType == null || be.currentRecipeType.equals("solid")) {
@@ -790,12 +815,11 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
             setChanged(level, pos, state);
             return;
         }
-        /*System.out.println("[TICK] smelteryData=" + be.smelteryData
-                + " valid=" + (be.smelteryData != null && be.smelteryData.isValid())
-                + " slotCount=" + be.currentSlotCount);
 
-         */
-        // Process solid recipes per slot
+        // ── SOLID RECIPE PROCESSING ───────────────────────────────────────────────
+
+        int lavaRemaining = be.getTotalLavaInTanks(); // snapshot once, decrement manually
+
         for (int slotIndex = 0; slotIndex < be.currentSlotCount; slotIndex++) {
             ItemStack slotItem = be.itemHandler.getStackInSlot(slotIndex);
             if (slotItem.isEmpty()) {
@@ -803,6 +827,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
                 be.slotMaxProgress[slotIndex] = 0;
                 continue;
             }
+
             AlloyMaterial slotMat = AlloyMaterial.fromItem(slotItem.getItem());
             if (slotMat != null && be.meltingBlocked.contains(slotMat.getName())) {
                 be.slotProgress[slotIndex] = 0;
@@ -825,7 +850,6 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
 
             var recipe = recipeOpt.get().value();
 
-            // Apply speed multiplier from tier
             int baseCraftTime = recipe.getCraftTime();
             int adjustedCraftTime = (be.smelteryData != null && be.smelteryData.isValid())
                     ? be.smelteryData.tier().getCraftTime(baseCraftTime)
@@ -842,19 +866,13 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
             }
             if (be.OUTPUT_TANK.getTotalAmount() + adjustedMb > be.OUTPUT_TANK.getCapacity()) continue;
 
+            // Only consume lava on the first tick of a new recipe
             if (be.slotProgress[slotIndex] == 0) {
-                if (be.getTotalLavaInTanks() < recipe.getLavaCost()) continue;
+                int lavaNeeded = recipe.getLavaCost();
+                if (lavaNeeded > lavaRemaining) continue;
+                if (!be.consumeLavaFromTanks(lavaNeeded)) continue;
+                lavaRemaining -= lavaNeeded;
             }
-
-            int totalLavaNeeded = recipe.getLavaCost();
-            int totalTicks = be.slotMaxProgress[slotIndex];
-            int baseLavaPerTick = totalLavaNeeded / totalTicks;
-            int remainder = totalLavaNeeded % totalTicks;
-            int totalLavaAvailable = be.getTotalLavaInTanks();
-            int lavaUsedThisTick = 0;
-            int lavaToConsume = baseLavaPerTick + (be.slotProgress[slotIndex] < remainder ? 1 : 0);
-            if (lavaUsedThisTick + lavaToConsume > totalLavaAvailable) continue;
-            if (!be.consumeLavaFromTanks(lavaToConsume)) continue;
 
             be.slotProgress[slotIndex]++;
 
@@ -863,14 +881,17 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
                         + " baseCraftTime=" + recipe.getCraftTime()
                         + " adjustedCraftTime=" + be.slotMaxProgress[slotIndex]
                         + " tier=" + (be.smelteryData != null ? be.smelteryData.tier() : "null")
-                        + " multiplier=" + (be.smelteryData != null && be.smelteryData.isValid() ? be.smelteryData.tier().getSpeedMultiplier() : "none"));
+                        + " multiplier=" + (be.smelteryData != null && be.smelteryData.isValid()
+                        ? be.smelteryData.tier().getSpeedMultiplier() : "none"));
+
                 be.itemHandler.extractItem(slotIndex, 1, false);
                 AlloyMaterial resultMat = AlloyMaterial.fromName(recipe.getResultMaterial());
                 if (resultMat != null) {
                     var sourceFluid = ModFluids.getSource(resultMat);
                     System.out.println("[ORE] isOreRecipe=" + recipe.isOreRecipe()
                             + " tier=" + (be.smelteryData != null ? be.smelteryData.tier() : "null")
-                            + " multiplier=" + (be.smelteryData != null && be.smelteryData.isValid() ? be.smelteryData.tier().getOreMultiplier() : "none")
+                            + " multiplier=" + (be.smelteryData != null && be.smelteryData.isValid()
+                            ? be.smelteryData.tier().getOreMultiplier() : "none")
                             + " resultMb=" + resultMb
                             + " adjustedMb=" + adjustedMb);
                     if (sourceFluid != null) {

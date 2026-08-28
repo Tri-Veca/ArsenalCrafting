@@ -66,6 +66,11 @@ public class ArsenalCraftingClient {
                 ValveFaucetRenderer::new
         );
 
+        BlockEntityRenderers.register(
+                ModBlockEntities.ALLOY_SMELTER.get(),
+                AlloySmelterRenderer::new
+        );
+
         for (AlloyMaterial material : AlloyMaterial.values()) {
             ItemBlockRenderTypes.setRenderLayer(
                     ModBlocks.ALLOY_FLUID_BLOCKS.get(material).get(),

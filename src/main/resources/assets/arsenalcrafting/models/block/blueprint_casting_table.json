@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "down": "minecraft:block/anvil",
+    "east": "arsenalcrafting:block/blueprint_casting_table_side",
+    "north": "arsenalcrafting:block/blueprint_casting_table_front",
+    "particle": "arsenalcrafting:block/blueprint_casting_table_front",
+    "south": "arsenalcrafting:block/blueprint_casting_table_side",
+    "up": "arsenalcrafting:block/blueprint_casting_table_top",
+    "west": "arsenalcrafting:block/blueprint_casting_table_front"
+  }
+}
