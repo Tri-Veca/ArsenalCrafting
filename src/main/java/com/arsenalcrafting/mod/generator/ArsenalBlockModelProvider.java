@@ -45,6 +45,55 @@ public class ArsenalBlockModelProvider extends BlockModelProvider {
                     .renderType("cutout"); // Ensures transparency in the mold hole works
         });
 
+
+        // Alloy Smelter — two-layer models per tier per active state
+        String[] tiers = {"unformed", "copper", "iron", "steel", "titanium"};
+
+        for (String tier : tiers) {
+            String casingTex = tier.equals("unformed")
+                    ? "arsenalcrafting:block/alloy_smelter_base"
+                    : "arsenalcrafting:block/" + tier + "_casing";
+
+            String topBottomTex = tier.equals("unformed")
+                    ? "arsenalcrafting:block/basic_casing"
+                    : "arsenalcrafting:block/" + tier + "_casing";
+
+            for (String activeState : new String[]{"on", "off"}) {
+                String modelName = "alloy_smelter_" + tier + "_" + activeState;
+                String faceTex = "arsenalcrafting:block/alloy_smelter_" + activeState;
+
+                var builder = withExistingParent(modelName, "minecraft:block/block")
+                        .texture("particle", "arsenalcrafting:block/alloy_smelter_base")
+                        .element()
+                        .from(0, 0, 0).to(16, 16, 16)
+                        .face(Direction.UP).uvs(0, 0, 16, 16).texture("#casing").end()
+                        .face(Direction.DOWN).uvs(0, 0, 16, 16).texture("#casing").end()
+                        .face(Direction.NORTH).uvs(0, 0, 16, 16).texture("#front").end()
+                        .face(Direction.SOUTH).uvs(0, 0, 16, 16).texture("#casing").end()
+                        .face(Direction.EAST).uvs(0, 0, 16, 16).texture("#casing").end()
+                        .face(Direction.WEST).uvs(0, 0, 16, 16).texture("#casing").end()
+                        .end()
+                        .element()
+                        .from(0, 0, -0.01f).to(16, 16, 0)
+                        .face(Direction.NORTH).uvs(0, 0, 16, 16).texture("#face").end()
+                        .end()
+                        .texture("front", casingTex)
+                        .texture("casing", topBottomTex)
+                        .texture("face", faceTex)
+                        .renderType("cutout");
+
+                if (activeState.equals("on")) {
+                    builder.element()
+                            .from(0, 0, -0.02f).to(16, 16, -0.01f)
+                            .face(Direction.NORTH)
+                            .uvs(0, 0, 16, 16).texture("#face")
+                            .emissivity(15, 15)
+                            .end()
+                            .end();
+                }
+            }
+        }
+
     }
 }
 

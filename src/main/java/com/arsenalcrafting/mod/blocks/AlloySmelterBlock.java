@@ -2,6 +2,7 @@ package com.arsenalcrafting.mod.blocks;
 
 import com.arsenalcrafting.mod.blocks.entity.AlloySmelterBlockEntity;
 import com.arsenalcrafting.mod.core.smeltery.SmelteryData;
+import com.arsenalcrafting.mod.core.smeltery.SmelteryTier;
 import com.arsenalcrafting.mod.registry.ModBlockEntities;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
@@ -9,6 +10,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -18,22 +20,68 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public class AlloySmelterBlock extends BaseEntityBlock {
     public static final MapCodec<AlloySmelterBlock> CODEC = simpleCodec(AlloySmelterBlock::new);
 
+    public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
+    public static final EnumProperty<SmelterTier> TIER = EnumProperty.create("tier", SmelterTier.class);
+
+    public enum SmelterTier implements StringRepresentable {
+        UNFORMED("unformed"),
+        COPPER("copper"),
+        IRON("iron"),
+        STEEL("steel"),
+        TITANIUM("titanium");
+
+        private final String name;
+        SmelterTier(String name) { this.name = name; }
+
+        @Override
+        public String getSerializedName() { return name; }
+
+        public static SmelterTier fromSmelteryTier(SmelteryTier tier) {
+            return switch (tier) {
+                case COPPER -> COPPER;
+                case IRON -> IRON;
+                case STEEL -> STEEL;
+                case TITANIUM -> TITANIUM;
+            };
+        }
+    }
+
     public AlloySmelterBlock(Properties properties) {
         super(properties);
+        registerDefaultState(stateDefinition.any()
+                .setValue(FACING, Direction.NORTH)
+                .setValue(ACTIVE, false)
+                .setValue(TIER, SmelterTier.UNFORMED));
     }
 
     @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        builder.add(FACING, ACTIVE, TIER);
     }
+
+    @Override
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
+        return defaultBlockState()
+                .setValue(FACING, context.getHorizontalDirection().getOpposite())
+                .setValue(ACTIVE, false)
+                .setValue(TIER, SmelterTier.UNFORMED);
+    }
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() { return CODEC; }
 
     @Nullable
     @Override
@@ -42,9 +90,7 @@ public class AlloySmelterBlock extends BaseEntityBlock {
     }
 
     @Override
-    public RenderShape getRenderShape(BlockState state) {
-        return RenderShape.MODEL;
-    }
+    public RenderShape getRenderShape(BlockState state) { return RenderShape.MODEL; }
 
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos,
@@ -61,7 +107,6 @@ public class AlloySmelterBlock extends BaseEntityBlock {
     }
 
     private void notifyNearbyControllers(Level level, BlockPos pos) {
-        // Search in a radius for the controller
         for (BlockPos search : BlockPos.betweenClosed(
                 pos.offset(-6, -6, -6), pos.offset(6, 6, 6))) {
             if (level.getBlockEntity(search) instanceof AlloySmelterBlockEntity be) {
@@ -114,10 +159,9 @@ public class AlloySmelterBlock extends BaseEntityBlock {
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state,
                                                                   BlockEntityType<T> type) {
-        if (level.isClientSide()) {
-            return null;
-        }
+        if (level.isClientSide()) return null;
         return createTickerHelper(type, ModBlockEntities.ALLOY_SMELTER.get(),
-                (level1, pos, state1, blockEntity) -> AlloySmelterBlockEntity.tick(level1, pos, state1, blockEntity));
+                (level1, pos, state1, blockEntity) ->
+                        AlloySmelterBlockEntity.tick(level1, pos, state1, blockEntity));
     }
 }

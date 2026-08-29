@@ -38,6 +38,7 @@ public class ArsenalItemModelProvider extends ItemModelProvider {
         generateMoldItemModels();
         generateCastingPackageModels();
         generateAlloyBucketModels();
+        generateAlloySmelterModel();
     }
 
     private void generateArsenalPickaxeModel() {
@@ -204,6 +205,10 @@ public class ArsenalItemModelProvider extends ItemModelProvider {
             withExistingParent(name, "item/generated")
                     .texture("layer0", modLoc("item/" + name));
         });
+    }
+    private void generateAlloySmelterModel() {
+        getBuilder("alloy_smelter")
+                .parent(new ModelFile.UncheckedModelFile(modLoc("block/alloy_smelter_unformed_off")));
     }
 
     @Override

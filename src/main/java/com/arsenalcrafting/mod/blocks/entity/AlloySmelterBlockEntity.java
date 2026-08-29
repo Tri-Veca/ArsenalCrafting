@@ -1,5 +1,6 @@
 package com.arsenalcrafting.mod.blocks.entity;
 
+import com.arsenalcrafting.mod.blocks.AlloySmelterBlock;
 import com.arsenalcrafting.mod.client.menu.AlloySmelterMenu;
 import com.arsenalcrafting.mod.core.ItemStackHelper;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
@@ -904,6 +905,11 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
                 be.slotMaxProgress[slotIndex] = 0;
             }
         }
+        boolean anyActive = false;
+        for (int i = 0; i < be.currentSlotCount; i++) {
+            if (be.slotProgress[i] > 0) { anyActive = true; break; }
+        }
+        be.setActive(anyActive);
 
         be.currentRecipeType = null;
         be.currentSolidRecipe = null;
@@ -960,6 +966,26 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         setChanged();
     }
 
+    private void updateBlockStateFromData() {
+        if (level == null || level.isClientSide) return;
+        BlockState state = level.getBlockState(worldPosition);
+        if (!(state.getBlock() instanceof AlloySmelterBlock)) return;
+
+        AlloySmelterBlock.SmelterTier tier = (smelteryData != null && smelteryData.isValid())
+                ? AlloySmelterBlock.SmelterTier.fromSmelteryTier(smelteryData.tier())
+                : AlloySmelterBlock.SmelterTier.UNFORMED;
+
+        level.setBlock(worldPosition, state.setValue(AlloySmelterBlock.TIER, tier), 3);
+    }
+
+    public void setActive(boolean active) {
+        if (level == null || level.isClientSide) return;
+        BlockState state = level.getBlockState(worldPosition);
+        if (!(state.getBlock() instanceof AlloySmelterBlock)) return;
+        if (state.getValue(AlloySmelterBlock.ACTIVE) == active) return;
+        level.setBlock(worldPosition, state.setValue(AlloySmelterBlock.ACTIVE, active), 3);
+    }
+
     public void validateIfNeeded() {
         if (level == null || level.isClientSide) return;
         if (smelteryData == null || smelteryData.needsRecheck()) {
@@ -971,8 +997,10 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
             int volume = smelteryData.isValid() ? smelteryData.volume() : 0;
             OUTPUT_TANK.setCapacity(smelteryData.isValid() ? smelteryData.height() * 9000 : 9000);
             updateSlotCount();
+            updateBlockStateFromData();
             setChanged();
         }
+
     }
 
     public boolean isFormed() {

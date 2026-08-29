@@ -1,9 +1,12 @@
 package com.arsenalcrafting.mod.generator;
 
 import com.arsenalcrafting.mod.ArsenalCrafting;
+import com.arsenalcrafting.mod.blocks.AlloySmelterBlock;
 import com.arsenalcrafting.mod.registry.ModBlocks;
+import net.minecraft.core.Direction;
 import net.minecraft.data.PackOutput;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
+import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 /**
@@ -35,5 +38,30 @@ public class ArsenalBlockStateProvider extends BlockStateProvider {
 
         // Add any other static blocks here if needed
         // simpleBlock(ModBlocks.LAVA_TANK.get());
+
+
+
+        // Alloy Smelter blockstates
+        String[] smeltTiers = {"unformed", "copper", "iron", "steel", "titanium"};
+
+        getVariantBuilder(ModBlocks.ALLOY_SMELTER.get()).forAllStates(state -> {
+            String tier = state.getValue(AlloySmelterBlock.TIER).getSerializedName();
+            boolean active = state.getValue(AlloySmelterBlock.ACTIVE);
+            Direction facing = state.getValue(AlloySmelterBlock.FACING);
+
+            String modelName = "alloy_smelter_" + tier + "_" + (active ? "on" : "off");
+
+            int yRot = switch (facing) {
+                case SOUTH -> 180;
+                case WEST -> 270;
+                case EAST -> 90;
+                default -> 0; // NORTH
+            };
+
+            return ConfiguredModel.builder()
+                    .modelFile(models().getExistingFile(modLoc("block/" + modelName)))
+                    .rotationY(yRot)
+                    .build();
+        });
     }
 }
