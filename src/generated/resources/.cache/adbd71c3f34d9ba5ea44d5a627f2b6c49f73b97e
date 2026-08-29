@@ -1,4 +1,4 @@
-// 1.21.1	2026-08-29T12:51:09.6437578	Block States: arsenalcrafting
+// 1.21.1	2026-08-29T13:53:55.4306844	Block States: arsenalcrafting
 844d1ab8d30457a951a6302772e714dac07e34cf assets/arsenalcrafting/blockstates/alloy_smelter.json
 b24d1bc031fdbfbf934ee11aa73aa6034fb6f873 assets/arsenalcrafting/blockstates/axe_head_mold.json
 d42ec1893d2b5fc1a4985225646a487c8fdeab4d assets/arsenalcrafting/blockstates/broadsword_blade_head_mold.json
@@ -20,6 +20,7 @@ e1a0fbcb1c6eeac80419673496d402ca3b3d7ae7 assets/arsenalcrafting/blockstates/bron
 3ac342c9aaeb8b1d5b06b77016f61e224334a67e assets/arsenalcrafting/blockstates/dagger_hilt_rod_mold.json
 d2d476732f0b4e6ded6d981992c5177e8aab2030 assets/arsenalcrafting/blockstates/katana_blade_head_mold.json
 d1b47fcef801e05b1429f5516c54a467ff6a695f assets/arsenalcrafting/blockstates/katana_hilt_rod_mold.json
+9c09ce9fb30d98a0f5983fe6298d9574af71a07c assets/arsenalcrafting/blockstates/lava_tank.json
 b1e29eaac65dace8aaf25d4f97db294d92ab5bd1 assets/arsenalcrafting/blockstates/pickaxe_head_mold.json
 2c1d69b2e3fa258a13dfc6173e4d95f95e12a8d3 assets/arsenalcrafting/blockstates/shovel_head_mold.json
 ab6804f87244870dfdc9c14703467ecbfc8cb755 assets/arsenalcrafting/blockstates/shovel_tool_rod_mold.json

@@ -94,6 +94,36 @@ public class ArsenalBlockModelProvider extends BlockModelProvider {
             }
         }
 
+        // Lava Tank — per tier, glass window on front face
+        String[] tankTiers = {"unformed", "copper", "iron", "steel", "titanium"};
+
+        for (String tier : tankTiers) {
+            String casingTex = tier.equals("unformed")
+                    ? "arsenalcrafting:block/basic_casing"
+                    : "arsenalcrafting:block/" + tier + "_casing";
+
+            String frontTex = tier.equals("unformed")
+                    ? "arsenalcrafting:block/lava_tank_base"
+                    : "arsenalcrafting:block/lava_tank_" + tier;
+
+            String modelName = "lava_tank_" + tier;
+
+            withExistingParent(modelName, "minecraft:block/block")
+                    .texture("particle", "arsenalcrafting:block/lava_tank_base")
+                    .element()
+                    .from(0, 0, 0).to(16, 16, 16)
+                    .face(Direction.UP).uvs(0, 0, 16, 16).texture("#casing").end()
+                    .face(Direction.DOWN).uvs(0, 0, 16, 16).texture("#casing").end()
+                    .face(Direction.NORTH).uvs(0, 0, 16, 16).texture("#front").end()
+                    .face(Direction.SOUTH).uvs(0, 0, 16, 16).texture("#casing").end()
+                    .face(Direction.EAST).uvs(0, 0, 16, 16).texture("#casing").end()
+                    .face(Direction.WEST).uvs(0, 0, 16, 16).texture("#casing").end()
+                    .end()
+                    .texture("casing", casingTex)
+                    .texture("front", frontTex)
+                    .renderType("cutout");
+        }
+
     }
 }
 

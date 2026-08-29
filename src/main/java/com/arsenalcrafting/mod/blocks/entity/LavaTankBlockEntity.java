@@ -1,5 +1,6 @@
 package com.arsenalcrafting.mod.blocks.entity;
 
+import com.arsenalcrafting.mod.blocks.LavaTankBlock;
 import com.arsenalcrafting.mod.registry.ModBlockEntities;
 import com.arsenalcrafting.mod.registry.ModFluids;
 import net.minecraft.core.BlockPos;
@@ -27,6 +28,13 @@ public class LavaTankBlockEntity extends BlockEntity {
             return stack.getFluid() == Fluids.LAVA || stack.getFluid() == Fluids.FLOWING_LAVA;
         }
     };
+    public void updateTier(com.arsenalcrafting.mod.blocks.LavaTankBlock.TankTier tier) {
+        if (level == null || level.isClientSide) return;
+        BlockState state = level.getBlockState(worldPosition);
+        if (!(state.getBlock() instanceof LavaTankBlock)) return;
+        if (state.getValue(LavaTankBlock.TIER) == tier) return;
+        level.setBlock(worldPosition, state.setValue(LavaTankBlock.TIER, tier), 3);
+    }
 
     public LavaTankBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.LAVA_TANK.get(), pos, state);

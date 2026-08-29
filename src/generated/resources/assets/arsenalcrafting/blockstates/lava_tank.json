@@ -1,0 +1,79 @@
+{
+  "variants": {
+    "facing=east,tier=copper": {
+      "model": "arsenalcrafting:block/lava_tank_copper",
+      "y": 90
+    },
+    "facing=east,tier=iron": {
+      "model": "arsenalcrafting:block/lava_tank_iron",
+      "y": 90
+    },
+    "facing=east,tier=steel": {
+      "model": "arsenalcrafting:block/lava_tank_steel",
+      "y": 90
+    },
+    "facing=east,tier=titanium": {
+      "model": "arsenalcrafting:block/lava_tank_titanium",
+      "y": 90
+    },
+    "facing=east,tier=unformed": {
+      "model": "arsenalcrafting:block/lava_tank_unformed",
+      "y": 90
+    },
+    "facing=north,tier=copper": {
+      "model": "arsenalcrafting:block/lava_tank_copper"
+    },
+    "facing=north,tier=iron": {
+      "model": "arsenalcrafting:block/lava_tank_iron"
+    },
+    "facing=north,tier=steel": {
+      "model": "arsenalcrafting:block/lava_tank_steel"
+    },
+    "facing=north,tier=titanium": {
+      "model": "arsenalcrafting:block/lava_tank_titanium"
+    },
+    "facing=north,tier=unformed": {
+      "model": "arsenalcrafting:block/lava_tank_unformed"
+    },
+    "facing=south,tier=copper": {
+      "model": "arsenalcrafting:block/lava_tank_copper",
+      "y": 180
+    },
+    "facing=south,tier=iron": {
+      "model": "arsenalcrafting:block/lava_tank_iron",
+      "y": 180
+    },
+    "facing=south,tier=steel": {
+      "model": "arsenalcrafting:block/lava_tank_steel",
+      "y": 180
+    },
+    "facing=south,tier=titanium": {
+      "model": "arsenalcrafting:block/lava_tank_titanium",
+      "y": 180
+    },
+    "facing=south,tier=unformed": {
+      "model": "arsenalcrafting:block/lava_tank_unformed",
+      "y": 180
+    },
+    "facing=west,tier=copper": {
+      "model": "arsenalcrafting:block/lava_tank_copper",
+      "y": 270
+    },
+    "facing=west,tier=iron": {
+      "model": "arsenalcrafting:block/lava_tank_iron",
+      "y": 270
+    },
+    "facing=west,tier=steel": {
+      "model": "arsenalcrafting:block/lava_tank_steel",
+      "y": 270
+    },
+    "facing=west,tier=titanium": {
+      "model": "arsenalcrafting:block/lava_tank_titanium",
+      "y": 270
+    },
+    "facing=west,tier=unformed": {
+      "model": "arsenalcrafting:block/lava_tank_unformed",
+      "y": 270
+    }
+  }
+}

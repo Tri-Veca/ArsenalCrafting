@@ -2,6 +2,7 @@ package com.arsenalcrafting.mod.generator;
 
 import com.arsenalcrafting.mod.ArsenalCrafting;
 import com.arsenalcrafting.mod.blocks.AlloySmelterBlock;
+import com.arsenalcrafting.mod.blocks.LavaTankBlock;
 import com.arsenalcrafting.mod.registry.ModBlocks;
 import net.minecraft.core.Direction;
 import net.minecraft.data.PackOutput;
@@ -56,6 +57,26 @@ public class ArsenalBlockStateProvider extends BlockStateProvider {
                 case WEST -> 270;
                 case EAST -> 90;
                 default -> 0; // NORTH
+            };
+
+            return ConfiguredModel.builder()
+                    .modelFile(models().getExistingFile(modLoc("block/" + modelName)))
+                    .rotationY(yRot)
+                    .build();
+        });
+
+        // Lava Tank blockstates
+        getVariantBuilder(ModBlocks.LAVA_TANK.get()).forAllStates(state -> {
+            String tier = state.getValue(LavaTankBlock.TIER).getSerializedName();
+            Direction facing = state.getValue(LavaTankBlock.FACING);
+
+            String modelName = "lava_tank_" + tier;
+
+            int yRot = switch (facing) {
+                case SOUTH -> 180;
+                case WEST -> 270;
+                case EAST -> 90;
+                default -> 0;
             };
 
             return ConfiguredModel.builder()

@@ -1,6 +1,7 @@
 package com.arsenalcrafting.mod.blocks.entity;
 
 import com.arsenalcrafting.mod.blocks.AlloySmelterBlock;
+import com.arsenalcrafting.mod.blocks.LavaTankBlock;
 import com.arsenalcrafting.mod.client.menu.AlloySmelterMenu;
 import com.arsenalcrafting.mod.core.ItemStackHelper;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
@@ -976,6 +977,23 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
                 : AlloySmelterBlock.SmelterTier.UNFORMED;
 
         level.setBlock(worldPosition, state.setValue(AlloySmelterBlock.TIER, tier), 3);
+
+        // Update connected lava tanks to match tier
+        LavaTankBlock.TankTier tankTier = (smelteryData != null && smelteryData.isValid())
+                ? LavaTankBlock.TankTier.valueOf(smelteryData.tier().name())
+                : LavaTankBlock.TankTier.UNFORMED;
+
+        for (ConnectedTankInfo info : connectedTanks) {
+            if (info.handler instanceof net.neoforged.neoforge.fluids.capability.templates.FluidTank ft) {
+                // find the BE at each connected tank position
+                for (net.minecraft.core.Direction dir : net.minecraft.core.Direction.values()) {
+                    BlockPos neighborPos = worldPosition.relative(dir);
+                    if (level.getBlockEntity(neighborPos) instanceof LavaTankBlockEntity lavaTank) {
+                        lavaTank.updateTier(tankTier);
+                    }
+                }
+            }
+        }
     }
 
     public void setActive(boolean active) {

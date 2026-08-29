@@ -209,7 +209,11 @@ public class ArsenalItemModelProvider extends ItemModelProvider {
     private void generateAlloySmelterModel() {
         getBuilder("alloy_smelter")
                 .parent(new ModelFile.UncheckedModelFile(modLoc("block/alloy_smelter_unformed_off")));
+        getBuilder("lava_tank")
+                .parent(new ModelFile.UncheckedModelFile(modLoc("block/lava_tank_unformed")));
     }
+
+
 
     @Override
     public String getName() {
