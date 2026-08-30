@@ -44,7 +44,9 @@ import java.util.Random;
 public class ArsenalCommands {
 
     private static final Random RANDOM = new Random();
-    private static final List<AlloyMaterial> ALL_MATERIALS = Arrays.asList(AlloyMaterial.values());
+    private static final List<AlloyMaterial> ALL_MATERIALS = Arrays.stream(AlloyMaterial.values())
+            .filter(AlloyMaterial::shouldGenerateParts)
+            .toList();
 
     /** Registry of giveable Arsenal items — name → item supplier */
     private static final Map<String, java.util.function.Supplier<Item>> GIVEABLE = new LinkedHashMap<>();

@@ -37,6 +37,7 @@ public class FortuneAugmentItem extends Item implements Augment, InstallableAugm
         System.out.println("[Toolkit] Fortune tier " + tier + " installed!");
     }
 
+
     public static boolean isOre(BlockState state){
         return state.is(BlockTags.COAL_ORES) ||
                 state.is(BlockTags.COPPER_ORES) ||
@@ -46,6 +47,8 @@ public class FortuneAugmentItem extends Item implements Augment, InstallableAugm
                 state.is(BlockTags.IRON_ORES) ||
                 state.is(BlockTags.LAPIS_ORES) ||
                 state.is(BlockTags.REDSTONE_ORES);
+
+
     }
 
     public static boolean onBlockMined(ItemStack tool, Level level,

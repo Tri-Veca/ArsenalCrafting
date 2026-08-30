@@ -1,0 +1,13 @@
+{
+  "type": "arsenalcrafting:alloy_smelting",
+  "craftTime": 20,
+  "ingredients": [
+    {
+      "item": "arsenalcrafting:raw_tin"
+    }
+  ],
+  "isOreRecipe": true,
+  "lavaCost": 500,
+  "resultAmountMb": 1000,
+  "resultMaterial": "Tin"
+}

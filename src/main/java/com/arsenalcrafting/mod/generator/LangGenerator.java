@@ -42,6 +42,7 @@ public class LangGenerator implements DataProvider {
         entries.put("block.arsenalcrafting.alloy_smelter_core", "Alloy Smelter Core");
         entries.put("block.arsenalcrafting.toolkit", "Tool Kit");
         entries.put("block.arsenalcrafting.void_casing", "Void Casing");
+        entries.put("block.arsenalcrafting.basic_casing", "Basic Casing");
         entries.put("block.arsenalcrafting.iron_casing", "Iron Casing");
         entries.put("block.arsenalcrafting.copper_casing", "Copper Casing");
         entries.put("block.arsenalcrafting.bronze_casing", "Bronze Casing");
@@ -70,6 +71,10 @@ public class LangGenerator implements DataProvider {
             // Fluid type name (shows in fluid tooltips/JEI)
             entries.put("fluid_type.arsenalcrafting." + materialId + "_fluid_type", "Molten " + materialName);
 
+            if (material.allowRaw()) {
+                entries.put("item.arsenalcrafting.raw_" + materialId, "Raw " + materialName);
+            }
+
 
             // Tool parts ONLY if shouldGenerateParts is true
             if (material.shouldGenerateParts()) {
@@ -97,6 +102,8 @@ public class LangGenerator implements DataProvider {
         entries.put("item.arsenalcrafting.arsenal_broadsword", "Arsenal Broadsword");
         entries.put("item.arsenalcrafting.arsenal_dagger", "Arsenal Dagger");
         entries.put("item.arsenalcrafting.repair_kit", "Tool Repair Kit");
+        entries.put("item.arsenalcrafting.blueprint", "Blueprint");
+        entries.put("item.arsenalcrafting.basic_material", "Basic Material");
         // TODO add seperate gadgets section
         entries.put("item.arsenalcrafting.drill", "Drill");
         entries.put("item.arsenalcrafting.saw", "Saw");

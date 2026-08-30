@@ -92,6 +92,8 @@ public class AlloyRecipeDefinitions {
                 Items.RAW_IRON);
         addOreRecipe("gold_ore_smelting", AlloyMaterial.GOLD, 1000, 500,
                 Items.RAW_GOLD);
+        addOreRecipe("tin_ore_smelting", AlloyMaterial.TIN, 1000, 500,
+                ItemStackHelper.getRawStack(AlloyMaterial.TIN).getItem());
 
 
 

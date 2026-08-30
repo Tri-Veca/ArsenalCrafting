@@ -37,6 +37,8 @@ public class ModCreativeTabs {
 
                         // Alloy Items
                         ModItems.ALLOY_ITEMS.forEach((key, value) -> output.accept(value.get()));
+                        // Raw Items
+                        ModItems.RAW_ITEMS.forEach((key, value) -> output.accept(value.get()));
 
                         // Blocks (skip fluid blocks)
                         ModBlocks.BLOCKS.getEntries().forEach(block -> {
@@ -57,6 +59,8 @@ public class ModCreativeTabs {
                         // Utilities
                         output.accept(ModItems.REPAIR_KIT.get());
                         output.accept(ModItems.BLUEPRINT.get());
+                        output.accept(ModItems.BASIC_MATERIAL.get());
+
 
                         // ========== CASTING PACKAGES (Pre-filled) ==========
                         // Add both standard and bronze versions for all package types

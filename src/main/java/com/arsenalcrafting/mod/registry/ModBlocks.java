@@ -55,6 +55,14 @@ public class ModBlocks {
                             .noOcclusion()
             ));
 
+    public static final DeferredHolder<Block, Block> BASIC_CASING =
+            registerBlock("basic_casing", () -> new Block(
+                    BlockBehaviour.Properties.of()
+                            .strength(3.5f)
+                            .requiresCorrectToolForDrops()
+                            .noOcclusion()
+            ));
+
 
     public static final DeferredHolder<Block, CastingStationBlock> CASTING_STATION =
             registerBlock("casting_station",

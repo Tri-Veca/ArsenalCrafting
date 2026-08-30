@@ -1,4 +1,4 @@
-// 1.21.1	2026-04-24T13:29:11.0380574	Alloy Smelting Recipes
+// 1.21.1	2026-08-30T00:52:48.6953615	Alloy Smelting Recipes
 cf7a27c23897aa2fd6e8b1d975f05e28adb06ed1 data/arsenalcrafting/recipe/alloy_smelting/copper_block_from_alloy_smelting.json
 01426ebe7954124f070d586305c6a5d0f95a1cf5 data/arsenalcrafting/recipe/alloy_smelting/copper_from_alloy_smelting.json
 bb4eaa1af219dc6d63e8223b084377f160202791 data/arsenalcrafting/recipe/alloy_smelting/copper_ore_smelting.json
@@ -15,6 +15,7 @@ bb4eaa1af219dc6d63e8223b084377f160202791 data/arsenalcrafting/recipe/alloy_smelt
 64ff37c8fdd06fe5f8562b8f45f94113c492df18 data/arsenalcrafting/recipe/alloy_smelting/netherite_from_alloy_smelting.json
 4676c60c44e8d332ceffc8d1bcde2dad3744e51e data/arsenalcrafting/recipe/alloy_smelting/steel_from_alloy_smelting.json
 8f34dcc63d626c703524c8c107f6cba1a3a179bb data/arsenalcrafting/recipe/alloy_smelting/tin_from_alloy_smelting.json
+44c3aee2f607dc35f1bd93535b6923e7dce6d56d data/arsenalcrafting/recipe/alloy_smelting/tin_ore_smelting.json
 c2a9be3dc32683aecabcf626fc6b0dc63b409220 data/arsenalcrafting/recipe/alloy_smelting/titanium_from_alloy_smelting.json
 46746a099f3bb829c7a6351a1b5e931576dbcc6c data/arsenalcrafting/recipe/liquid_mixing/bronze_from_liquids.json
 ceee98bd13969bc8c94aa25eb2db2fde2d1f75c1 data/arsenalcrafting/recipe/liquid_mixing/steel_from_liquids.json

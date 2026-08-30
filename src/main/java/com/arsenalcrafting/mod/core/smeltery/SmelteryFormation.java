@@ -26,7 +26,8 @@ public class SmelteryFormation {
     public static boolean isValidWallBlock(BlockState state) {
         return getTierForBlock(state.getBlock()) != null
                 || state.getBlock() instanceof AlloySmelterBlock
-                || state.getBlock() instanceof LavaTankBlock;
+                || state.getBlock() instanceof LavaTankBlock
+                || state.getBlock() instanceof ValveFaucetBlock;
     }
 
     public static boolean isValidFloorBlock(BlockState state) {

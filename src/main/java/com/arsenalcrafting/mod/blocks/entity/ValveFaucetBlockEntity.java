@@ -49,6 +49,7 @@ public class ValveFaucetBlockEntity extends BlockEntity {
      * Returns a message to show the player, or null on success.
      */
     public String activate(Level level, BlockPos pos) {
+        System.out.println("[FAUCET ACTIVATE] called pos=" + pos + " isPouring=" + isPouring());
         if (isPouring()) {
             // Toggle off
             reset();
@@ -192,15 +193,62 @@ public class ValveFaucetBlockEntity extends BlockEntity {
     }
 
     public AlloySmelterBlockEntity findAdjacentSmelter(Level level, BlockPos pos) {
+        // Fast path — check directly adjacent first
         for (net.minecraft.core.Direction dir : new net.minecraft.core.Direction[]{
                 net.minecraft.core.Direction.NORTH, net.minecraft.core.Direction.SOUTH,
-                net.minecraft.core.Direction.EAST,  net.minecraft.core.Direction.WEST,
+                net.minecraft.core.Direction.EAST, net.minecraft.core.Direction.WEST,
                 net.minecraft.core.Direction.UP}) {
             if (level.getBlockEntity(pos.relative(dir)) instanceof AlloySmelterBlockEntity s) {
                 return s;
             }
         }
+
+        // Search wider radius for controller whose multiblock contains this faucet
+        System.out.println("[FAUCET] Starting wide search from pos=" + pos);
+        for (BlockPos search : BlockPos.betweenClosed(
+                pos.offset(-12, -6, -12), pos.offset(12, 6, 12))) {
+            if (level.getBlockEntity(search) instanceof AlloySmelterBlockEntity smelter) {
+                SmelteryData data = smelter.getSmelteryData();
+                if (data != null && data.isValid()) {
+                    BlockPos origin = data.interiorOrigin();
+                    System.out.println("[FAUCET] Found smelter at " + search
+                            + " interiorOrigin=" + origin
+                            + " width=" + data.width()
+                            + " depth=" + data.depth()
+                            + " height=" + data.height()
+                            + " faucetPos=" + pos
+                            + " wallCheck=" + isOnMultiblockWall(data, pos));
+                }
+                if (data != null && data.isValid() && isOnMultiblockWall(data, pos)) {
+                    return smelter;
+                }
+            }
+        }
         return null;
+    }
+
+    private boolean isOnMultiblockWall(SmelteryData data, BlockPos pos) {
+        BlockPos origin = data.interiorOrigin();
+        int wallMinX = origin.getX() - 1;
+        int wallMaxX = origin.getX() + data.width();
+        int wallMinZ = origin.getZ() - 1;
+        int wallMaxZ = origin.getZ() + data.depth();
+        int wallMinY = origin.getY() - 1;
+        int wallMaxY = origin.getY() + data.height() - 1;
+
+        int x = pos.getX();
+        int y = pos.getY();
+        int z = pos.getZ();
+
+        if (y < wallMinY || y > wallMaxY) return false;
+
+        // +1/-1 to account for faucet being placed on outside face of wall
+        boolean onNorthWall = z == wallMinZ - 1 && x >= wallMinX && x <= wallMaxX;
+        boolean onSouthWall = z == wallMaxZ + 1 && x >= wallMinX && x <= wallMaxX;
+        boolean onWestWall  = x == wallMinX - 1 && z >= wallMinZ && z <= wallMaxZ;
+        boolean onEastWall  = x == wallMaxX + 1 && z >= wallMinZ && z <= wallMaxZ;
+
+        return onNorthWall || onSouthWall || onWestWall || onEastWall;
     }
 
 

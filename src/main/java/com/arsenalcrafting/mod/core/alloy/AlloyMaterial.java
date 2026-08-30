@@ -1,12 +1,15 @@
 package com.arsenalcrafting.mod.core.alloy;
 
 import com.arsenalcrafting.mod.core.ItemStackHelper;
+import com.arsenalcrafting.mod.registry.ModFluids;
+import com.arsenalcrafting.mod.registry.ModItems;
 import net.minecraft.ChatFormatting;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.material.Fluid;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
@@ -32,7 +35,9 @@ public enum AlloyMaterial {
             0xFFe77c56,          //tint color
             false,//allow alloy to be created automatically. We don't use for vanilla materials
             30,// 20 ticks = 1 second. how long to craft.
-            true //Should Parts be created automatically. set to false in special cases like coal
+            true,//Should Parts be created automatically. set to false in special cases like coal
+            false
+
     ),
     TIN(
             "Tin",
@@ -51,6 +56,7 @@ public enum AlloyMaterial {
             0xFFeddfdb,
             true,
             20,
+            true,
             true
     ),
     IRON(
@@ -70,7 +76,8 @@ public enum AlloyMaterial {
             0xFFFFFFFF,
             false,
             60,
-            true
+            true,
+            false
     ),
     GOLD(
             "Gold",
@@ -89,7 +96,8 @@ public enum AlloyMaterial {
             0xFFfdf55f,
             false,
             10,
-            true
+            true,
+            false
     ),
     DIAMOND(
             "Diamond",
@@ -108,7 +116,8 @@ public enum AlloyMaterial {
             0xFF4aedd9,
             false,
             70,
-            true
+            true,
+            false
     ),
     NETHERITE(
             "Netherite",
@@ -127,7 +136,8 @@ public enum AlloyMaterial {
             0xFF706770,
             false,
             80,
-            true
+            true,
+            false
     ),
 
     BRONZE(
@@ -147,7 +157,8 @@ public enum AlloyMaterial {
             0xFFcb9580,
             true,
             40,
-            true
+            true,
+            false
 
     ),
     STEEL(
@@ -167,7 +178,8 @@ public enum AlloyMaterial {
             0xFFC0C0C0,
             true,
             90,
-            true
+            true,
+            false
     ),
     TITANIUM(
             "Titanium",
@@ -186,7 +198,8 @@ public enum AlloyMaterial {
             0xFFA0E4FF,
             true,
             100,
-            true
+            true,
+            false
 
     ),
     // non component materials
@@ -207,6 +220,7 @@ public enum AlloyMaterial {
             0xFFFFFACA,          //tint color
             false,//allow alloy to be created automatically. We don't use for vanilla materials
             30,
+            false,
             false
     );
 
@@ -228,11 +242,12 @@ public enum AlloyMaterial {
     private final boolean allowAlloy;
     public int meltTime;
     private final boolean shouldGenerateParts;
+    private final boolean allowRaw;
 
 
     AlloyMaterial(String name, int tier, int durability, float efficiency, float modifier, float attackSpeed, float damage, float arc, int toolAugmentSlots,
                   float critChance, float critDamage, float weaponDamage,
-                  ChatFormatting color, int itemColor, boolean allowAlloy, int meltTime, boolean shouldGenerateParts) {
+                  ChatFormatting color, int itemColor, boolean allowAlloy, int meltTime, boolean shouldGenerateParts, boolean allowRaw) {
         this.name = name;
         this.tier = tier;
         this.durability = durability;
@@ -250,6 +265,7 @@ public enum AlloyMaterial {
         this.allowAlloy = allowAlloy;
         this.meltTime= meltTime;
         this.shouldGenerateParts = shouldGenerateParts;
+        this.allowRaw = allowRaw;
     }
 
 
@@ -270,6 +286,7 @@ public enum AlloyMaterial {
     public int getTier() { return tier; }
     public boolean allowsAlloy() { return allowAlloy; }
     public boolean shouldGenerateParts() { return shouldGenerateParts; }
+    public boolean allowRaw() { return allowRaw; }
 
 
     // --- helpers ---
@@ -327,6 +344,7 @@ public enum AlloyMaterial {
         if (item == Items.RAW_COPPER) return COPPER;
         if (item == Items.RAW_IRON)   return IRON;
         if (item == Items.RAW_GOLD)   return GOLD;
+        if (item == ModItems.RAW_ITEMS.get(AlloyMaterial.TIN).get()) return TIN;
 
 
         //Sets modded ingots to their respective materials for repair kit usage
@@ -356,9 +374,9 @@ public enum AlloyMaterial {
     }
 
     @Nullable
-    public static AlloyMaterial fromFluid(net.minecraft.world.level.material.Fluid fluid) {
+    public static AlloyMaterial fromFluid(Fluid fluid) {
         for (AlloyMaterial mat : values()) {
-            var source = com.arsenalcrafting.mod.registry.ModFluids.getSource(mat);
+            var source = ModFluids.getSource(mat);
             if (source != null && source == fluid) return mat;
         }
         return null;

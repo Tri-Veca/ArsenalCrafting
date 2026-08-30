@@ -1,6 +1,7 @@
-// 1.21.1	2026-04-19T15:34:11.4895318	Loot Tables
+// 1.21.1	2026-08-30T01:40:40.7500105	Loot Tables
 58bd3afa0d8ef894c93abad1d0559b512d42142c data/arsenalcrafting/loot_table/blocks/alloy_smelter.json
 e54757485028992b89edd3e9c3d58a6cb4600e15 data/arsenalcrafting/loot_table/blocks/axe_head_mold.json
+c8018ea60a7b311624d1e56fd3cf1b4d7ae8e502 data/arsenalcrafting/loot_table/blocks/basic_casing.json
 929b5dde62955fcdb9c10a7a887a928fa9660abf data/arsenalcrafting/loot_table/blocks/blueprint_casting_table.json
 e2ebd4458f06ebaa2218a85284b6d2ef19eec7d1 data/arsenalcrafting/loot_table/blocks/broadsword_blade_head_mold.json
 229266194c0729cf4ce086c310a203be4a8e9f4d data/arsenalcrafting/loot_table/blocks/broadsword_hilt_rod_mold.json

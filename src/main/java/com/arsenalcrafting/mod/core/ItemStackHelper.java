@@ -54,6 +54,13 @@ public class ItemStackHelper {
         }
         return ItemStack.EMPTY;
     }
+    public static ItemStack getRawStack(AlloyMaterial material) {
+        var holder = ModItems.RAW_ITEMS.get(material);
+        if (holder != null) {
+            return new ItemStack(holder.get());
+        }
+        return ItemStack.EMPTY;
+    }
 
     public static FluidStack getFluidFromBucket(AlloyMaterial material, int amount) {
         //System.out.println("[DEBUG] getFluidFromBucket called for: " + material.getName());

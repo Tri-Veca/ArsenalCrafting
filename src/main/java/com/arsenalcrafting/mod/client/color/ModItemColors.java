@@ -48,6 +48,12 @@ public class ModItemColors {
             for (var holder : ModItems.ALLOY_ITEMS.values()) {
                 event.register(ModItemColors::colorAlloyItem, holder.get());
             }
+            for (var entry : ModItems.RAW_ITEMS.entrySet()) {
+                Item item = entry.getValue().get();
+                if (item != null) {
+                    event.register((stack, tintIndex) -> entry.getKey().getItemColor(), item);
+                }
+            }
 
             for (var entry : ModItems.ALLOY_BUCKETS.entrySet()) {
                 AlloyMaterial material = entry.getKey();

@@ -22,10 +22,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ModItems {
     public static final DeferredRegister<Item> ITEMS =
@@ -37,6 +34,8 @@ public class ModItems {
     public static final Map<AlloyMaterial, Map<ToolComponentType, DeferredHolder<Item, ToolComponentItem>>> TOOL_COMPONENTS = new HashMap<>();
     public static final Map<AlloyMaterial, DeferredHolder<Item, BucketItem>> ALLOY_BUCKETS =
             new HashMap<>();
+    public static final Map<AlloyMaterial, DeferredHolder<Item, Item>> RAW_ITEMS = new EnumMap<>(AlloyMaterial.class);
+
     public static final Map<PackageType, DeferredHolder<Item, CastingPackageItem>> CASTING_PACKAGES = new HashMap<>();
 
     public static final DeferredHolder<Item, ArsenalSawItem> SAW =
@@ -51,6 +50,9 @@ public class ModItems {
 
     public static final DeferredHolder<Item, Item> BLUEPRINT =
             ITEMS.register("blueprint", () -> new Item(new Item.Properties()));
+
+    public static final DeferredHolder<Item, Item> BASIC_MATERIAL =
+            ITEMS.register("basic_material", () -> new Item(new Item.Properties()));
 
 
     // --- Tools & Weapons (Base items use the lightest alloy by default) ---
@@ -179,6 +181,20 @@ public class ModItems {
         }
     }
 
+    public static void registerRawItems() {
+        System.out.println("[ModItems] Registering raw items...");
+        for (AlloyMaterial material : AlloyMaterial.values()) {
+            if (!material.allowRaw()) continue;
+            String itemId = "raw_" + material.name().toLowerCase();
+            DeferredHolder<Item, Item> holder = ITEMS.register(
+                    itemId,
+                    () -> new Item(new Item.Properties())
+            );
+            RAW_ITEMS.put(material, holder);
+            System.out.println("[ModItems] Registered raw item: " + itemId);
+        }
+    }
+
     // Helper method to register all universal augment items
     public static void registerUniversalAugments() {
         System.out.println("[ModItems] Registering universal augment items...");
@@ -249,9 +265,11 @@ public class ModItems {
             registerUniversalAugments();
             System.out.println("[ModItems] Step 1: COMPLETE");
 
-            System.out.println("[ModItems] Step 2: Registering alloys...");
+            System.out.println("[ModItems] Step 2: Registering alloys, raw items...");
             registerAlloys();
+            registerRawItems();
             System.out.println("[ModItems] Step 2: COMPLETE");
+
 
             System.out.println("[ModItems] Step 2b: Registering alloy buckets...");
             registerAlloyBuckets();

@@ -34,6 +34,7 @@ public class ArsenalItemModelProvider extends ItemModelProvider {
         generateArsenalDaggerModel();
         generateToolPartModels();
         generateAlloyItemModels();
+        generateRawItemModels();
         generateAugmentModels();
         generateMoldItemModels();
         generateCastingPackageModels();
@@ -152,6 +153,16 @@ public class ArsenalItemModelProvider extends ItemModelProvider {
             getBuilder(key + "_alloy")
                     .parent(new ModelFile.UncheckedModelFile(mcLoc("item/generated")))
                     .texture("layer0", modLoc("item/alloy_base"));
+        }
+    }
+
+    private void generateRawItemModels() {
+        for (AlloyMaterial material : AlloyMaterial.values()) {
+            if (!material.allowRaw()) continue;
+            String key = material.getName().toLowerCase();
+            getBuilder("raw_" + key)
+                    .parent(new ModelFile.UncheckedModelFile(mcLoc("item/generated")))
+                    .texture("layer0", modLoc("item/raw_base"));
         }
     }
 

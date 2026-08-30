@@ -1,4 +1,4 @@
-// 1.21.1	2026-08-29T13:53:55.4287377	ArsenalCrafting Item Models
+// 1.21.1	2026-08-30T00:45:05.1649438	ArsenalCrafting Item Models
 f79607075cf2fea4b77608d3e2f7311f6b632371 assets/arsenalcrafting/models/item/alloy_smelter.json
 f194e160619f37dea26f25ad3f99365e334dad48 assets/arsenalcrafting/models/item/arsenal_axe.json
 877e0a349fe12b7f0a530dfe6818a4a541745deb assets/arsenalcrafting/models/item/arsenal_broadsword.json
@@ -148,6 +148,7 @@ b3f40ac676ec1b0e6f11f90dc53bd0227f3aaac1 assets/arsenalcrafting/models/item/neth
 5db122c96b03907234e3b6a4cbecae2494d767a2 assets/arsenalcrafting/models/item/ore_miner_augment.json
 2ca36042c2040e720bc5d8c0b0ad54d892232adc assets/arsenalcrafting/models/item/pickaxe_head_mold.json
 2aeb35c3f8896d3696ea0c4959d7b5b5c1bc3be7 assets/arsenalcrafting/models/item/pickaxe_package.json
+817000f219f026c9b56748350dc668fc60137e22 assets/arsenalcrafting/models/item/raw_tin.json
 4bd6f9bc39ee545a5bb08a4c5fb911df87227b25 assets/arsenalcrafting/models/item/sharpness_augment.tier1.json
 3ff79496ef5869f6ccd4b25f3e9891a27a380ee1 assets/arsenalcrafting/models/item/sharpness_augment.tier2.json
 0b2a6bb99cf191d64d0b35c1290c19dee863f746 assets/arsenalcrafting/models/item/sharpness_augment.tier3.json
