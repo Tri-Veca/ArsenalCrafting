@@ -28,6 +28,7 @@ public class CasingBlock extends Block {
                                 Block changedBlock, BlockPos changedPos, boolean isMoving) {
         super.neighborChanged(state, level, pos, changedBlock, changedPos, isMoving);
         if (level.isClientSide) return;
+        if (changedBlock instanceof ValveFaucetBlock) return;
         notifyController(level, pos);
     }
 
