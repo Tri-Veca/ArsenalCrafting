@@ -116,6 +116,8 @@ public class ArsenalBroadSwordItem extends SwordItem implements ArsenalTool {
         return CRIT_DAMAGE_MULT;
     }
 
+
+
     // ── ENCHANTING ────────────────────────────────────────────────────────────
 
     @Override

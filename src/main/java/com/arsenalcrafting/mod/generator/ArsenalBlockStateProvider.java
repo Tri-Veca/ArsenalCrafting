@@ -2,10 +2,12 @@ package com.arsenalcrafting.mod.generator;
 
 import com.arsenalcrafting.mod.ArsenalCrafting;
 import com.arsenalcrafting.mod.blocks.AlloySmelterBlock;
+import com.arsenalcrafting.mod.blocks.CasingBlock;
 import com.arsenalcrafting.mod.blocks.LavaTankBlock;
 import com.arsenalcrafting.mod.registry.ModBlocks;
 import net.minecraft.core.Direction;
 import net.minecraft.data.PackOutput;
+import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
@@ -41,9 +43,8 @@ public class ArsenalBlockStateProvider extends BlockStateProvider {
         // simpleBlock(ModBlocks.LAVA_TANK.get());
 
 
-
         // Alloy Smelter blockstates
-        String[] smeltTiers = {"unformed", "copper", "iron", "steel", "titanium"};
+        String[] smeltTiers = {"unformed", "copper", "iron", "bronze", "steel", "titanium"};
 
         getVariantBuilder(ModBlocks.ALLOY_SMELTER.get()).forAllStates(state -> {
             String tier = state.getValue(AlloySmelterBlock.TIER).getSerializedName();
@@ -84,5 +85,110 @@ public class ArsenalBlockStateProvider extends BlockStateProvider {
                     .rotationY(yRot)
                     .build();
         });
+
+
+        // Casing Blockstates with facing and drain variants
+        Direction[] facings = {Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST};
+
+// Copper Casing
+        for (Direction facing : facings) {
+            getVariantBuilder(ModBlocks.COPPER_CASING.get())
+                    .partialState()
+                    .with(CasingBlock.FACING, facing)
+                    .with(CasingBlock.DRAIN, false)
+                    .modelForState()
+                    .modelFile(models().getExistingFile(modLoc("block/copper_casing")))
+                    .addModel()
+                    .partialState()
+                    .with(CasingBlock.FACING, facing)
+                    .with(CasingBlock.DRAIN, true)
+                    .modelForState()
+                    .modelFile(models().getExistingFile(modLoc("block/copper_casing_drain")))
+                    .rotationY(getYRotation(facing))
+                    .addModel();
+        }
+
+// Iron Casing
+        for (Direction facing : facings) {
+            getVariantBuilder(ModBlocks.IRON_CASING.get())
+                    .partialState()
+                    .with(CasingBlock.FACING, facing)
+                    .with(CasingBlock.DRAIN, false)
+                    .modelForState()
+                    .modelFile(models().getExistingFile(modLoc("block/iron_casing")))
+                    .addModel()
+                    .partialState()
+                    .with(CasingBlock.FACING, facing)
+                    .with(CasingBlock.DRAIN, true)
+                    .modelForState()
+                    .modelFile(models().getExistingFile(modLoc("block/iron_casing_drain")))
+                    .rotationY(getYRotation(facing))
+                    .addModel();
+        }
+
+// Bronze Casing
+        for (Direction facing : facings) {
+            getVariantBuilder(ModBlocks.BRONZE_CASING.get())
+                    .partialState()
+                    .with(CasingBlock.FACING, facing)
+                    .with(CasingBlock.DRAIN, false)
+                    .modelForState()
+                    .modelFile(models().getExistingFile(modLoc("block/bronze_casing")))
+                    .addModel()
+                    .partialState()
+                    .with(CasingBlock.FACING, facing)
+                    .with(CasingBlock.DRAIN, true)
+                    .modelForState()
+                    .modelFile(models().getExistingFile(modLoc("block/bronze_casing_drain")))
+                    .rotationY(getYRotation(facing))
+                    .addModel();
+        }
+
+// Steel Casing
+        for (Direction facing : facings) {
+            getVariantBuilder(ModBlocks.STEEL_CASING.get())
+                    .partialState()
+                    .with(CasingBlock.FACING, facing)
+                    .with(CasingBlock.DRAIN, false)
+                    .modelForState()
+                    .modelFile(models().getExistingFile(modLoc("block/steel_casing")))
+                    .addModel()
+                    .partialState()
+                    .with(CasingBlock.FACING, facing)
+                    .with(CasingBlock.DRAIN, true)
+                    .modelForState()
+                    .modelFile(models().getExistingFile(modLoc("block/steel_casing_drain")))
+                    .rotationY(getYRotation(facing))
+                    .addModel();
+        }
+
+// Titanium Casing
+        for (Direction facing : facings) {
+            getVariantBuilder(ModBlocks.TITANIUM_CASING.get())
+                    .partialState()
+                    .with(CasingBlock.FACING, facing)
+                    .with(CasingBlock.DRAIN, false)
+                    .modelForState()
+                    .modelFile(models().getExistingFile(modLoc("block/titanium_casing")))
+                    .addModel()
+                    .partialState()
+                    .with(CasingBlock.FACING, facing)
+                    .with(CasingBlock.DRAIN, true)
+                    .modelForState()
+                    .modelFile(models().getExistingFile(modLoc("block/titanium_casing_drain")))
+                    .rotationY(getYRotation(facing))
+                    .addModel();
+        }
+
+    }
+
+    private int getYRotation(Direction facing) {
+        return switch (facing) {
+            case SOUTH -> 180;
+            case WEST -> 270;
+            case EAST -> 90;
+            default -> 0;
+        };
+
     }
 }

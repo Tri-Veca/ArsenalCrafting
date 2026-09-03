@@ -40,6 +40,7 @@ public class ArsenalCrafting {
         ModCreativeTabs.register(modEventBus);
         ModComponents.register(modEventBus);
         ModLootModifiers.register(modEventBus);
+        ModParticles.PARTICLE_TYPES.register(modEventBus);
         AlloyRecipeType.register(modEventBus);
         ModRecipeSerializers.register(modEventBus);
         NeoForge.EVENT_BUS.register(ArsenalAttributeEvents.class);

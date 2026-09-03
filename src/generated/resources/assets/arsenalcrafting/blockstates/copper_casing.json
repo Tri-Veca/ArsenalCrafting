@@ -1,0 +1,31 @@
+{
+  "variants": {
+    "drain=false,facing=east": {
+      "model": "arsenalcrafting:block/copper_casing"
+    },
+    "drain=false,facing=north": {
+      "model": "arsenalcrafting:block/copper_casing"
+    },
+    "drain=false,facing=south": {
+      "model": "arsenalcrafting:block/copper_casing"
+    },
+    "drain=false,facing=west": {
+      "model": "arsenalcrafting:block/copper_casing"
+    },
+    "drain=true,facing=east": {
+      "model": "arsenalcrafting:block/copper_casing_drain",
+      "y": 90
+    },
+    "drain=true,facing=north": {
+      "model": "arsenalcrafting:block/copper_casing_drain"
+    },
+    "drain=true,facing=south": {
+      "model": "arsenalcrafting:block/copper_casing_drain",
+      "y": 180
+    },
+    "drain=true,facing=west": {
+      "model": "arsenalcrafting:block/copper_casing_drain",
+      "y": 270
+    }
+  }
+}

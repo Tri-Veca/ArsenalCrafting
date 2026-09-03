@@ -35,6 +35,7 @@ public class LavaTankBlock extends BaseEntityBlock {
         UNFORMED("unformed"),
         COPPER("copper"),
         IRON("iron"),
+        BRONZE("bronze"),
         STEEL("steel"),
         TITANIUM("titanium");
 

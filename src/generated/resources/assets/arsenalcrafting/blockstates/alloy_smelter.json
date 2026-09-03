@@ -1,5 +1,9 @@
 {
   "variants": {
+    "active=false,facing=east,tier=bronze": {
+      "model": "arsenalcrafting:block/alloy_smelter_bronze_off",
+      "y": 90
+    },
     "active=false,facing=east,tier=copper": {
       "model": "arsenalcrafting:block/alloy_smelter_copper_off",
       "y": 90
@@ -20,6 +24,9 @@
       "model": "arsenalcrafting:block/alloy_smelter_unformed_off",
       "y": 90
     },
+    "active=false,facing=north,tier=bronze": {
+      "model": "arsenalcrafting:block/alloy_smelter_bronze_off"
+    },
     "active=false,facing=north,tier=copper": {
       "model": "arsenalcrafting:block/alloy_smelter_copper_off"
     },
@@ -34,6 +41,10 @@
     },
     "active=false,facing=north,tier=unformed": {
       "model": "arsenalcrafting:block/alloy_smelter_unformed_off"
+    },
+    "active=false,facing=south,tier=bronze": {
+      "model": "arsenalcrafting:block/alloy_smelter_bronze_off",
+      "y": 180
     },
     "active=false,facing=south,tier=copper": {
       "model": "arsenalcrafting:block/alloy_smelter_copper_off",
@@ -55,6 +66,10 @@
       "model": "arsenalcrafting:block/alloy_smelter_unformed_off",
       "y": 180
     },
+    "active=false,facing=west,tier=bronze": {
+      "model": "arsenalcrafting:block/alloy_smelter_bronze_off",
+      "y": 270
+    },
     "active=false,facing=west,tier=copper": {
       "model": "arsenalcrafting:block/alloy_smelter_copper_off",
       "y": 270
@@ -74,6 +89,10 @@
     "active=false,facing=west,tier=unformed": {
       "model": "arsenalcrafting:block/alloy_smelter_unformed_off",
       "y": 270
+    },
+    "active=true,facing=east,tier=bronze": {
+      "model": "arsenalcrafting:block/alloy_smelter_bronze_on",
+      "y": 90
     },
     "active=true,facing=east,tier=copper": {
       "model": "arsenalcrafting:block/alloy_smelter_copper_on",
@@ -95,6 +114,9 @@
       "model": "arsenalcrafting:block/alloy_smelter_unformed_on",
       "y": 90
     },
+    "active=true,facing=north,tier=bronze": {
+      "model": "arsenalcrafting:block/alloy_smelter_bronze_on"
+    },
     "active=true,facing=north,tier=copper": {
       "model": "arsenalcrafting:block/alloy_smelter_copper_on"
     },
@@ -109,6 +131,10 @@
     },
     "active=true,facing=north,tier=unformed": {
       "model": "arsenalcrafting:block/alloy_smelter_unformed_on"
+    },
+    "active=true,facing=south,tier=bronze": {
+      "model": "arsenalcrafting:block/alloy_smelter_bronze_on",
+      "y": 180
     },
     "active=true,facing=south,tier=copper": {
       "model": "arsenalcrafting:block/alloy_smelter_copper_on",
@@ -129,6 +155,10 @@
     "active=true,facing=south,tier=unformed": {
       "model": "arsenalcrafting:block/alloy_smelter_unformed_on",
       "y": 180
+    },
+    "active=true,facing=west,tier=bronze": {
+      "model": "arsenalcrafting:block/alloy_smelter_bronze_on",
+      "y": 270
     },
     "active=true,facing=west,tier=copper": {
       "model": "arsenalcrafting:block/alloy_smelter_copper_on",

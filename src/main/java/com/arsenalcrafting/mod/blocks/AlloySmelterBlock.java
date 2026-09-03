@@ -40,6 +40,7 @@ public class AlloySmelterBlock extends BaseEntityBlock {
         UNFORMED("unformed"),
         COPPER("copper"),
         IRON("iron"),
+        BRONZE("bronze"),
         STEEL("steel"),
         TITANIUM("titanium");
 
@@ -53,6 +54,7 @@ public class AlloySmelterBlock extends BaseEntityBlock {
             return switch (tier) {
                 case COPPER -> COPPER;
                 case IRON -> IRON;
+                case BRONZE -> BRONZE;
                 case STEEL -> STEEL;
                 case TITANIUM -> TITANIUM;
             };

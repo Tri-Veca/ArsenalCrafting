@@ -294,6 +294,8 @@ public class ArsenalAxeItem extends AxeItem implements ArsenalTool {
         return super.damageItem(stack, amount, entity, onBroken);
     }
 
+
+
     @Override
     @OnlyIn(Dist.CLIENT)
     public void appendHoverText(ItemStack stack, @Nullable Item.TooltipContext context,

@@ -29,7 +29,7 @@ public class GravelLootModifier extends LootModifier {
     protected ObjectArrayList<ItemStack> doApply(ObjectArrayList<ItemStack> generatedLoot,
                                                  LootContext context) {
         // Check if the block being broken is gravel
-        var blockState = context.getParam(net.minecraft.world.level.storage.loot.parameters.LootContextParams.BLOCK_STATE);
+        var blockState = context.getParamOrNull(net.minecraft.world.level.storage.loot.parameters.LootContextParams.BLOCK_STATE);
         if (blockState == null || blockState.getBlock() != net.minecraft.world.level.block.Blocks.GRAVEL) {
             return generatedLoot;
         }

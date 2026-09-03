@@ -1,5 +1,9 @@
 {
   "variants": {
+    "facing=east,tier=bronze": {
+      "model": "arsenalcrafting:block/lava_tank_bronze",
+      "y": 90
+    },
     "facing=east,tier=copper": {
       "model": "arsenalcrafting:block/lava_tank_copper",
       "y": 90
@@ -20,6 +24,9 @@
       "model": "arsenalcrafting:block/lava_tank_unformed",
       "y": 90
     },
+    "facing=north,tier=bronze": {
+      "model": "arsenalcrafting:block/lava_tank_bronze"
+    },
     "facing=north,tier=copper": {
       "model": "arsenalcrafting:block/lava_tank_copper"
     },
@@ -34,6 +41,10 @@
     },
     "facing=north,tier=unformed": {
       "model": "arsenalcrafting:block/lava_tank_unformed"
+    },
+    "facing=south,tier=bronze": {
+      "model": "arsenalcrafting:block/lava_tank_bronze",
+      "y": 180
     },
     "facing=south,tier=copper": {
       "model": "arsenalcrafting:block/lava_tank_copper",
@@ -54,6 +65,10 @@
     "facing=south,tier=unformed": {
       "model": "arsenalcrafting:block/lava_tank_unformed",
       "y": 180
+    },
+    "facing=west,tier=bronze": {
+      "model": "arsenalcrafting:block/lava_tank_bronze",
+      "y": 270
     },
     "facing=west,tier=copper": {
       "model": "arsenalcrafting:block/lava_tank_copper",

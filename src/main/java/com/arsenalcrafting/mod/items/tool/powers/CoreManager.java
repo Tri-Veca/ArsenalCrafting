@@ -95,6 +95,13 @@ public class CoreManager {
                 CoreHandlers.GAMBLER
         ));
 
+        register(AlloyMaterial.TITANIUM, new CoreDefinition(
+                "perfect_strike", "Perfect Strike",
+                "8% chance to Instantly breaks blocks, +1 ore drop",
+                "8% chance to deal an extra hit ",
+                CoreHandlers.PERFECT_STRIKE
+        ));
+
         // ── STEEL — RULE BREAKER ──────────────────────────────────────────────
         // Steel breaks the rules. Each tool type gets a completely unique power.
         // The base DEFINITIONS entry is a fallback — real lookup uses STEEL_VARIANTS.

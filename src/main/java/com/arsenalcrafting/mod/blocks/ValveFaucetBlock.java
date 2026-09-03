@@ -4,10 +4,12 @@ import com.arsenalcrafting.mod.blocks.entity.ValveFaucetBlockEntity;
 import com.arsenalcrafting.mod.registry.ModBlockEntities;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
@@ -20,6 +22,8 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 public class ValveFaucetBlock extends BaseEntityBlock {
@@ -48,7 +52,39 @@ public class ValveFaucetBlock extends BaseEntityBlock {
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return defaultBlockState().setValue(FACING, context.getHorizontalDirection());
+        BlockState state = defaultBlockState().setValue(FACING, context.getHorizontalDirection());
+
+        BlockPos faucetPos = context.getClickedPos();
+        BlockPos casingPos = faucetPos.relative(context.getClickedFace().getOpposite());
+        BlockState casingState = context.getLevel().getBlockState(casingPos);
+
+        System.out.println("==== FAUCET DEBUG ====");
+        System.out.println("faucetPos: " + faucetPos);
+        System.out.println("casingPos: " + casingPos);
+        System.out.println("casingState: " + casingState);
+
+        if (casingState.getBlock() instanceof CasingBlock) {
+            System.out.println("Setting drain=true and facing=" + context.getClickedFace());
+            context.getLevel().setBlock(casingPos, casingState
+                    .setValue(CasingBlock.FACING, context.getClickedFace())
+                    .setValue(CasingBlock.DRAIN, true), 3);
+        }
+
+        return state;
+    }
+
+    @Override
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moved) {
+        if (!state.is(newState.getBlock())) {
+            BlockPos casingPos = pos.relative(state.getValue(FACING));
+            BlockState casingState = level.getBlockState(casingPos);
+            if (casingState.getBlock() instanceof CasingBlock && casingState.getValue(CasingBlock.DRAIN)) {
+                level.setBlock(casingPos, casingState
+                        .setValue(CasingBlock.FACING, Direction.NORTH)  // Reset facing
+                        .setValue(CasingBlock.DRAIN, false), 3);
+            }
+            super.onRemove(state, level, pos, newState, moved);
+        }
     }
 
     @Override
@@ -64,7 +100,16 @@ public class ValveFaucetBlock extends BaseEntityBlock {
         return createTickerHelper(type, ModBlockEntities.VALVE_FAUCET.get(),
                 (level1, pos, state1, be) -> ValveFaucetBlockEntity.tick(level1, pos, state1, be));
     }
-
+    @Override
+    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        return switch (state.getValue(FACING)) {
+            case NORTH -> net.minecraft.world.phys.shapes.Shapes.box(0.15, 0.15, 0.0, 0.75, 0.75, 0.5);
+            case SOUTH -> net.minecraft.world.phys.shapes.Shapes.box(0.15, 0.15, 0.5, 0.75, 0.75, 1.0);
+            case EAST ->  net.minecraft.world.phys.shapes.Shapes.box(0.5, 0.15, 0.15, 1.0, 0.75, 0.75);
+            case WEST ->  net.minecraft.world.phys.shapes.Shapes.box(0.0, 0.15, 0.15, 0.5, 0.75, 0.75);
+            default ->    net.minecraft.world.phys.shapes.Shapes.block();
+        };
+    }
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
                                                Player player, BlockHitResult hitResult) {

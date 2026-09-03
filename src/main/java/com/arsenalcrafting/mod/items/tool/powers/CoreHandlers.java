@@ -29,6 +29,7 @@ public final class CoreHandlers {
     public static final SturdyCore STURDY = new SturdyCore();
     public static final WorkHorseCore WORKHORSE = new WorkHorseCore();
     public static final GamblerCore GAMBLER = new GamblerCore();
+    public static final PerfectStrikeHandler PERFECT_STRIKE = new PerfectStrikeHandler();
 
 
 
@@ -197,4 +198,23 @@ public final class CoreHandlers {
         }
 
     }
+
+
+    public static final class PerfectStrikeHandler implements CoreHandler {
+        @Override
+        public boolean supportsToolType(ArsenalToolType type) {
+            return type != null && (type.isMiningTool() || type.isWeapon());
+        }
+
+        @Override
+        public void onBlockDestroyed(ItemStack stack, Level level, BlockState state, BlockPos pos, LivingEntity entity) {
+            PerfectStrike.tryPerfectStrike(stack, level, state, pos, entity);
+        }
+
+        @Override
+        public void onEntityHit(ItemStack weapon, LivingEntity attacker, Entity target, float damage) {
+            PerfectStrike.tryExtraStrike(weapon, attacker, target, damage);
+        }
+    }
+
 }

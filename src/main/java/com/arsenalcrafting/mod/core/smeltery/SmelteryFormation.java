@@ -17,6 +17,7 @@ public class SmelteryFormation {
     public static SmelteryTier getTierForBlock(Block block) {
         if (block == ModBlocks.COPPER_CASING.get()) return SmelteryTier.COPPER;
         if (block == ModBlocks.IRON_CASING.get()) return SmelteryTier.IRON;
+        if (block == ModBlocks.BRONZE_CASING.get()) return SmelteryTier.BRONZE;
         if (block == ModBlocks.BRONZE_CASING.get()) return SmelteryTier.IRON;
         if (block == ModBlocks.STEEL_CASING.get()) return SmelteryTier.STEEL;
         if (block == ModBlocks.TITANIUM_CASING.get()) return SmelteryTier.TITANIUM;
@@ -29,6 +30,7 @@ public class SmelteryFormation {
                 || state.getBlock() instanceof LavaTankBlock
                 || state.getBlock() instanceof ValveFaucetBlock;
     }
+
 
     public static boolean isValidFloorBlock(BlockState state) {
         return getTierForBlock(state.getBlock()) != null;

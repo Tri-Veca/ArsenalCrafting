@@ -15,6 +15,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -451,6 +452,8 @@ public interface ArsenalTool extends IItemExtension {
         }
         return IItemExtension.super.canBeHurtBy(stack, source);
     }
+
+
 
     // ==================== DURABILITY / BROKEN STATE ====================
 

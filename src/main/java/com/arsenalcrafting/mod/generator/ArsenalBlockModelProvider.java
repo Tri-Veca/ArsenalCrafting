@@ -47,7 +47,7 @@ public class ArsenalBlockModelProvider extends BlockModelProvider {
 
 
         // Alloy Smelter — two-layer models per tier per active state
-        String[] tiers = {"unformed", "copper", "iron", "steel", "titanium"};
+        String[] tiers = {"unformed", "copper", "iron", "bronze", "steel", "titanium"};
 
         for (String tier : tiers) {
             String casingTex = tier.equals("unformed")
@@ -95,7 +95,7 @@ public class ArsenalBlockModelProvider extends BlockModelProvider {
         }
 
         // Lava Tank — per tier, glass window on front face
-        String[] tankTiers = {"unformed", "copper", "iron", "steel", "titanium"};
+        String[] tankTiers = {"unformed", "copper", "iron", "bronze", "steel", "titanium"};
 
         for (String tier : tankTiers) {
             String casingTex = tier.equals("unformed")
@@ -124,6 +124,37 @@ public class ArsenalBlockModelProvider extends BlockModelProvider {
                     .renderType("cutout");
         }
 
+
+        // Drain Casing Models - TWO layers like Alloy Smelter
+        String[] casingTiers = {"copper", "iron", "bronze", "steel", "titanium"};
+
+        for (String tier : casingTiers) {
+            String casingTex = "arsenalcrafting:block/" + tier + "_casing";
+            String drainFrontTex = "arsenalcrafting:block/drain_front";
+
+            String modelName = tier + "_casing_drain";
+
+            withExistingParent(modelName, "minecraft:block/block")
+                    .texture("particle", casingTex)
+                    // LAYER 1: Full casing block
+                    .element()
+                    .from(0, 0, 0).to(16, 16, 16)
+                    .face(Direction.UP).uvs(0, 0, 16, 16).texture("#casing").end()
+                    .face(Direction.DOWN).uvs(0, 0, 16, 16).texture("#casing").end()
+                    .face(Direction.NORTH).uvs(0, 0, 16, 16).texture("#casing").end()  // Casing on north face
+                    .face(Direction.SOUTH).uvs(0, 0, 16, 16).texture("#casing").end()
+                    .face(Direction.EAST).uvs(0, 0, 16, 16).texture("#casing").end()
+                    .face(Direction.WEST).uvs(0, 0, 16, 16).texture("#casing").end()
+                    .end()
+                    // LAYER 2: Thin drain overlay on north face (like the smelter face)
+                    .element()
+                    .from(0, 0, -0.01f).to(16, 16, 0)
+                    .face(Direction.NORTH).uvs(0, 0, 16, 16).texture("#drain").end()
+                    .end()
+                    .texture("casing", casingTex)
+                    .texture("drain", drainFrontTex)
+                    .renderType("cutout");
+        }
     }
 }
 

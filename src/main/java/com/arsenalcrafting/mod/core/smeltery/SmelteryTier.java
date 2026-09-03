@@ -4,6 +4,7 @@ public enum SmelteryTier {
 
     COPPER("Copper", 1, 9, 1.0f, 1.0f, false),
     IRON("Iron", 2, 9, 1.1f, 1.2f, false),
+    BRONZE("Bronze", 2, 9, 1.1f, 1.2f, false),
     STEEL("Steel", 3, 9, 1.15f, 1.33f, true),
     TITANIUM("Titanium", 5, 9, 1.2f, 1.5f, true);
 
