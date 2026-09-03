@@ -422,22 +422,37 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         List<ConnectedTankInfo> newTanks = new ArrayList<>();
         int totalCapacity = 0;
 
-        for (Direction dir : Direction.values()) {
-            BlockPos neighborPos = worldPosition.relative(dir);
-            BlockEntity be = level.getBlockEntity(neighborPos);
-            if (be instanceof LavaTankBlockEntity lavaTank) {
-                int cap = lavaTank.fluidTank.getCapacity();
-                newTanks.add(new ConnectedTankInfo(lavaTank.fluidTank, cap));
-                totalCapacity += cap;
-                continue;
+        if (smelteryData != null && smelteryData.isValid()) {
+            // Scan entire multiblock bounds for lava tanks
+            BlockPos origin = smelteryData.interiorOrigin();
+            int minX = origin.getX() - 1;
+            int maxX = origin.getX() + smelteryData.width();
+            int minZ = origin.getZ() - 1;
+            int maxZ = origin.getZ() + smelteryData.depth();
+            int minY = origin.getY() - 1;
+            int maxY = origin.getY() + smelteryData.height() - 1;
+
+            for (int x = minX; x <= maxX; x++) {
+                for (int y = minY; y <= maxY; y++) {
+                    for (int z = minZ; z <= maxZ; z++) {
+                        BlockPos scanPos = new BlockPos(x, y, z);
+                        if (level.getBlockEntity(scanPos) instanceof LavaTankBlockEntity lavaTank) {
+                            int cap = lavaTank.fluidTank.getCapacity();
+                            newTanks.add(new ConnectedTankInfo(lavaTank.fluidTank, cap));
+                            totalCapacity += cap;
+                        }
+                    }
+                }
             }
-            IFluidHandler neighborTank = level.getCapability(
-                    net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.BLOCK,
-                    neighborPos, level.getBlockState(neighborPos), this, dir.getOpposite());
-            if (neighborTank != null && neighborTank != DISPLAY_TANK) {
-                int cap = neighborTank.getTankCapacity(0);
-                newTanks.add(new ConnectedTankInfo(neighborTank, cap));
-                totalCapacity += cap;
+        } else {
+            // Fallback — scan adjacent only when no multiblock data
+            for (Direction dir : Direction.values()) {
+                BlockPos neighborPos = worldPosition.relative(dir);
+                if (level.getBlockEntity(neighborPos) instanceof LavaTankBlockEntity lavaTank) {
+                    int cap = lavaTank.fluidTank.getCapacity();
+                    newTanks.add(new ConnectedTankInfo(lavaTank.fluidTank, cap));
+                    totalCapacity += cap;
+                }
             }
         }
 
@@ -978,19 +993,31 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
 
         level.setBlock(worldPosition, state.setValue(AlloySmelterBlock.TIER, tier), 3);
 
-        // Update connected lava tanks to match tier
-        LavaTankBlock.TankTier tankTier = (smelteryData != null && smelteryData.isValid())
-                ? LavaTankBlock.TankTier.valueOf(smelteryData.tier().name())
-                : LavaTankBlock.TankTier.UNFORMED;
+        // Update all lava tanks in multiblock bounds
+        if (smelteryData != null && smelteryData.isValid()) {
+            LavaTankBlock.TankTier tankTier = LavaTankBlock.TankTier.valueOf(smelteryData.tier().name());
+            BlockPos origin = smelteryData.interiorOrigin();
+            int minX = origin.getX() - 1;
+            int maxX = origin.getX() + smelteryData.width();
+            int minZ = origin.getZ() - 1;
+            int maxZ = origin.getZ() + smelteryData.depth();
+            int minY = origin.getY() - 1;
+            int maxY = origin.getY() + smelteryData.height() - 1;
 
-        for (ConnectedTankInfo info : connectedTanks) {
-            if (info.handler instanceof net.neoforged.neoforge.fluids.capability.templates.FluidTank ft) {
-                // find the BE at each connected tank position
-                for (net.minecraft.core.Direction dir : net.minecraft.core.Direction.values()) {
-                    BlockPos neighborPos = worldPosition.relative(dir);
-                    if (level.getBlockEntity(neighborPos) instanceof LavaTankBlockEntity lavaTank) {
-                        lavaTank.updateTier(tankTier);
+            for (int x = minX; x <= maxX; x++) {
+                for (int y = minY; y <= maxY; y++) {
+                    for (int z = minZ; z <= maxZ; z++) {
+                        if (level.getBlockEntity(new BlockPos(x, y, z)) instanceof LavaTankBlockEntity lavaTank) {
+                            lavaTank.updateTier(tankTier);
+                        }
                     }
+                }
+            }
+        } else {
+            // Reset all adjacent lava tanks to unformed
+            for (Direction dir : Direction.values()) {
+                if (level.getBlockEntity(worldPosition.relative(dir)) instanceof LavaTankBlockEntity lavaTank) {
+                    lavaTank.updateTier(LavaTankBlock.TankTier.UNFORMED);
                 }
             }
         }
