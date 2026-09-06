@@ -36,7 +36,7 @@ public enum AlloyMaterial {
             false,//allow alloy to be created automatically. We don't use for vanilla materials
             30,// 20 ticks = 1 second. how long to craft.
             true,//Should Parts be created automatically. set to false in special cases like coal
-            false
+            false //Should raw be created automatically.  We don't use for vanilla materials
 
     ),
     TIN(
@@ -50,7 +50,7 @@ public enum AlloyMaterial {
             1.0f,
             4,
             0.10f,   //crit chance
-            1.35f,   //crit damage multiplier
+            2.00f,   //crit damage multiplier
             3.5f,    //weapon damage
             ChatFormatting.GRAY,
             0xFFeddfdb,
@@ -89,7 +89,7 @@ public enum AlloyMaterial {
             0f,
             1.0f,
             4,
-            0.14f,   //crit chance — high crit, low multiplier (gambler)
+            0.14f,   //crit chance — high crit, high multi
             1.9f,   //crit damage multiplier
             3.5f,    //weapon damage — fast and crits often, not raw power
             ChatFormatting.YELLOW,

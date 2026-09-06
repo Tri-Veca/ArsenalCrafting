@@ -126,13 +126,13 @@ public class ModItemColors {
 
     private static int colorAlloyItem(ItemStack stack, int tintIndex) {
         if (tintIndex != 0) return 0xFFFFFFFF;
-
         if (stack.getItem() instanceof AlloyItem alloy) {
             return ensureOpaque(alloy.getMaterial().getItemColor());
         }
-
         return 0xFFFFFFFF;
     }
+
+
 
     // --------- Helpers ---------
 

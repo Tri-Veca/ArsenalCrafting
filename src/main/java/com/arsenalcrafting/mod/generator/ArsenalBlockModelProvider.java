@@ -141,7 +141,7 @@ public class ArsenalBlockModelProvider extends BlockModelProvider {
                     .from(0, 0, 0).to(16, 16, 16)
                     .face(Direction.UP).uvs(0, 0, 16, 16).rotation(net.neoforged.neoforge.client.model.generators.ModelBuilder.FaceRotation.COUNTERCLOCKWISE_90).texture("#casing").end()
                     .face(Direction.DOWN).uvs(0, 0, 16, 16).rotation(net.neoforged.neoforge.client.model.generators.ModelBuilder.FaceRotation.CLOCKWISE_90).texture("#casing").end()
-                    .face(Direction.NORTH).uvs(0, 0, 16, 16).texture("#casing").end()  
+                    .face(Direction.NORTH).uvs(0, 0, 16, 16).texture("#casing").end()
                     .face(Direction.SOUTH).uvs(0, 0, 16, 16).texture("#casing").end()
                     .face(Direction.EAST).uvs(0, 0, 16, 16).texture("#casing").end()
                     .face(Direction.WEST).uvs(0, 0, 16, 16).texture("#casing").end()

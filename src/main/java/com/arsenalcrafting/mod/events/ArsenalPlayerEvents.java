@@ -20,6 +20,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.item.ItemTossEvent;
+import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 
@@ -64,10 +65,8 @@ public class ArsenalPlayerEvents {
     @SubscribeEvent
     public static void onItemToss(ItemTossEvent event) {
         ItemEntity itemEntity = event.getEntity();
-        Player player = event.getPlayer();
-        Level level = player.level();
 
-        if (level.isClientSide()) return;
+        if (itemEntity.level().isClientSide()) return;
 
         ItemStack stack = itemEntity.getItem();
 
@@ -76,8 +75,19 @@ public class ArsenalPlayerEvents {
 
         // Make THIS dropped gravel fire/lava resistant.
         stack.set(DataComponents.FIRE_RESISTANT, Unit.INSTANCE);
+    }
 
-        // Check every tick until the gravel hits lava.
+    @SubscribeEvent
+    public static void onEntityTick(EntityTickEvent.Post event) {
+        if (!(event.getEntity() instanceof ItemEntity itemEntity)) return;
+
+        if (itemEntity.level().isClientSide()) return;
+
+        ItemStack stack = itemEntity.getItem();
+
+        // Only check gravel.
+        if (!stack.is(Items.GRAVEL)) return;
+
         checkGravel(itemEntity);
     }
 
@@ -120,12 +130,5 @@ public class ArsenalPlayerEvents {
             return;
         }
 
-        // Check again next tick.
-        if (level instanceof ServerLevel serverLevel) {
-            serverLevel.getServer().tell(new TickTask(
-                    serverLevel.getServer().getTickCount() + 1,
-                    () -> checkGravel(itemEntity)
-            ));
-        }
     }
 }

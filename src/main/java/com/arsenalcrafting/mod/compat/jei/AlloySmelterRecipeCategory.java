@@ -101,7 +101,7 @@ public class AlloySmelterRecipeCategory implements IRecipeCategory<AlloyRecipe> 
             // Invisible ingot slot - placed outside visible area
             var ingotHolder = ModItems.ALLOY_ITEMS.get(material);
             if (ingotHolder != null) {
-                builder.addSlot(RecipeIngredientRole.OUTPUT, -300, -300)
+                builder.addSlot(RecipeIngredientRole.OUTPUT, -1000, -1000)
                         .addItemStack(new ItemStack(ingotHolder.get()))
                         .setBackground(emptyDrawable, 0, 0);
             }
@@ -109,7 +109,7 @@ public class AlloySmelterRecipeCategory implements IRecipeCategory<AlloyRecipe> 
             // Invisible bucket slot - placed outside visible area
             var bucketHolder = ModItems.ALLOY_BUCKETS.get(material);
             if (bucketHolder != null) {
-                builder.addSlot(RecipeIngredientRole.OUTPUT, -200, -200)
+                builder.addSlot(RecipeIngredientRole.OUTPUT, -1000, -1000)
                         .addItemStack(new ItemStack(bucketHolder.get()))
                         .setBackground(emptyDrawable, 0, 0);
             }
@@ -124,55 +124,82 @@ public class AlloySmelterRecipeCategory implements IRecipeCategory<AlloyRecipe> 
     }
 
     private void drawLavaTank(GuiGraphics guiGraphics) {
-        var fluidExtensions   = IClientFluidTypeExtensions.of(Fluids.LAVA);
+        var fluidExtensions = IClientFluidTypeExtensions.of(Fluids.LAVA);
+
         ResourceLocation still = fluidExtensions.getStillTexture();
         TextureAtlasSprite sprite = Minecraft.getInstance()
-                .getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(still);
+                .getTextureAtlas(TextureAtlas.LOCATION_BLOCKS)
+                .apply(still);
 
         int color = fluidExtensions.getTintColor();
-        float r = ((color >> 16) & 0xFF) / 255f;
-        float g = ((color >>  8) & 0xFF) / 255f;
-        float b = ( color        & 0xFF) / 255f;
-        float a = ((color >> 24) & 0xFF) / 255f;
-        float[] last = RenderSystem.getShaderColor();
-        int lastTex  = RenderSystem.getShaderTexture(0);
 
-        RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_BLOCKS);
-        RenderSystem.setShaderColor(r, g, b, a);
-        guiGraphics.blit(FLUID_TANK_X, FLUID_TANK_Y, 0,
-                FLUID_TANK_WIDTH, FLUID_TANK_HEIGHT - 4, sprite);
-        RenderSystem.setShaderTexture(0, lastTex);
-        RenderSystem.setShaderColor(last[0], last[1], last[2], last[3]);
+        float r = ((color >> 16) & 0xFF) / 255f;
+        float g = ((color >> 8) & 0xFF) / 255f;
+        float b = (color & 0xFF) / 255f;
+        float a = ((color >> 24) & 0xFF) / 255f;
+
+        guiGraphics.setColor(r, g, b, a);
+
+        guiGraphics.blit(
+                FLUID_TANK_X,
+                FLUID_TANK_Y,
+                0,
+                FLUID_TANK_WIDTH,
+                FLUID_TANK_HEIGHT - 4,
+                sprite
+        );
+
+        // CRITICAL: restore GUI color for JEI's item rendering
+        guiGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
     }
+    // Use GuiGraphics color instead of RenderSystem.setShaderColor().
+    // Raw RenderSystem color state can leak into JEI's subsequent item rendering,
+    // causing already-colored AlloyItem textures to be tinted a second time.
 
     private void drawOutputTank(GuiGraphics guiGraphics, AlloyRecipe recipe) {
         AlloyMaterial material = AlloyMaterial.fromName(recipe.getResultMaterial());
         if (material == null) return;
+
         var sourceFluid = ModFluids.getSource(material);
         if (sourceFluid == null) return;
 
-        FluidStack fluidStack  = new FluidStack(sourceFluid, recipe.getResultAmountMb());
-        var fluidExtensions    = IClientFluidTypeExtensions.of(sourceFluid);
-        ResourceLocation still = fluidExtensions.getStillTexture(fluidStack);
-        if (still == null) still = fluidExtensions.getStillTexture();
+        FluidStack fluidStack =
+                new FluidStack(sourceFluid, recipe.getResultAmountMb());
+
+        var fluidExtensions =
+                IClientFluidTypeExtensions.of(sourceFluid);
+
+        ResourceLocation still =
+                fluidExtensions.getStillTexture(fluidStack);
+
+        if (still == null) {
+            still = fluidExtensions.getStillTexture();
+        }
 
         TextureAtlasSprite sprite = Minecraft.getInstance()
-                .getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(still);
+                .getTextureAtlas(TextureAtlas.LOCATION_BLOCKS)
+                .apply(still);
 
         int color = fluidExtensions.getTintColor(fluidStack);
-        float r = ((color >> 16) & 0xFF) / 255f;
-        float g = ((color >>  8) & 0xFF) / 255f;
-        float b = ( color        & 0xFF) / 255f;
-        float a = ((color >> 24) & 0xFF) / 255f;
-        float[] last = RenderSystem.getShaderColor();
-        int lastTex  = RenderSystem.getShaderTexture(0);
 
-        RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_BLOCKS);
-        RenderSystem.setShaderColor(r, g, b, a);
-        guiGraphics.blit(OUTPUT_TANK_X, OUTPUT_TANK_Y, 0,
-                OUTPUT_TANK_WIDTH, OUTPUT_TANK_HEIGHT - 4, sprite);
-        RenderSystem.setShaderTexture(0, lastTex);
-        RenderSystem.setShaderColor(last[0], last[1], last[2], last[3]);
+        float r = ((color >> 16) & 0xFF) / 255f;
+        float g = ((color >> 8) & 0xFF) / 255f;
+        float b = (color & 0xFF) / 255f;
+        float a = ((color >> 24) & 0xFF) / 255f;
+
+        guiGraphics.setColor(r, g, b, a);
+
+        guiGraphics.blit(
+                OUTPUT_TANK_X,
+                OUTPUT_TANK_Y,
+                0,
+                OUTPUT_TANK_WIDTH,
+                OUTPUT_TANK_HEIGHT - 4,
+                sprite
+        );
+
+        // CRITICAL: restore GUI color for JEI's item rendering
+        guiGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
 
