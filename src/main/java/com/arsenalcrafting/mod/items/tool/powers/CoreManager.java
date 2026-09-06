@@ -219,7 +219,7 @@ public class CoreManager {
         return null;
     }
 
-    public static boolean exists(String id) {
+    public static boolean exists(String id, ItemStack stack) {
         return get(id) != null;
     }
 }

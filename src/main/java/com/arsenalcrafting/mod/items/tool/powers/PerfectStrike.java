@@ -18,6 +18,11 @@ public final class PerfectStrike {
     private PerfectStrike() {}
 
     private static final float CHANCE = 0.08f;
+    private static float extraStrikeDamage = 0f;
+
+    public static float getExtraStrikeDamage() {
+        return extraStrikeDamage;
+    }
 
     public static void tryPerfectStrike(ItemStack tool, Level level, BlockState state, BlockPos pos, LivingEntity entity) {
         if (level.isClientSide) return;
@@ -39,14 +44,31 @@ public final class PerfectStrike {
         level.playSound(null, pos, SoundEvents.LIGHTNING_BOLT_THUNDER, SoundSource.PLAYERS, 0.5f, 1.2f);
     }
 
-    public static void tryExtraStrike(ItemStack weapon, LivingEntity attacker, Entity target, float damage) {
+    public static void tryExtraStrike(
+            ItemStack weapon,
+            LivingEntity attacker,
+            Entity target,
+            float damage
+    ) {
+        // Reset the result for THIS attack
+        extraStrikeDamage = 0f;
+
         if (attacker.level().isClientSide) return;
         if (!(attacker instanceof Player player)) return;
         if (attacker.level().random.nextFloat() >= CHANCE) return;
-        System.out.println("[PerfectStrike] Extra Strike triggered! Damage: " + damage);
+
+        // Extra Strike triggered
+        extraStrikeDamage = damage;
+
+        System.out.println(
+                "[PerfectStrike] Extra Strike triggered! Damage: " + damage
+        );
 
         if (target instanceof LivingEntity livingTarget) {
-            livingTarget.hurt(attacker.damageSources().playerAttack(player), damage);
+            livingTarget.hurt(
+                    attacker.damageSources().playerAttack(player),
+                    damage
+            );
         }
     }
 

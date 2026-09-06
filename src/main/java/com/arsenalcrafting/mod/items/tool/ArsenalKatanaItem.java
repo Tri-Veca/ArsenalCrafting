@@ -7,6 +7,7 @@ import com.arsenalcrafting.mod.core.UnifiedProcessor;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
 import com.arsenalcrafting.mod.items.tool.powers.CoreManager;
+import com.arsenalcrafting.mod.items.tool.powers.PerfectStrike;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -259,17 +260,24 @@ public class ArsenalKatanaItem extends SwordItem implements ArsenalTool {
 
         // Step 5: Hit summary debug
         float sharpnessBonus = 0f;
+        float extraStrike = 0f;
         if (com.arsenalcrafting.mod.core.augments.AugmentManager.isInstalled("sharpness", stack)) {
             int sharpTier = com.arsenalcrafting.mod.core.augments.AugmentManager.getTier("sharpness", stack);
             sharpnessBonus = com.arsenalcrafting.mod.items.augments.SharpnessAugmentItem.getBonusDamage(sharpTier);
         }
-        float totalDamage = finalDamage + sharpnessBonus + (arcHits * arcDmg);
+        if (CoreManager.exists("perfect_strike", stack)) {
+            extraStrike = PerfectStrike.getExtraStrikeDamage();
+        }
+        float totalDamage = finalDamage + sharpnessBonus + extraStrike + (arcHits * arcDmg);
         boolean isCrit = finalDamage > baseDamage;
         System.out.println("[ArsenalKatana] ──── HIT SUMMARY ────"
                 + " | base=" + String.format("%.2f", baseDamage)
                 + (isCrit ? " | ★CRIT bonus=" + String.format("%.2f", finalDamage - baseDamage) : " | no crit")
                 + (sharpnessBonus > 0 ? " | sharpness=" + String.format("%.2f", sharpnessBonus) : "")
                 + (arcHits > 0 ? " | arc=" + arcHits + "x" + String.format("%.2f", arcDmg) : "")
+                + (extraStrike > 0
+                ? " | extraStrike=" + String.format("%.2f", extraStrike)
+                : " | no extra strike")
                 + " | TOTAL=" + String.format("%.2f", totalDamage)
                 + " | blade=" + getAssembledBladeName(stack));
 

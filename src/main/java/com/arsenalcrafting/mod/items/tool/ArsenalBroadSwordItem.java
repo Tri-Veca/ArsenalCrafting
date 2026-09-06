@@ -7,6 +7,7 @@ import com.arsenalcrafting.mod.core.UnifiedProcessor;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
 import com.arsenalcrafting.mod.items.tool.powers.CoreManager;
+import com.arsenalcrafting.mod.items.tool.powers.PerfectStrike;
 import com.arsenalcrafting.mod.registry.ModComponents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
@@ -273,16 +274,23 @@ public class ArsenalBroadSwordItem extends SwordItem implements ArsenalTool {
 
         // Step 4: Hit summary
         float sharpnessBonus = 0f;
+        float extraStrike = 0f;
         if (com.arsenalcrafting.mod.core.augments.AugmentManager.isInstalled("sharpness", stack)) {
             int sharpTier = com.arsenalcrafting.mod.core.augments.AugmentManager.getTier("sharpness", stack);
             sharpnessBonus = com.arsenalcrafting.mod.items.augments.SharpnessAugmentItem.getBonusDamage(sharpTier);
         }
-        float totalDamage = finalDamage + sharpnessBonus;
+        if (CoreManager.exists("perfect_strike", stack)) {
+            extraStrike = PerfectStrike.getExtraStrikeDamage();
+        }
+        float totalDamage = finalDamage + sharpnessBonus +extraStrike;
         boolean isCrit = finalDamage > baseDamage;
         System.out.println("[ArsenalBroadsword] ──── HIT SUMMARY ────"
                 + " | base=" + String.format("%.2f", baseDamage)
                 + (isCrit ? " | ★CRIT bonus=" + String.format("%.2f", finalDamage - baseDamage) : " | no crit")
                 + (sharpnessBonus > 0 ? " | sharpness=" + String.format("%.2f", sharpnessBonus) : "")
+                + (extraStrike > 0
+                ? " | extraStrike=" + String.format("%.2f", extraStrike)
+                : " | no extra strike")
                 + " | TOTAL=" + String.format("%.2f", totalDamage)
                 + " | blade=" + getAssembledBladeName(stack));
 

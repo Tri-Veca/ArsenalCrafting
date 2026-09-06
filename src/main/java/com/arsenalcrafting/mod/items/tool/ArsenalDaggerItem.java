@@ -7,7 +7,9 @@ import com.arsenalcrafting.mod.core.UnifiedProcessor;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
 import com.arsenalcrafting.mod.items.augments.SharpnessAugmentItem;
+import com.arsenalcrafting.mod.items.tool.powers.CoreHandlers;
 import com.arsenalcrafting.mod.items.tool.powers.CoreManager;
+import com.arsenalcrafting.mod.items.tool.powers.PerfectStrike;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -197,16 +199,34 @@ public class ArsenalDaggerItem extends SwordItem implements ArsenalTool {
 
         // Step 5: Hit summary
         float sharpnessBonus = 0f;
+        float extraStrike = 0f;
+
         if (AugmentManager.isInstalled("sharpness", stack)) {
-            sharpnessBonus = SharpnessAugmentItem.getBonusDamage(AugmentManager.getTier("sharpness", stack));
+            sharpnessBonus = SharpnessAugmentItem.getBonusDamage(
+                    AugmentManager.getTier("sharpness", stack)
+            );
         }
+        if (CoreManager.exists("perfect_strike", stack)) {
+            extraStrike = PerfectStrike.getExtraStrikeDamage();
+        }
+
+        float totalDamage = finalDamage + sharpnessBonus + extraStrike;
+
         int stacks = getRushStacks(stack);
         boolean isCrit = finalDamage > baseDamage;
+
         System.out.println("[ArsenalDagger] ──── HIT SUMMARY ────"
                 + " | base=" + String.format("%.2f", baseDamage)
-                + (isCrit ? " | ★CRIT bonus=" + String.format("%.2f", finalDamage - baseDamage) : " | no crit")
-                + (sharpnessBonus > 0 ? " | sharpness=" + String.format("%.2f", sharpnessBonus) : "")
-                + " | TOTAL=" + String.format("%.2f", finalDamage + sharpnessBonus)
+                + (isCrit
+                ? " | ★CRIT bonus=" + String.format("%.2f", finalDamage - baseDamage)
+                : " | no crit")
+                + (sharpnessBonus > 0
+                ? " | sharpness=" + String.format("%.2f", sharpnessBonus)
+                : "")
+                + (extraStrike > 0
+                ? " | extraStrike=" + String.format("%.2f", extraStrike)
+                : " | no extra strike")
+                + " | TOTAL=" + String.format("%.2f", totalDamage)
                 + " | rush=" + stacks + "/" + MAX_STACKS
                 + " | blade=" + getAssembledBladeName(stack));
 
