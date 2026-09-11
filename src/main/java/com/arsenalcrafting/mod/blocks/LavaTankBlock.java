@@ -23,6 +23,7 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.neoforge.fluids.FluidUtil;
 import org.jetbrains.annotations.Nullable;
+import com.arsenalcrafting.mod.core.smeltery.SmelteryFormation;
 
 public class LavaTankBlock extends BaseEntityBlock {
 
@@ -95,10 +96,32 @@ public class LavaTankBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos,
-                            BlockState newState, boolean isMoving) {
+    public void onPlace(
+            BlockState state,
+            Level level,
+            BlockPos pos,
+            BlockState oldState,
+            boolean movedByPiston) {
+
+        super.onPlace(state, level, pos, oldState, movedByPiston);
+
+        if (level.isClientSide) return;
+
+        SmelteryFormation.notifyNearbyControllers(level, pos);
+    }
+
+    @Override
+    protected void onRemove(
+            BlockState state,
+            Level level,
+            BlockPos pos,
+            BlockState newState,
+            boolean isMoving) {
+
         if (!state.is(newState.getBlock())) {
-            super.onRemove(state, level, pos, newState, isMoving);
+            SmelteryFormation.notifyNearbyControllers(level, pos);
         }
+
+        super.onRemove(state, level, pos, newState, isMoving);
     }
 }

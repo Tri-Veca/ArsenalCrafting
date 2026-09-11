@@ -9,6 +9,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import com.arsenalcrafting.mod.core.smeltery.SmelteryFormation;
 
 public class CasingBlock extends Block {
 
@@ -27,35 +28,43 @@ public class CasingBlock extends Block {
     public void neighborChanged(BlockState state, Level level, BlockPos pos,
                                 Block changedBlock, BlockPos changedPos, boolean isMoving) {
         super.neighborChanged(state, level, pos, changedBlock, changedPos, isMoving);
+
         if (level.isClientSide) return;
         if (changedBlock instanceof ValveFaucetBlock) return;
-        notifyController(level, pos);
+
+        SmelteryFormation.notifyNearbyControllers(level, pos);
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING,DRAIN);
+        builder.add(FACING, DRAIN);
+    }
+
+
+@Override
+    public void onPlace(
+            BlockState state,
+            Level level,
+            BlockPos pos,
+            BlockState oldState,
+            boolean movedByPiston) {
+
+        super.onPlace(state, level, pos, oldState, movedByPiston);
+
+        if (level.isClientSide) return;
+
+        SmelteryFormation.notifyNearbyControllers(level, pos);
     }
 
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos,
                          BlockState newState, boolean movedByPiston) {
         if (state.getBlock() != newState.getBlock()) {
-            notifyController(level, pos);
+            SmelteryFormation.notifyNearbyControllers(level, pos);
         }
+
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
-    private void notifyController(Level level, BlockPos pos) {
-        // Search neighbors for controller
-        for (net.minecraft.core.Direction dir : net.minecraft.core.Direction.values()) {
-            BlockPos neighbor = pos.relative(dir);
-            if (level.getBlockEntity(neighbor) instanceof AlloySmelterBlockEntity controller) {
-                controller.markNeedsRecheck();
-                return;
-            }
-        }
-        // If not adjacent, try to find controller via SmelteryFormation
-        // For now direct neighbor check is sufficient for wall adjacency
-    }
+
 }

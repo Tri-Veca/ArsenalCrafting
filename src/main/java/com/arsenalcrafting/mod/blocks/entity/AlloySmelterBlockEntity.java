@@ -519,7 +519,12 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
     @Override
     public void onLoad() {
         super.onLoad();
-        if (level != null && !level.isClientSide) refreshConnectedTanks();
+        if (level != null && !level.isClientSide) {
+            com.arsenalcrafting.mod.core.smeltery.SmelteryDebug.log(
+                    "Controller", "onLoad at " + worldPosition + " — refreshing and validating");
+            refreshConnectedTanks();
+            validateIfNeeded();
+        }
     }
 
     public void onNeighborChange(BlockPos neighborPos) {

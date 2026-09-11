@@ -36,6 +36,26 @@ public class LavaTankBlockEntity extends BlockEntity {
         level.setBlock(worldPosition, state.setValue(LavaTankBlock.TIER, tier), 3);
     }
 
+    @Override
+    public void onLoad() {
+        super.onLoad();
+
+        com.arsenalcrafting.mod.core.smeltery.SmelteryDebug.log(
+                "Tank",
+                "onLoad at " + worldPosition
+        );
+    }
+
+    @Override
+    public void setRemoved() {
+        super.setRemoved();
+
+        com.arsenalcrafting.mod.core.smeltery.SmelteryDebug.log(
+                "Tank",
+                "removed at " + worldPosition
+        );
+    }
+
     public LavaTankBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.LAVA_TANK.get(), pos, state);
     }

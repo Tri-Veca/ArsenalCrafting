@@ -29,6 +29,8 @@ import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
+import static com.arsenalcrafting.mod.core.smeltery.SmelteryFormation.notifyNearbyControllers;
+
 public class AlloySmelterBlock extends BaseEntityBlock {
     public static final MapCodec<AlloySmelterBlock> CODEC = simpleCodec(AlloySmelterBlock::new);
 
@@ -108,14 +110,7 @@ public class AlloySmelterBlock extends BaseEntityBlock {
         notifyNearbyControllers(level, pos);
     }
 
-    private void notifyNearbyControllers(Level level, BlockPos pos) {
-        for (BlockPos search : BlockPos.betweenClosed(
-                pos.offset(-6, -6, -6), pos.offset(6, 6, 6))) {
-            if (level.getBlockEntity(search) instanceof AlloySmelterBlockEntity be) {
-                be.markNeedsRecheck();
-            }
-        }
-    }
+
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
