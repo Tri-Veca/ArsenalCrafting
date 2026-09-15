@@ -109,7 +109,7 @@ public class CoreManager {
         register(AlloyMaterial.STEEL, new CoreDefinition(
                 "workhorse", "Workhorse",
                 "Instantly breaks hard blocks regardless of tool tier",
-                "Attacks ignore a portion of armor",
+                "7% chance to apply slowness",
                 CoreHandlers.WORKHORSE
         ));
 
@@ -134,20 +134,20 @@ public class CoreManager {
         ));
         registerSteelVariant(ArsenalToolType.KATANA, new CoreDefinition(
                 "steel_katana", "WorkHorse",
-                "Instantly break cobwebs",
-                "Instantly break cobwebs",
+                "7% chance to apply slowness",
+                "7% chance to apply slowness",
                 CoreHandlers.WORKHORSE // placeholder until implemented
         ));
         registerSteelVariant(ArsenalToolType.BROADSWORD, new CoreDefinition(
                 "steel_broadsword", "WorkHorse",
-                "Instantly break cobwebs",
-                "Instantly break cobwebs",
+                "7% chance to apply slowness",
+                "7% chance to apply slowness",
                 CoreHandlers.WORKHORSE // placeholder until implemented
         ));
         registerSteelVariant(ArsenalToolType.DAGGER, new CoreDefinition(
                 "steel_dagger", "WorkHorse",
-                "Instantly break cobwebs",
-                "Instantly break cobwebs",
+                "7% chance to apply slowness",
+                "7% chance to apply slowness",
                 CoreHandlers.WORKHORSE // placeholder until implemented
         ));
     }

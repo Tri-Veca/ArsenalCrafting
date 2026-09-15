@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "arsenalcrafting:basic_casing"
+    },
+    "F": {
+      "item": "minecraft:furnace"
+    },
+    "M": {
+      "item": "arsenalcrafting:basic_material"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "pattern": [
+    "MRM",
+    "MFM",
+    "MCM"
+  ],
+  "result": {
+    "count": 1,
+    "id": "arsenalcrafting:alloy_smelter"
+  }
+}

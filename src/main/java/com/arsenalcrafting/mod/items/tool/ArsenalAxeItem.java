@@ -14,6 +14,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -21,6 +22,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -280,6 +282,50 @@ public class ArsenalAxeItem extends AxeItem implements ArsenalTool {
         }
 
         return true;
+    }
+
+    @Override
+    public InteractionResult useOn(UseOnContext context) {
+        ItemStack stack = context.getItemInHand();
+        if (BrokenToolHandler.isBroken(stack)) return InteractionResult.FAIL;
+
+        Level level = context.getLevel();
+        BlockPos pos = context.getClickedPos();
+        BlockState state = level.getBlockState(pos);
+        Player player = context.getPlayer();
+
+        ToolAssemblyData data = stack.get(TOOL_ASSEMBLY_DATA.get());
+        if (data != null && !data.isEmpty() && player != null) {
+            AlloyMaterial coreMat = AlloyMaterial.fromName(data.coreMaterial());
+            CoreManager.CoreDefinition coreDef = CoreManager.getForMaterial(coreMat, getToolType());
+            if (coreDef != null && coreDef.handler().handleBlockInteract(stack, level, pos, state, player)) {
+                if (!level.isClientSide) {
+                    stack.hurtAndBreak(1, player, EquipmentSlot.MAINHAND);
+                }
+                return InteractionResult.SUCCESS;
+            }
+        }
+
+        return super.useOn(context);
+    }
+
+    @Override
+    public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity target, InteractionHand hand) {
+        if (BrokenToolHandler.isBroken(stack)) return InteractionResult.FAIL;
+
+        ToolAssemblyData data = stack.get(TOOL_ASSEMBLY_DATA.get());
+        if (data != null && !data.isEmpty()) {
+            AlloyMaterial coreMat = AlloyMaterial.fromName(data.coreMaterial());
+            CoreManager.CoreDefinition coreDef = CoreManager.getForMaterial(coreMat, getToolType());
+            if (coreDef != null && coreDef.handler().handleEntityInteract(stack, player, target, hand)) {
+                if (!player.level().isClientSide) {
+                    stack.hurtAndBreak(1, player, EquipmentSlot.MAINHAND);
+                }
+                return InteractionResult.SUCCESS;
+            }
+        }
+
+        return super.interactLivingEntity(stack, player, target, hand);
     }
 
     @Override

@@ -3,12 +3,16 @@ package com.arsenalcrafting.mod.items.tool.powers;
 import com.arsenalcrafting.mod.items.tool.ArsenalToolType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+
+import java.util.Random;
 
 /**
  * Central holder for built-in CoreHandler implementations.
@@ -132,19 +136,40 @@ public final class CoreHandlers {
     public static final class WorkHorseCore implements CoreHandler {
         @Override
         public boolean supportsToolType(ArsenalToolType type) {
-            return type != null && type.isMiningTool();
+            // widened from mining-tool-only, since weapons now need cobweb-break too
+            return type != null && (type.isMiningTool() || type.isWeapon());
         }
 
         @Override
         public boolean canHandleBlock(BlockState state, ItemStack tool) {
-            return WorkHorse.isHardBlock(state);
+            if (!(tool.getItem() instanceof com.arsenalcrafting.mod.items.tool.ArsenalTool arsenalTool)) return false;
+            ArsenalToolType type = arsenalTool.getToolType();
+
+            if (type.isMiningTool() && type != ArsenalToolType.SHOVEL && type != ArsenalToolType.AXE) {
+                // pickaxe: existing hard-block behavior only
+                return WorkHorse.isHardBlock(state);
+            }
+            return false;
+        }
+        @Override
+        public boolean handleEntityInteract(ItemStack tool, Player player, LivingEntity target, InteractionHand hand) {
+            if (!(tool.getItem() instanceof com.arsenalcrafting.mod.items.tool.ArsenalTool arsenalTool)) return false;
+            if (arsenalTool.getToolType() != ArsenalToolType.AXE) return false;
+            return WorkHorse.tryShearEntity(player, target, hand);
+        }
+
+        @Override
+        public void onEntityHit(ItemStack weapon, LivingEntity attacker, Entity target, float damage) {
+            if (!(target instanceof LivingEntity livingTarget)) return;
+            if (!(weapon.getItem() instanceof com.arsenalcrafting.mod.items.tool.ArsenalTool arsenalTool)) return;
+            if (!arsenalTool.getToolType().isWeapon()) return;
+            WorkHorse.trySlownessProc(livingTarget,  attacker.getRandom());
         }
 
         @Override
         public boolean handleBlockBreak(ItemStack tool, Level level, BlockState state,
                                         BlockPos pos, LivingEntity miner) {
-            // WorkHorse only handles hard blocks
-            return WorkHorse.isHardBlock(state);
+            return canHandleBlock(state, tool); // same gating logic, reused
         }
 
         @Override
@@ -152,6 +177,25 @@ public final class CoreHandlers {
             // DO NOT modify base speed here - let getDestroySpeed handle it
             return baseSpeed;
         }
+
+        @Override
+        public boolean handleBlockInteract(ItemStack tool, Level level, BlockPos pos,
+                                           BlockState state, Player player) {
+
+            if (!(tool.getItem() instanceof com.arsenalcrafting.mod.items.tool.ArsenalTool arsenalTool)) return false;
+            ArsenalToolType type = arsenalTool.getToolType();
+            System.out.println("[WorkHorseDebug] handleBlockInteract called, toolType=" + type);
+
+            if (type == ArsenalToolType.SHOVEL) {
+                return WorkHorse.tryHoeInteraction(level, pos, state, player);
+            }
+            if (type == ArsenalToolType.AXE) {
+                return WorkHorse.tryShearInteraction(level, pos, state, player);
+            }
+            return false;
+        }
+
+
     }
 
 

@@ -2,6 +2,7 @@ package com.arsenalcrafting.mod.items.tool.powers;
 
 import com.arsenalcrafting.mod.items.tool.ArsenalToolType;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -28,6 +29,19 @@ public interface CoreHandler {
 
     default boolean handleBlockPlace(ItemStack tool, Level level, BlockPos pos,
                                      Player player) {
+        return false;
+    }
+
+    /**
+     * Called when the player right-clicks a block with this tool equipped.
+     * Return true if this core consumed the interaction (e.g. replaced the
+     * tool's normal use-on-block behavior with something else).
+     */
+    default boolean handleBlockInteract(ItemStack tool, Level level, BlockPos pos,
+                                        BlockState state, Player player) {
+        return false;
+    }
+    default boolean handleEntityInteract(ItemStack tool, Player player, LivingEntity target, InteractionHand hand) {
         return false;
     }
 

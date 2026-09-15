@@ -63,8 +63,6 @@ public class SmelteryFormation {
         return (x == minX || x == maxX) && (z == minZ || z == maxZ);
     }
 
-    // ── MAIN ENTRY POINT ─────────────────────────────────────────────────────
-
     // ── SEARCH RECTANGLE ─────────────────────────────────────────────────────
     // Holds the outer bounds found during formation scanning, plus the
     // derived interior bounds (one block in from each wall).
@@ -91,7 +89,6 @@ public class SmelteryFormation {
         return interior || (!cornersRequired && corner);
     }
 
-    // ── MAIN ENTRY POINT ─────────────────────────────────────────────────────
     // Reads top-to-bottom as a checklist: trace the rectangle, detect the
     // tier, then validate floor/interior/walls/height/tank-count in order.
 
@@ -292,7 +289,6 @@ public class SmelteryFormation {
         );
     }
 
-
     public static SmelteryData validate(Level level, BlockPos controllerPos) {
         return validate(level, controllerPos, CORNERS_REQUIRE_CASING);
     }
@@ -303,43 +299,45 @@ public class SmelteryFormation {
         int minZ = controllerPos.getZ(), maxZ = controllerPos.getZ();
         int minX = controllerPos.getX(), maxX = controllerPos.getX();
 
-        while (minZ > controllerPos.getZ() - MAX_SIZE &&
-                isValidBoundaryBlock(level.getBlockState(new BlockPos(controllerPos.getX(), controllerY, minZ - 1)))) minZ--;
-        while (maxZ < controllerPos.getZ() + MAX_SIZE &&
-                isValidBoundaryBlock(level.getBlockState(new BlockPos(controllerPos.getX(), controllerY, maxZ + 1)))) maxZ++;
+        // North
+        while (minZ > controllerPos.getZ() - MAX_SIZE) {
+            int nextZ = minZ - 1;
+            if (!isBoundaryOrCornerAdjacent(level, controllerPos.getX(), controllerY, nextZ, 1, 0)) break;
+            minZ = nextZ;
+        }
+// South
+        while (maxZ < controllerPos.getZ() + MAX_SIZE) {
+            int nextZ = maxZ + 1;
+            if (!isBoundaryOrCornerAdjacent(level, controllerPos.getX(), controllerY, nextZ, 1, 0)) break;
+            maxZ = nextZ;
+        }
+// West
         while (minX > controllerPos.getX() - MAX_SIZE) {
             int nextX = minX - 1;
-
-            boolean valid = isValidBoundaryBlock(level.getBlockState(
-                    new BlockPos(nextX, controllerY, controllerPos.getZ())));
-
-            if (!valid && !CORNERS_REQUIRE_CASING) {
-                valid = isValidBoundaryBlock(level.getBlockState(
-                        new BlockPos(nextX, controllerY, controllerPos.getZ() + 1)));
-            }
-
-            if (!valid) break;
-
+            if (!isBoundaryOrCornerAdjacent(level, nextX, controllerY, controllerPos.getZ(), 0, 1)) break;
             minX = nextX;
         }
+// East
         while (maxX < controllerPos.getX() + MAX_SIZE) {
             int nextX = maxX + 1;
-
-            boolean valid = isValidBoundaryBlock(level.getBlockState(
-                    new BlockPos(nextX, controllerY, controllerPos.getZ())));
-
-            if (!valid && !CORNERS_REQUIRE_CASING) {
-                valid = isValidBoundaryBlock(level.getBlockState(
-                        new BlockPos(nextX, controllerY, controllerPos.getZ() + 1)));
-            }
-
-            if (!valid) break;
-
+            if (!isBoundaryOrCornerAdjacent(level, nextX, controllerY, controllerPos.getZ(), 0, 1)) break;
             maxX = nextX;
         }
 
         SmelteryDebug.log("Validate", "Initial cross: X=" + minX + ".." + maxX + " Z=" + minZ + ".." + maxZ);
         return new BoundingRect(minX, maxX, minZ, maxZ);
+    }
+
+    private static boolean isBoundaryOrCornerAdjacent(Level level, int x, int y, int z,
+                                                      int perpDx, int perpDz) {
+        if (isValidBoundaryBlock(level.getBlockState(new BlockPos(x, y, z)))) {
+            return true;
+        }
+        if (CORNERS_REQUIRE_CASING) {
+            return false;
+        }
+        return isValidBoundaryBlock(level.getBlockState(new BlockPos(x + perpDx, y, z + perpDz)))
+                || isValidBoundaryBlock(level.getBlockState(new BlockPos(x - perpDx, y, z - perpDz)));
     }
 
     // ── STEP 2: expand the cross into the full outer rectangle ───────────────
@@ -364,32 +362,79 @@ public class SmelteryFormation {
             int fromMinZ_minX = controllerPos.getX();
             int fromMinZ_maxX = controllerPos.getX();
 
+            while (fromMinZ_minX > controllerPos.getX() - MAX_SIZE) {
+                int nextX = fromMinZ_minX - 1;
 
-            while (fromMinZ_minX > controllerPos.getX() - MAX_SIZE &&
-                    isValidBoundaryBlock(level.getBlockState(
-                            new BlockPos(fromMinZ_minX - 1, controllerY, searchMinZ)))) {
-                fromMinZ_minX--;
+                boolean valid = isValidBoundaryBlock(level.getBlockState(
+                        new BlockPos(nextX, controllerY, searchMinZ)));
+
+                if (!valid && !cornersRequired) {
+                    valid = isValidBoundaryBlock(level.getBlockState(
+                            new BlockPos(nextX, controllerY, searchMinZ + 1)));
+                }
+
+                if (!valid) {
+                    break;
+                }
+
+                fromMinZ_minX = nextX;
             }
 
-            while (fromMinZ_maxX < controllerPos.getX() + MAX_SIZE &&
-                    isValidBoundaryBlock(level.getBlockState(
-                            new BlockPos(fromMinZ_maxX + 1, controllerY, searchMinZ)))) {
-                fromMinZ_maxX++;
+            while (fromMinZ_maxX < controllerPos.getX() + MAX_SIZE) {
+                int nextX = fromMinZ_maxX + 1;
+
+                boolean valid = isValidBoundaryBlock(level.getBlockState(
+                        new BlockPos(nextX, controllerY, searchMinZ)));
+
+                if (!valid && !cornersRequired) {
+                    valid = isValidBoundaryBlock(level.getBlockState(
+                            new BlockPos(nextX, controllerY, searchMinZ + 1)));
+                }
+
+                if (!valid) {
+                    break;
+                }
+
+                fromMinZ_maxX = nextX;
             }
 
             int fromMaxZ_minX = controllerPos.getX();
             int fromMaxZ_maxX = controllerPos.getX();
 
-            while (fromMaxZ_minX > controllerPos.getX() - MAX_SIZE &&
-                    isValidBoundaryBlock(level.getBlockState(
-                            new BlockPos(fromMaxZ_minX - 1, controllerY, searchMaxZ)))) {
-                fromMaxZ_minX--;
+            while (fromMaxZ_minX > controllerPos.getX() - MAX_SIZE) {
+                int nextX = fromMaxZ_minX - 1;
+
+                boolean valid = isValidBoundaryBlock(level.getBlockState(
+                        new BlockPos(nextX, controllerY, searchMaxZ)));
+
+                if (!valid && !cornersRequired) {
+                    valid = isValidBoundaryBlock(level.getBlockState(
+                            new BlockPos(nextX, controllerY, searchMaxZ - 1)));
+                }
+
+                if (!valid) {
+                    break;
+                }
+
+                fromMaxZ_minX = nextX;
             }
 
-            while (fromMaxZ_maxX < controllerPos.getX() + MAX_SIZE &&
-                    isValidBoundaryBlock(level.getBlockState(
-                            new BlockPos(fromMaxZ_maxX + 1, controllerY, searchMaxZ)))) {
-                fromMaxZ_maxX++;
+            while (fromMaxZ_maxX < controllerPos.getX() + MAX_SIZE) {
+                int nextX = fromMaxZ_maxX + 1;
+
+                boolean valid = isValidBoundaryBlock(level.getBlockState(
+                        new BlockPos(nextX, controllerY, searchMaxZ)));
+
+                if (!valid && !cornersRequired) {
+                    valid = isValidBoundaryBlock(level.getBlockState(
+                            new BlockPos(nextX, controllerY, searchMaxZ - 1)));
+                }
+
+                if (!valid) {
+                    break;
+                }
+
+                fromMaxZ_maxX = nextX;
             }
 
             int minX = Math.min(fromMinZ_minX, fromMaxZ_minX);
@@ -420,68 +465,56 @@ public class SmelteryFormation {
             int fromMinX_minZ = controllerPos.getZ();
             int fromMinX_maxZ = controllerPos.getZ();
 
-            while (fromMinX_minZ > controllerPos.getZ() - MAX_SIZE &&
-                    isValidBoundaryBlock(level.getBlockState(
-                            new BlockPos(searchMinX, controllerY, fromMinX_minZ - 1)))) {
-                fromMinX_minZ--;
+            // ---- grow Z on the min-X wall ----
+            while (fromMinX_minZ > controllerPos.getZ() - MAX_SIZE) {
+                int nextZ = fromMinX_minZ - 1;
+                boolean valid = isValidBoundaryBlock(level.getBlockState(
+                        new BlockPos(searchMinX, controllerY, nextZ)));
+                if (!valid && !cornersRequired) {
+                    valid = isValidBoundaryBlock(level.getBlockState(
+                            new BlockPos(searchMinX + 1, controllerY, nextZ)));
+                }
+                if (!valid) break;
+                fromMinX_minZ = nextZ;
             }
 
             while (fromMinX_maxZ < controllerPos.getZ() + MAX_SIZE) {
                 int nextZ = fromMinX_maxZ + 1;
-
                 boolean valid = isValidBoundaryBlock(level.getBlockState(
                         new BlockPos(searchMinX, controllerY, nextZ)));
-
                 if (!valid && !cornersRequired) {
-                    valid = true;
-
-                    for (int x = minX + 1; x < maxX; x++) {
-                        if (!isValidBoundaryBlock(level.getBlockState(
-                                new BlockPos(x, controllerY, nextZ)))) {
-                            valid = false;
-                            break;
-                        }
-                    }
+                    valid = isValidBoundaryBlock(level.getBlockState(
+                            new BlockPos(searchMinX + 1, controllerY, nextZ)));
                 }
-
-                if (!valid) {
-                    break;
-                }
-
+                if (!valid) break;
                 fromMinX_maxZ = nextZ;
             }
 
             int fromMaxX_minZ = controllerPos.getZ();
             int fromMaxX_maxZ = controllerPos.getZ();
 
-            while (fromMaxX_minZ > controllerPos.getZ() - MAX_SIZE &&
-                    isValidBoundaryBlock(level.getBlockState(
-                            new BlockPos(searchMaxX, controllerY, fromMaxX_minZ - 1)))) {
-                fromMaxX_minZ--;
+            // ---- grow Z on the max-X wall ----
+            while (fromMaxX_minZ > controllerPos.getZ() - MAX_SIZE) {
+                int nextZ = fromMaxX_minZ - 1;
+                boolean valid = isValidBoundaryBlock(level.getBlockState(
+                        new BlockPos(searchMaxX, controllerY, nextZ)));
+                if (!valid && !cornersRequired) {
+                    valid = isValidBoundaryBlock(level.getBlockState(
+                            new BlockPos(searchMaxX - 1, controllerY, nextZ)));
+                }
+                if (!valid) break;
+                fromMaxX_minZ = nextZ;
             }
 
             while (fromMaxX_maxZ < controllerPos.getZ() + MAX_SIZE) {
                 int nextZ = fromMaxX_maxZ + 1;
-
                 boolean valid = isValidBoundaryBlock(level.getBlockState(
                         new BlockPos(searchMaxX, controllerY, nextZ)));
-
                 if (!valid && !cornersRequired) {
-                    valid = true;
-
-                    for (int x = minX + 1; x < maxX; x++) {
-                        if (!isValidBoundaryBlock(level.getBlockState(
-                                new BlockPos(x, controllerY, nextZ)))) {
-                            valid = false;
-                            break;
-                        }
-                    }
+                    valid = isValidBoundaryBlock(level.getBlockState(
+                            new BlockPos(searchMaxX - 1, controllerY, nextZ)));
                 }
-
-                if (!valid) {
-                    break;
-                }
-
+                if (!valid) break;
                 fromMaxX_maxZ = nextZ;
             }
 
@@ -517,14 +550,15 @@ public class SmelteryFormation {
             SmelteryDebug.log(
                     "Validate",
                     "Rectangle evidence: "
-                            + "fromMinWall=" + fromMaxX_minZ + ".." + fromMaxX_minZ
-                            + " | fromMaxWall=" + fromMaxX_minZ + ".." + fromMaxX_minZ
+                            + "fromMinWall=" + fromMinX_minZ + ".." + fromMinX_maxZ
+                            + " | fromMaxWall=" + fromMaxX_minZ + ".." + fromMaxX_maxZ
                             + " | final=" + minX + ".." + maxX
             );
 
             return new BoundingRect(searchMinX, searchMaxX, minZ, maxZ);
         }
     }
+
 
     // ── STEP 3: tier detection ────────────────────────────────────────────────
     private static SmelteryTier detectTier(Level level, BoundingRect rect, int controllerY, boolean cornersRequired) {
@@ -607,10 +641,6 @@ public class SmelteryFormation {
     }
 
     // ── STEP 7: scan upward to find the roof ─────────────────────────────────
-    // NOTE: corners here are ALWAYS skipped, independent of cornersRequired —
-    // this matches original behavior exactly and was NOT changed in this
-    // refactor. Flagged as a pre-existing inconsistency worth a deliberate
-    // decision later, not silently resolved here.
     private static HeightScanResult scanVerticalHeight(Level level, BoundingRect rect, int controllerY, SmelteryTier tier) {
         int roofY = controllerY;
         int maxHeight = tier.getMaxHeight();
