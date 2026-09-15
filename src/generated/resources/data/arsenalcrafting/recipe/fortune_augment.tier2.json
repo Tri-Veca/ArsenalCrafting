@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "arsenalcrafting:fortune_augment.tier1"
+    },
+    "G": {
+      "item": "minecraft:gold_block"
+    },
+    "L": {
+      "item": "minecraft:lapis_block"
+    },
+    "S": {
+      "item": "arsenalcrafting:steel_alloy"
+    }
+  },
+  "pattern": [
+    "SGS",
+    "LAL",
+    "SLS"
+  ],
+  "result": {
+    "count": 1,
+    "id": "arsenalcrafting:fortune_augment.tier2"
+  }
+}

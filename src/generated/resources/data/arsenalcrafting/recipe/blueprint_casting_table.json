@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "arsenalcrafting:blueprint"
+    },
+    "C": {
+      "item": "arsenalcrafting:basic_casing"
+    },
+    "M": {
+      "item": "arsenalcrafting:basic_material"
+    },
+    "T": {
+      "item": "minecraft:crafting_table"
+    }
+  },
+  "pattern": [
+    "MBM",
+    "MTM",
+    "MCM"
+  ],
+  "result": {
+    "count": 1,
+    "id": "arsenalcrafting:blueprint_casting_table"
+  }
+}

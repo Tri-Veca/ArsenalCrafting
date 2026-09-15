@@ -51,6 +51,9 @@ public class ModItems {
     public static final DeferredHolder<Item, Item> BLUEPRINT =
             ITEMS.register("blueprint", () -> new Item(new Item.Properties()));
 
+    public static final DeferredHolder<Item, Item> BASIC_AUGMENT =
+            ITEMS.register("basic_augment", () -> new Item(new Item.Properties()));
+
     public static final DeferredHolder<Item, Item> BASIC_MATERIAL =
             ITEMS.register("basic_material", () -> new Item(new Item.Properties()));
 

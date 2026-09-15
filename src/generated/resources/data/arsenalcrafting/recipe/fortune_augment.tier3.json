@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "arsenalcrafting:fortune_augment.tier2"
+    },
+    "D": {
+      "item": "minecraft:diamond_block"
+    },
+    "L": {
+      "item": "minecraft:lapis_block"
+    },
+    "T": {
+      "item": "arsenalcrafting:titanium_alloy"
+    }
+  },
+  "pattern": [
+    "TDT",
+    "LAL",
+    "TLT"
+  ],
+  "result": {
+    "count": 1,
+    "id": "arsenalcrafting:fortune_augment.tier3"
+  }
+}

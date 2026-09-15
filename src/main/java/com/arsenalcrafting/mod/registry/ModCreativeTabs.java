@@ -59,6 +59,7 @@ public class ModCreativeTabs {
                         // Utilities
                         output.accept(ModItems.REPAIR_KIT.get());
                         output.accept(ModItems.BLUEPRINT.get());
+                        output.accept(ModItems.BASIC_AUGMENT.get());
                         output.accept(ModItems.BASIC_MATERIAL.get());
 
 

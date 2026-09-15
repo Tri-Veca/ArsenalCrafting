@@ -103,6 +103,7 @@ public class LangGenerator implements DataProvider {
         entries.put("item.arsenalcrafting.arsenal_dagger", "Arsenal Dagger");
         entries.put("item.arsenalcrafting.repair_kit", "Tool Repair Kit");
         entries.put("item.arsenalcrafting.blueprint", "Blueprint");
+        entries.put("item.arsenalcrafting.basic_augment", "Basic Augment");
         entries.put("item.arsenalcrafting.basic_material", "Basic Material");
         // TODO add seperate gadgets section
         entries.put("item.arsenalcrafting.drill", "Drill");
