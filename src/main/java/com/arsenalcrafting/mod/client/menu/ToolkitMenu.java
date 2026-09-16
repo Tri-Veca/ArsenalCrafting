@@ -122,6 +122,10 @@ public class ToolkitMenu extends AbstractContainerMenu {
                 player, ModBlocks.TOOLKIT.get());
     }
 
+    public ToolkitBlockEntity getBlockEntity() {
+        return this.blockEntity;
+    }
+
 
     // --- THIS is what makes shift-click work ---
     @Override
