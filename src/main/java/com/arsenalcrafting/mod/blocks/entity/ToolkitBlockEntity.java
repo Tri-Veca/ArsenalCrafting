@@ -30,6 +30,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -88,9 +89,6 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
                     // A real tool is now present.
 
                     // Only call install if there is actually something staged.
-                    // This prevents the bug where inserting a tool that already
-                    // has augments causes installAugments to see empty Toolkit
-                    // slots and uninstall everything.
                     boolean hasStaged = false;
                     for (int i = AUGMENT_SLOT_START; i < AUGMENT_SLOT_END; i++) {
                         if (!getStackInSlot(i).isEmpty()) {
@@ -100,7 +98,7 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
                     }
 
                     if (hasStaged) {
-                        installAugments();   // staged augments → install onto the tool
+                        installAugments();
                     }
 
                     // Always sync the GUI representation from the tool
@@ -113,7 +111,6 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
             if (slot >= AUGMENT_SLOT_START && slot < AUGMENT_SLOT_END) {
-
                 if (stack.isEmpty()) return true;
 
                 if (!(stack.getItem() instanceof InstallableAugmentItem installable)) {
@@ -184,7 +181,7 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
         // Old system: ToolHeadItem
         if (item instanceof ToolHeadItem) return true;
 
-        // ToolComponentItem with appropriate component type
+        // New system: ToolComponentItem with appropriate component type
         if (item instanceof ToolComponentItem toolComponent) {
             ToolComponentType type = toolComponent.getComponentType();
             return type == ToolComponentType.CORE;
@@ -284,9 +281,8 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
 
     /**
      * Install augments from Toolkit slots to the tool.
-     * - Empty Toolkit slots are ignored (do not uninstall)
-     * - Different augment in the same slot = swap (old one is returned to the player)
-     * - Multiple different slots work correctly
+     * Empty Toolkit slots are ignored (do not uninstall).
+     * Different augment in the same slot = swap (old one is returned to the player).
      */
     public void installAugments() {
         ItemStack outputTool = itemHandler.getStackInSlot(OUTPUT_SLOT);
@@ -295,12 +291,9 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
             return;
         }
 
-        // We need a player to give the old augment back to.
-        // The easiest reliable way is to get the player who currently has the menu open.
-        // If no player is available we just drop it in the world as a last resort.
+        // Find the player who has this Toolkit open so we can return old augments
         Player player = null;
         if (level != null && !level.isClientSide) {
-            // Find any player who has this Toolkit open
             for (Player p : level.players()) {
                 if (p.containerMenu instanceof ToolkitMenu menu && menu.getBlockEntity() == this) {
                     player = p;
@@ -312,8 +305,6 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
         ToolAugmentSlots currentSlots = arsenalTool.getAugmentSlots(outputTool);
         ToolAugmentSlots desiredSlots = currentSlots;
         boolean changed = false;
-
-        // First pass: build the desired final state + collect any augments we need to return
         List<ItemStack> toReturn = new ArrayList<>();
 
         for (int toolkitSlot = AUGMENT_SLOT_START; toolkitSlot < AUGMENT_SLOT_END; toolkitSlot++) {
@@ -335,7 +326,6 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
                 String oldId = desiredSlots.getAugmentInSlot(toolSlot);
 
                 if (!newId.equals(oldId)) {
-                    // This slot is changing → we need to return the old augment (if any)
                     if (oldId != null) {
                         int oldTier = AugmentManager.getTier(oldId, outputTool);
                         ItemStack oldAugmentItem = findAugmentItem(oldId, oldTier);
@@ -348,12 +338,11 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
                     changed = true;
                 }
             }
-            // Empty Toolkit slot → leave the tool alone
         }
 
         if (!changed) return;
 
-        // Apply the changes to the tool
+        // Apply the changes
         for (int i = 0; i < 4; i++) {
             String oldId = currentSlots.getAugmentInSlot(i);
             String newId = desiredSlots.getAugmentInSlot(i);
@@ -362,7 +351,6 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
                 AugmentManager.uninstall(oldId, outputTool);
             }
             if (newId != null && !newId.equals(oldId)) {
-                // Get the tier from the item the player just put in
                 ItemStack stackInToolkit = itemHandler.getStackInSlot(i + AUGMENT_SLOT_START);
                 int tier = 0;
                 if (stackInToolkit.getItem() instanceof UniversalAugmentItem uni) {
@@ -374,16 +362,14 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
 
         arsenalTool.setAugmentSlots(outputTool, desiredSlots);
 
-        // Give the old augments back to the player
+        // Give the old augments back
         if (player != null) {
             for (ItemStack stack : toReturn) {
                 if (!player.getInventory().add(stack)) {
-                    // Inventory full → drop it
                     player.drop(stack, false);
                 }
             }
-        } else {
-            // Fallback: drop next to the Toolkit
+        } else if (level != null) {
             for (ItemStack stack : toReturn) {
                 Containers.dropItemStack(level, worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(), stack);
             }
@@ -411,21 +397,15 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
         String augmentId = slots.getAugmentInSlot(toolSlotIndex);
 
         if (augmentId != null) {
-            // Get the tier of the augment
             int tier = AugmentManager.getTier(augmentId, outputTool);
-
-            // Create the augment item to return
             ItemStack augmentItem = findAugmentItem(augmentId, tier);
 
             if (!augmentItem.isEmpty()) {
                 int toolkitSlot = toolSlotIndex + AUGMENT_SLOT_START;
 
-                // Check if Toolkit slot is empty
                 if (itemHandler.getStackInSlot(toolkitSlot).isEmpty()) {
-                    // Return augment to Toolkit slot
                     itemHandler.setStackInSlot(toolkitSlot, augmentItem);
 
-                    // Remove from tool
                     slots = slots.clearSlot(toolSlotIndex);
                     AugmentManager.uninstall(augmentId, outputTool);
 
@@ -445,8 +425,6 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
             Item item = entry.get();
             if (item instanceof UniversalAugmentItem uniItem) {
                 if (uniItem.getAugmentId().equals(augmentId)) {
-                    // If the tool has a tier (1, 2, 3), we MUST match the item tier exactly.
-                    // If the tool has no tier (0), we just take the first item with that ID.
                     if (tier <= 1 || uniItem.getTier() == tier) {
                         return new ItemStack(uniItem);
                     }
@@ -481,7 +459,7 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
             boolean isNewTool = outputStack.isEmpty();
             if (isNewTool && (!hasHeadInput || !hasCoreInput || !hasRodInput)) return;
 
-           // Validate head and rod compatibility
+            // NEW: Validate head and rod compatibility
             if (hasHeadInput && hasRodInput) {
                 if (!isRodCompatibleWithHead(headStack, rodStack)) {
                     // Incompatible! Clear output and return
@@ -529,9 +507,14 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
             if (hasRodInput) {
                 ItemStack swapRod = ItemStack.EMPTY;
                 if (!oldRodMat.isEmpty() && !outputStack.isEmpty()) {
-                    // Use the Tool's RodType to ensure we get the correct rod back (Shovel Rod, Pickaxe Rod, etc.)
-                    ToolComponentType oldRodType = ((ArsenalTool)outputStack.getItem()).getRodType();
-                    swapRod = findComponentStack(oldRodType, oldRodMat);
+                    ArsenalTool tool = (ArsenalTool) outputStack.getItem();
+                    ToolComponentType oldRodType = tool.getRodComponentType();
+                    if (oldRodType == null) {
+                        oldRodType = tool.getRodType(); // fallback for older tools (shovel etc.)
+                    }
+                    if (oldRodType != null) {
+                        swapRod = findComponentStack(oldRodType, oldRodMat);
+                    }
                 }
                 itemHandler.setStackInSlot(ROD_SLOT, swapRod);
             }
@@ -549,9 +532,14 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
             if (hasHeadInput) {
                 ItemStack swapHead = ItemStack.EMPTY;
                 if (!oldHeadMat.isEmpty() && !outputStack.isEmpty()) {
-                    // Use the Tool's HeadType to ensure we get a Shovel Head back if it was a Shovel
-                    ToolComponentType oldType = ((ArsenalTool)outputStack.getItem()).getHeadType();
-                    swapHead = findComponentStack(oldType, oldHeadMat);
+                    ArsenalTool tool = (ArsenalTool) outputStack.getItem();
+                    ToolComponentType oldType = tool.getHeadComponentType();
+                    if (oldType == null) {
+                        oldType = tool.getHeadType(); // fallback for older tools (shovel etc.)
+                    }
+                    if (oldType != null) {
+                        swapHead = findComponentStack(oldType, oldHeadMat);
+                    }
                 }
                 itemHandler.setStackInSlot(HEAD_SLOT, swapHead);
             }
@@ -559,8 +547,6 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
             // Finalize Output
             itemHandler.setStackInSlot(OUTPUT_SLOT, assembledTool);
 
-            // Brand-new tool → install any staged augments
-            // Existing tool (component swap) → just mirror current data
             if (isNewTool) {
                 installAugments();
             } else {
@@ -588,7 +574,6 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
             if (item instanceof ToolComponentItem comp) {
                 if (comp.getComponentType() == type &&
                         comp.getMaterial().getName().equals(materialName)) {
-
                     return new ItemStack(item);
                 }
             }
