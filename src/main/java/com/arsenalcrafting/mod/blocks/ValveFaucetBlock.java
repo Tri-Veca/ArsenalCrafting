@@ -1,6 +1,7 @@
 package com.arsenalcrafting.mod.blocks;
 
 import com.arsenalcrafting.mod.blocks.entity.ValveFaucetBlockEntity;
+import com.arsenalcrafting.mod.core.smeltery.SmelteryDebug;
 import com.arsenalcrafting.mod.registry.ModBlockEntities;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
@@ -58,13 +59,13 @@ public class ValveFaucetBlock extends BaseEntityBlock {
         BlockPos casingPos = faucetPos.relative(context.getClickedFace().getOpposite());
         BlockState casingState = context.getLevel().getBlockState(casingPos);
 
-        System.out.println("==== FAUCET DEBUG ====");
-        System.out.println("faucetPos: " + faucetPos);
-        System.out.println("casingPos: " + casingPos);
-        System.out.println("casingState: " + casingState);
+        SmelteryDebug.faucetCasting("Place", "==== FAUCET DEBUG ====");
+        SmelteryDebug.faucetCasting("Place", "faucetPos: " + faucetPos);
+        SmelteryDebug.faucetCasting("Place", "casingPos: " + casingPos);
+        SmelteryDebug.faucetCasting("Place", "casingState: " + casingState);
 
         if (casingState.getBlock() instanceof CasingBlock) {
-            System.out.println("Setting drain=true and facing=" + context.getClickedFace());
+            SmelteryDebug.faucetCasting("Place", "Setting drain=true and facing=" + context.getClickedFace());
             context.getLevel().setBlock(casingPos, casingState
                     .setValue(CasingBlock.FACING, context.getClickedFace())
                     .setValue(CasingBlock.DRAIN, true), 3);

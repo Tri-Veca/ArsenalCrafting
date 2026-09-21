@@ -1,6 +1,7 @@
 package com.arsenalcrafting.mod.client.menu;
 
 import com.arsenalcrafting.mod.blocks.entity.AlloySmelterBlockEntity;
+import com.arsenalcrafting.mod.client.GuiDebug;
 import com.arsenalcrafting.mod.generator.AlloyRecipeDefinitions;
 import com.arsenalcrafting.mod.registry.ModBlocks;
 import com.arsenalcrafting.mod.registry.ModMenus;
@@ -64,8 +65,8 @@ public class AlloySmelterMenu extends AbstractContainerMenu {
         for (int i = 0; i < slots.size(); i++) {
             Slot slot = slots.get(i);
             if (slot instanceof SlotItemHandler) {
-                System.out.println("[Menu] Slot " + i + " is SlotItemHandler with index "
-                        + slot.getSlotIndex());
+                GuiDebug.slots("AlloySmelter",
+                        "Slot " + i + " is SlotItemHandler with index " + slot.getSlotIndex());
             }
         }
 

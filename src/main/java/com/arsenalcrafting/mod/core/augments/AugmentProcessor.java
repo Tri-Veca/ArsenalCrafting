@@ -56,7 +56,7 @@ public class AugmentProcessor {
 
                 // If exclusive, stop processing
                 if (augment.handler.isExclusive()) {
-                    System.out.println("[AugmentProcessor] Exclusive augment '" + augment.id + "' handled break, stopping chain");
+                    AugmentsDebug.process("Exclusive", " Exclusive augment '" + augment.id + "' handled break, stopping chain");
                     break;
                 }
             }
@@ -95,7 +95,7 @@ public class AugmentProcessor {
                 anyHandled = true;
 
                 if (augment.handler.isExclusive()) {
-                    System.out.println("[AugmentProcessor] Exclusive augment '" + augment.id + "' handled attack, stopping chain");
+                    AugmentsDebug.process("Exclusive", "Exclusive augment '" + augment.id + "' handled attack, stopping chain");
                     break;
                 }
             }
@@ -302,12 +302,12 @@ public class AugmentProcessor {
      */
     public static void debugPrintAugments(ItemStack tool) {
         if (!(tool.getItem() instanceof ArsenalTool arsenalTool)) {
-            System.out.println("[AugmentProcessor] Not an Arsenal tool");
+            AugmentsDebug.process("Debug","Not an Arsenal tool");
             return;
         }
 
         List<ActiveAugment> augments = getActiveAugments(tool, arsenalTool.getToolType());
-        System.out.println("[AugmentProcessor] Active augments (" + augments.size() + "):");
+        AugmentsDebug.process("Debug", "Active augments (" + augments.size() + "):");
         for (ActiveAugment aug : augments) {
             System.out.println("  - " + aug.id + " (tier " + aug.tier + ", priority " + aug.handler.priority() + ")");
         }
@@ -347,7 +347,7 @@ public class AugmentProcessor {
                 anyHandled = true;
 
                 if (augment.handler.isExclusive()) {
-                    System.out.println("[AugmentProcessor] Exclusive augment '" + augment.id + "' handled entity hit, stopping chain");
+                    AugmentsDebug.process("Exclusive", "Exclusive augment '" + augment.id + "' handled entity hit, stopping chain");
                     break;
                 }
             }

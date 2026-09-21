@@ -60,9 +60,7 @@ public final class PerfectStrike {
         // Extra Strike triggered
         extraStrikeDamage = damage;
 
-        System.out.println(
-                "[PerfectStrike] Extra Strike triggered! Damage: " + damage
-        );
+        CoreDebug.proc("PerfectStrike", "Extra Strike triggered! Damage: " + damage);
 
         if (target instanceof LivingEntity livingTarget) {
             livingTarget.hurt(

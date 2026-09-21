@@ -150,7 +150,7 @@ public class ArsenalAxeItem extends AxeItem implements ArsenalTool {
     public ItemStack getDefaultInstance() {
         ItemStack stack = super.getDefaultInstance();
         if (TestModeConfig.isTestModeEnabled()) {
-            System.out.println("[TestMode] Installing all axe augments on new axe");
+            ToolsDebug.interact("TestMode", " Installing all axe augments on new axe");
             for (AugmentManager.AugmentDefinition def : AugmentManager.getAll()) {
                 var handler = AugmentManager.getHandler(def.id());
                 if (handler != null && handler.supportsToolType(ArsenalToolType.AXE)) {
@@ -159,7 +159,7 @@ public class ArsenalAxeItem extends AxeItem implements ArsenalTool {
                         if (freeSlot >= 0) {
                             setAugmentInSlot(stack, freeSlot, def.id());
                             AugmentManager.install(def.id(), stack, def.hasTiers() ? def.maxTier() : 1);
-                            System.out.println("[TestMode] Installed: " + def.name() + " in slot " + freeSlot);
+                            ToolsDebug.interact("TestMode", " Installed: " + def.name() + " in slot " + freeSlot);
                         }
                     }
                 }

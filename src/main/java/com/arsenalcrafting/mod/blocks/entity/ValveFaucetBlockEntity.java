@@ -4,6 +4,7 @@ package com.arsenalcrafting.mod.blocks.entity;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.core.alloy.CastingDatabase;
 import com.arsenalcrafting.mod.core.smeltery.SmelteryData;
+import com.arsenalcrafting.mod.core.smeltery.SmelteryDebug;
 import com.arsenalcrafting.mod.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -49,14 +50,14 @@ public class ValveFaucetBlockEntity extends BlockEntity {
      * Returns a message to show the player, or null on success.
      */
     public String activate(Level level, BlockPos pos) {
-        System.out.println("[FAUCET ACTIVATE] pos=" + pos);
+        SmelteryDebug.faucetPouring("Activate", "pos=" + pos);
         AlloySmelterBlockEntity testSmelter = findAdjacentSmelter(level, pos);
-        System.out.println("[FAUCET ACTIVATE] smelter found=" + (testSmelter != null));
+        SmelteryDebug.faucetPouring("Activate", "smelter found=" + (testSmelter != null));
         if (testSmelter != null) {
             SmelteryData data = testSmelter.getSmelteryData();
-            System.out.println("[FAUCET ACTIVATE] data valid=" + (data != null && data.isValid()));
+            SmelteryDebug.faucetPouring("Activate", "data valid=" + (data != null && data.isValid()));
         }
-        System.out.println("[FAUCET ACTIVATE] called pos=" + pos + " isPouring=" + isPouring());
+        SmelteryDebug.faucetPouring("Activate", "called pos=" + pos + " isPouring=" + isPouring());
         if (isPouring()) {
             // Toggle off
             reset();
@@ -204,8 +205,8 @@ public class ValveFaucetBlockEntity extends BlockEntity {
                 .findController(level, pos,
                         com.arsenalcrafting.mod.core.smeltery.SmelteryFormation::isOnWallShell);
         result.ifPresentOrElse(
-                s -> com.arsenalcrafting.mod.core.smeltery.SmelteryDebug.log("Faucet", pos + " found smelter"),
-                () -> com.arsenalcrafting.mod.core.smeltery.SmelteryDebug.log("Faucet", pos + " no smelter found")
+                s -> com.arsenalcrafting.mod.core.smeltery.SmelteryDebug.faucetCasting("Faucet", pos + " found smelter"),
+                () -> com.arsenalcrafting.mod.core.smeltery.SmelteryDebug.faucetCasting("Faucet", pos + " no smelter found")
         );
         return result.orElse(null);
     }

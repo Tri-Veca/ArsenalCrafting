@@ -4,6 +4,7 @@ import com.arsenalcrafting.mod.client.menu.ToolkitMenu;
 import com.arsenalcrafting.mod.component.ToolAssemblyData;
 import com.arsenalcrafting.mod.component.ToolComponentType;
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
+import com.arsenalcrafting.mod.core.augments.AugmentsDebug;
 import com.arsenalcrafting.mod.core.augments.InstallableAugmentItem;
 import com.arsenalcrafting.mod.items.augments.UniversalAugmentItem;
 import com.arsenalcrafting.mod.items.tool.ArsenalTool;
@@ -285,12 +286,15 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
      * Different augment in the same slot = swap (old one is returned to the player).
      */
     public void installAugments() {
+
+        if (level != null && level.isClientSide) {
+            return;
+        }
         ItemStack outputTool = itemHandler.getStackInSlot(OUTPUT_SLOT);
 
         if (outputTool.isEmpty() || !(outputTool.getItem() instanceof ArsenalTool arsenalTool)) {
             return;
         }
-
         // Find the player who has this Toolkit open so we can return old augments
         Player player = null;
         if (level != null && !level.isClientSide) {
@@ -337,6 +341,13 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
                     desiredSlots = desiredSlots.withSlot(toolSlot, newId);
                     changed = true;
                 }
+            } else if (augmentStack.isEmpty()) {
+                String currentAugmentId = desiredSlots.getAugmentInSlot(toolSlot);
+
+                if (currentAugmentId != null && !currentAugmentId.isEmpty()) {
+                    desiredSlots = desiredSlots.clearSlot(toolSlot);
+                    changed = true;
+                }
             }
         }
 
@@ -347,15 +358,23 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
             String oldId = currentSlots.getAugmentInSlot(i);
             String newId = desiredSlots.getAugmentInSlot(i);
 
-            if (oldId != null && !oldId.equals(newId)) {
+            if (oldId != null && !oldId.isEmpty() && !oldId.equals(newId)) {
+                AugmentsDebug.install(
+                        "Toolkit",
+                        "Uninstalling augment " + oldId + " from tool slot " + i
+                );
                 AugmentManager.uninstall(oldId, outputTool);
             }
-            if (newId != null && !newId.equals(oldId)) {
+            if (newId != null && !newId.isEmpty() && !newId.equals(oldId)) {
                 ItemStack stackInToolkit = itemHandler.getStackInSlot(i + AUGMENT_SLOT_START);
                 int tier = 0;
                 if (stackInToolkit.getItem() instanceof UniversalAugmentItem uni) {
                     tier = uni.getTier();
                 }
+                AugmentsDebug.install(
+                        "Toolkit",
+                        "Installing augment " + newId + " into tool slot " + i
+                );
                 AugmentManager.install(newId, outputTool, tier);
             }
         }
@@ -412,9 +431,9 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
                     arsenalTool.setAugmentSlots(outputTool, slots);
                     setChanged();
 
-                    System.out.println("[Toolkit] Augment " + augmentId + " removed from slot " + toolSlotIndex);
+                    AugmentsDebug.install("Toolkit", "Augment " + augmentId + " removed from slot " + toolSlotIndex);
                 } else {
-                    System.out.println("[Toolkit] Cannot remove augment - Toolkit slot " + toolkitSlot + " is occupied");
+                    AugmentsDebug.install("Toolkit", "Cannot remove augment - Toolkit slot " + toolkitSlot + " is occupied");
                 }
             }
         }

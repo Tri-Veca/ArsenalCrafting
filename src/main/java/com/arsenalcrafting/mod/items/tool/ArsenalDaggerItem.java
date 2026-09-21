@@ -215,7 +215,8 @@ public class ArsenalDaggerItem extends SwordItem implements ArsenalTool {
         int stacks = getRushStacks(stack);
         boolean isCrit = finalDamage > baseDamage;
 
-        System.out.println("[ArsenalDagger] ──── HIT SUMMARY ────"
+        ToolsDebug.damage("Dagger",
+                "──── HIT SUMMARY ────"
                 + " | base=" + String.format("%.2f", baseDamage)
                 + (isCrit
                 ? " | ★CRIT bonus=" + String.format("%.2f", finalDamage - baseDamage)

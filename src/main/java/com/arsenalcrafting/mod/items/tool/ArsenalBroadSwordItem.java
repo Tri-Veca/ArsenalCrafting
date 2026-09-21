@@ -287,7 +287,8 @@ public class ArsenalBroadSwordItem extends SwordItem implements ArsenalTool {
         }
         float totalDamage = finalDamage + sharpnessBonus +extraStrike;
         boolean isCrit = finalDamage > baseDamage;
-        System.out.println("[ArsenalBroadsword] ──── HIT SUMMARY ────"
+        ToolsDebug.damage("Broadsword",
+                "──── HIT SUMMARY ────"
                 + " | base=" + String.format("%.2f", baseDamage)
                 + (isCrit ? " | ★CRIT bonus=" + String.format("%.2f", finalDamage - baseDamage) : " | no crit")
                 + (sharpnessBonus > 0 ? " | sharpness=" + String.format("%.2f", sharpnessBonus) : "")

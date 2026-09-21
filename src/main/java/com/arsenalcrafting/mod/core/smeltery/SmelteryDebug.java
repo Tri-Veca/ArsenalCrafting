@@ -1,23 +1,46 @@
 package com.arsenalcrafting.mod.core.smeltery;
 
+import com.arsenalcrafting.mod.config.ArsenalDebug;
 import net.minecraft.core.BlockPos;
 
-// One switch for all smeltery debug output, plus lightweight self-checks
-// that run once and print PASS/FAIL — a cheap substitute for real unit
-// tests until this project has a test framework set up.
+/**
+ * Thin per-feature debug facade for the smeltery.
+ * All on/off control lives in {@link ArsenalDebug}.
+ */
 public final class SmelteryDebug {
-    public static boolean DEBUG_ENABLED = true; // set false before release
-
     private SmelteryDebug() {}
 
-    public static void log(String tag, String message) {
-        if (DEBUG_ENABLED) {
-            System.out.println("[Smeltery/" + tag + "] " + message);
-        }
+    public static void formation(String tag, String message) {
+        ArsenalDebug.log("SmelteryFormation/" + tag, ArsenalDebug.SMELTERY_FORMATION, message);
     }
 
-    // Call this once anywhere early (e.g. mod constructor) to sanity-check
-    // the pure membership functions before relying on them in-game.
+    public static void lava(String tag, String message) {
+        ArsenalDebug.log("SmelteryLava/" + tag, ArsenalDebug.SMELTERY_LAVA, message);
+    }
+
+    public static void liquid(String tag, String message) {
+        ArsenalDebug.log("SmelteryLiquid/" + tag, ArsenalDebug.SMELTERY_LIQUID, message);
+    }
+
+    public static void settings(String tag, String message) {
+        ArsenalDebug.log("SmelterySettings/" + tag, ArsenalDebug.SMELTERY_SETTINGS, message);
+    }
+
+    public static void redstone(String tag, String message) {
+        ArsenalDebug.log("SmelteryRedstone/" + tag, ArsenalDebug.SMELTERY_REDSTONE, message);
+    }
+
+    public static void faucetPouring(String tag, String message) {
+        ArsenalDebug.log("FaucetPouring/" + tag, ArsenalDebug.FAUCET_POURING, message);
+    }
+
+    public static void faucetCasting(String tag, String message) {
+        ArsenalDebug.log("FaucetCasting/" + tag, ArsenalDebug.FAUCET_CASTING, message);
+    }
+
+    // ── Self-checks (kept for now) ──────────────────────────────────────────
+
+    /** Call once early (e.g. mod constructor) to sanity-check pure membership helpers. */
     public static void runSelfChecks() {
         SmelteryData valid = new SmelteryData(
                 BlockPos.ZERO, new BlockPos(0, 65, 0),
@@ -33,10 +56,13 @@ public final class SmelteryDebug {
         check("isOnWallShell/invalid-is-false", !SmelteryFormation.isOnWallShell(invalid, new BlockPos(0, 65, -1)));
         check("isOnWallShell/out-of-height-is-false", !SmelteryFormation.isOnWallShell(valid, new BlockPos(1, 100, -1)));
 
-        log("SelfCheck", "All smeltery self-checks completed — see PASS/FAIL above.");
+        formation("SelfCheck", "All smeltery self-checks completed — see PASS/FAIL above.");
     }
 
     private static void check(String name, boolean condition) {
-        System.out.println("[Smeltery/SelfCheck] " + (condition ? "PASS " : "FAIL ") + name);
+        // Self-check output is always on when GLOBAL is enabled (independent of category flags)
+        if (ArsenalDebug.GLOBAL_ENABLED) {
+            System.out.println("[Smeltery/SelfCheck] " + (condition ? "PASS " : "FAIL ") + name);
+        }
     }
 }

@@ -40,7 +40,7 @@ public class LavaTankBlockEntity extends BlockEntity {
     public void onLoad() {
         super.onLoad();
 
-        com.arsenalcrafting.mod.core.smeltery.SmelteryDebug.log(
+        com.arsenalcrafting.mod.core.smeltery.SmelteryDebug.lava(
                 "Tank",
                 "onLoad at " + worldPosition
         );
@@ -50,7 +50,7 @@ public class LavaTankBlockEntity extends BlockEntity {
     public void setRemoved() {
         super.setRemoved();
 
-        com.arsenalcrafting.mod.core.smeltery.SmelteryDebug.log(
+        com.arsenalcrafting.mod.core.smeltery.SmelteryDebug.lava(
                 "Tank",
                 "removed at " + worldPosition
         );

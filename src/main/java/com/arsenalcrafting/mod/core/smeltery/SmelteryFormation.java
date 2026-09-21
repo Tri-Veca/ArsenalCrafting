@@ -100,8 +100,7 @@ public class SmelteryFormation {
         int controllerY = controllerPos.getY();
         int floorY = controllerY - 1;
 
-        SmelteryDebug.log(
-                "Validate",
+       SmelteryDebug.formation("Validate",
                 "=== Starting validation for controller at " + controllerPos + " ==="
         );
 
@@ -113,8 +112,7 @@ public class SmelteryFormation {
         BoundingRect rect = expandToRectangle(level, controllerPos, cross, cornersRequired);
 
         if (rect.outerWidth() < 3 || rect.outerDepth() < 3) {
-            SmelteryDebug.log(
-                    "Validate",
+            SmelteryDebug.formation("Validate",
                     "FAIL: structure too small"
             );
             return SmelteryData.invalid(controllerPos);
@@ -132,8 +130,7 @@ public class SmelteryFormation {
         );
 
         if (tier == null) {
-            SmelteryDebug.log(
-                    "Validate",
+            SmelteryDebug.formation("Validate",
                     "FAIL: no valid or consistent casing tier detected"
             );
             return SmelteryData.invalid(controllerPos);
@@ -182,8 +179,7 @@ public class SmelteryFormation {
         int interiorHeight = roofY - floorY;
 
         if (interiorHeight < 1) {
-            SmelteryDebug.log(
-                    "Validate",
+            SmelteryDebug.formation("Validate",
                     "FAIL: not tall enough"
             );
             return SmelteryData.invalid(controllerPos);
@@ -209,8 +205,7 @@ public class SmelteryFormation {
                         || controllerPos.getZ() == rect.maxZ();
 
         if (!controllerInWall) {
-            SmelteryDebug.log(
-                    "Validate",
+            SmelteryDebug.formation("Validate",
                     "FAIL: controller not in wall"
             );
             return SmelteryData.invalid(controllerPos);
@@ -231,8 +226,7 @@ public class SmelteryFormation {
         );
 
         int maxLavaTanks = tier.getMaxLavaTanks(interiorHeight);
-        SmelteryDebug.log(
-                "Validate",
+       SmelteryDebug.formation("Validate",
                 "Lava tanks: "
                         + lavaTankCount
                         + " / "
@@ -243,8 +237,7 @@ public class SmelteryFormation {
                         + interiorHeight
         );
         if (lavaTankCount > maxLavaTanks) {
-            SmelteryDebug.log(
-                    "Validate",
+            SmelteryDebug.formation("Validate",
                     "FAIL: too many lava tanks ("
                             + lavaTankCount
                             + " > "
@@ -264,8 +257,7 @@ public class SmelteryFormation {
                 rect.interiorMinZ()
         );
 
-        SmelteryDebug.log(
-                "Validate",
+       SmelteryDebug.formation("Validate",
                 "SUCCESS: "
                         + tier.getDisplayName()
                         + " "
@@ -324,7 +316,7 @@ public class SmelteryFormation {
             maxX = nextX;
         }
 
-        SmelteryDebug.log("Validate", "Initial cross: X=" + minX + ".." + maxX + " Z=" + minZ + ".." + maxZ);
+        SmelteryDebug.formation("Validate", "Initial cross: X=" + minX + ".." + maxX + " Z=" + minZ + ".." + maxZ);
         return new BoundingRect(minX, maxX, minZ, maxZ);
     }
 
@@ -345,7 +337,7 @@ public class SmelteryFormation {
         int controllerY = controllerPos.getY();
         boolean controllerOnZWall = (cross.maxZ() - cross.minZ()) >= (cross.maxX() - cross.minX());
 
-        SmelteryDebug.log("Validate", "controllerOnZWall=" + controllerOnZWall);
+        SmelteryDebug.formation("Validate", "controllerOnZWall=" + controllerOnZWall);
 
         if (controllerOnZWall) {
             int minZ = cross.minZ();
@@ -354,8 +346,7 @@ public class SmelteryFormation {
             int searchMinZ = minZ;
             int searchMaxZ = maxZ;
 
-            SmelteryDebug.log(
-                    "Validate",
+            SmelteryDebug.formation("Validate",
                     "searchMinZ=" + searchMinZ + " searchMaxZ=" + searchMaxZ
             );
 
@@ -440,8 +431,7 @@ public class SmelteryFormation {
             int minX = Math.min(fromMinZ_minX, fromMaxZ_minX);
             int maxX = Math.max(fromMinZ_maxX, fromMaxZ_maxX);
 
-            SmelteryDebug.log(
-                    "Validate",
+            SmelteryDebug.formation("Validate",
                     "Rectangle evidence: "
                             + "fromMinWall=" + fromMinZ_minX + ".." + fromMinZ_maxX
                             + " | fromMaxWall=" + fromMaxZ_minX + ".." + fromMaxZ_maxX
@@ -457,8 +447,7 @@ public class SmelteryFormation {
             int searchMinX = minX;
             int searchMaxX = maxX;
 
-            SmelteryDebug.log(
-                    "Validate",
+            SmelteryDebug.formation("Validate",
                     "searchMinX=" + searchMinX + " searchMaxX=" + searchMaxX
             );
 
@@ -547,8 +536,7 @@ public class SmelteryFormation {
                 }
             }
 
-            SmelteryDebug.log(
-                    "Validate",
+            SmelteryDebug.formation("Validate",
                     "Rectangle evidence: "
                             + "fromMinWall=" + fromMinX_minZ + ".." + fromMinX_maxZ
                             + " | fromMaxWall=" + fromMaxX_minZ + ".." + fromMaxX_maxZ
@@ -572,7 +560,7 @@ public class SmelteryFormation {
                 if (detectedTier == null) {
                     detectedTier = blockTier;
                 } else if (detectedTier != blockTier) {
-                    SmelteryDebug.log("Validate", "Mixed casing tiers detected");
+                    SmelteryDebug.formation("Validate", "Mixed casing tiers detected");
                     return null;
                 }
             }
@@ -586,11 +574,11 @@ public class SmelteryFormation {
             for (int z = rect.interiorMinZ(); z <= rect.interiorMaxZ(); z++) {
                 BlockState fs = level.getBlockState(new BlockPos(x, floorY, z));
                 if (!isValidFloorBlock(fs)) {
-                    SmelteryDebug.log("Validate", "Floor block at " + x + "," + floorY + "," + z + " is " + fs.getBlock());
+                    SmelteryDebug.formation("Validate", "Floor block at " + x + "," + floorY + "," + z + " is " + fs.getBlock());
                     return false;
                 }
                 if (getTierForBlock(fs.getBlock()) != tier) {
-                    SmelteryDebug.log("Validate", "Floor tier mismatch at " + x + "," + floorY + "," + z);
+                    SmelteryDebug.formation("Validate", "Floor tier mismatch at " + x + "," + floorY + "," + z);
                     return false;
                 }
             }
@@ -604,7 +592,7 @@ public class SmelteryFormation {
             for (int z = rect.interiorMinZ(); z <= rect.interiorMaxZ(); z++) {
                 BlockPos iPos = new BlockPos(x, controllerY, z);
                 if (!isValidInteriorBlock(level, iPos)) {
-                    SmelteryDebug.log("Validate", "Interior block at " + iPos + " is " + level.getBlockState(iPos).getBlock());
+                    SmelteryDebug.formation("Validate", "Interior block at " + iPos + " is " + level.getBlockState(iPos).getBlock());
                     return false;
                 }
             }
@@ -614,8 +602,7 @@ public class SmelteryFormation {
 
     // ── STEP 6: full wall ring at controller's own Y ─────────────────────────
     private static boolean validateWalls(Level level, BoundingRect rect, BlockPos controllerPos, boolean cornersRequired) {
-        SmelteryDebug.log(
-                "Validate",
+       SmelteryDebug.formation("Validate",
                 "WALL RECTANGLE: X=" + rect.minX() + ".." + rect.maxX()
                         + " Z=" + rect.minZ() + ".." + rect.maxZ()
         );
@@ -628,8 +615,7 @@ public class SmelteryFormation {
                 BlockState ws = level.getBlockState(wPos);
 
                 if (!isValidWallBlock(ws)) {
-                    SmelteryDebug.log(
-                            "Validate",
+                    SmelteryDebug.formation("Validate",
                             "Wall block at " + wPos + " is " + ws.getBlock()
                     );
                     return false;
@@ -653,18 +639,18 @@ public class SmelteryFormation {
 
                     if (interior) {
                         if (!isValidInteriorBlock(level, new BlockPos(x, y, z))) {
-                            SmelteryDebug.log("Validate", "Vertical scan stopped at Y=" + y);
+                            SmelteryDebug.formation("Validate", "Vertical scan stopped at Y=" + y);
                             return new HeightScanResult(roofY, false);
                         }
                     } else if (!corner) {
                         BlockState ws = level.getBlockState(new BlockPos(x, y, z));
                         if (!isValidWallBlock(ws)) {
-                            SmelteryDebug.log("Validate", "Vertical scan stopped at Y=" + y + " wall: " + ws.getBlock());
+                            SmelteryDebug.formation("Validate", "Vertical scan stopped at Y=" + y + " wall: " + ws.getBlock());
                             return new HeightScanResult(roofY, false);
                         }
                         SmelteryTier upperTier = getTierForBlock(ws.getBlock());
                         if (upperTier != null && upperTier != tier) {
-                            SmelteryDebug.log("Validate", "Mixed tier in upper wall at Y=" + y);
+                            SmelteryDebug.formation("Validate", "Mixed tier in upper wall at Y=" + y);
                             return new HeightScanResult(roofY, true);
                         }
                     }
@@ -716,12 +702,12 @@ public class SmelteryFormation {
             if (level.getBlockEntity(candidate) instanceof AlloySmelterBlockEntity smelter) {
                 SmelteryData data = smelter.getSmelteryData();
                 if (data != null && membershipTest.test(data, pos)) {
-                    SmelteryDebug.log("Find", "pos=" + pos + " claimed by controller=" + candidate);
+                    SmelteryDebug.formation("Find", "pos=" + pos + " claimed by controller=" + candidate);
                     return Optional.of(smelter);
                 }
             }
         }
-        SmelteryDebug.log("Find", "pos=" + pos + " — no controller found within radius " + MAX_SIZE);
+        SmelteryDebug.formation("Find", "pos=" + pos + " — no controller found within radius " + MAX_SIZE);
         return Optional.empty();
     }
 

@@ -155,7 +155,7 @@ public class ArsenalShovelItem extends ShovelItem implements ArsenalTool {
     public ItemStack getDefaultInstance() {
         ItemStack stack = super.getDefaultInstance();
         if (TestModeConfig.isTestModeEnabled()) {
-            System.out.println("[TestMode] Installing all shovel augments on new shovel");
+            ToolsDebug.interact("TestMode", "Installing all shovel augments on new shovel");
             for (AugmentManager.AugmentDefinition def : AugmentManager.getAll()) {
                 var handler = AugmentManager.getHandler(def.id());
                 if (handler != null && handler.supportsToolType(ArsenalToolType.SHOVEL)) {
@@ -164,7 +164,7 @@ public class ArsenalShovelItem extends ShovelItem implements ArsenalTool {
                         if (freeSlot >= 0) {
                             setAugmentInSlot(stack, freeSlot, def.id());
                             AugmentManager.install(def.id(), stack, def.hasTiers() ? def.maxTier() : 1);
-                            System.out.println("[TestMode] Installed: " + def.name() + " in slot " + freeSlot);
+                            ToolsDebug.interact("TestMode", " Installed: " + def.name() + " in slot " + freeSlot);
                         }
                     }
                 }

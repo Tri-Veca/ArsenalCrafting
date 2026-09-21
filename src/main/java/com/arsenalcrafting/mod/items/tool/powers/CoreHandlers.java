@@ -218,7 +218,7 @@ public final class CoreHandlers {
                     || state.is(BlockTags.LAPIS_ORES)
                     || state.is(BlockTags.REDSTONE_ORES);
 
-            System.out.println("[GamblerCore] Checking: " + state.getBlock().getName().getString() + " = " + isOre);
+            //System.out.println("[GamblerCore] Checking: " + state.getBlock().getName().getString() + " = " + isOre);
             return isOre;
         }
 
@@ -226,10 +226,10 @@ public final class CoreHandlers {
         public void onBlockDestroyed(ItemStack stack, Level level,
                                      BlockState state, BlockPos pos,
                                      LivingEntity entity) {
-            System.out.println("[GamblerCore] onBlockDestroyed called for " + state.getBlock());
+            CoreDebug.proc("Gambler", "onBlockDestroyed called for " + state.getBlock());
 
             if (canHandleBlock(state, stack)) {
-                System.out.println("[GamblerCore] It's an ore, rolling for bonus loot...");
+                CoreDebug.proc("Gambler", "It's an ore, rolling for bonus loot...");
                 Gambler.tryProcMining(level, pos, level.getRandom());
             }
         }

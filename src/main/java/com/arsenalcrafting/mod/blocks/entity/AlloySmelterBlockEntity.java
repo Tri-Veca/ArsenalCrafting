@@ -9,6 +9,7 @@ import com.arsenalcrafting.mod.core.alloy.AlloyRecipe;
 import com.arsenalcrafting.mod.core.alloy.AlloyRecipeInput;
 import com.arsenalcrafting.mod.core.alloy.AlloyRecipeType;
 import com.arsenalcrafting.mod.core.smeltery.SmelteryData;
+import com.arsenalcrafting.mod.core.smeltery.SmelteryDebug;
 import com.arsenalcrafting.mod.core.smeltery.SmelteryFormation;
 import com.arsenalcrafting.mod.core.smeltery.SmelteryTier;
 import com.arsenalcrafting.mod.fluids.MultiFluidTank;
@@ -520,7 +521,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
     public void onLoad() {
         super.onLoad();
         if (level != null && !level.isClientSide) {
-            com.arsenalcrafting.mod.core.smeltery.SmelteryDebug.log(
+            com.arsenalcrafting.mod.core.smeltery.SmelteryDebug.formation(
                     "Controller", "onLoad at " + worldPosition + " — refreshing and validating");
             refreshConnectedTanks();
             validateIfNeeded();
@@ -1040,10 +1041,11 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
         if (level == null || level.isClientSide) return;
         if (smelteryData == null || smelteryData.needsRecheck()) {
             smelteryData = SmelteryFormation.validate(level, worldPosition);
-            System.out.println("[VALIDATE] valid=" + smelteryData.isValid()
-                    + " h=" + smelteryData.height()
-                    + " tier=" + smelteryData.tier()
-                    + " slots=" + smelteryData.getTotalSlots());
+            SmelteryDebug.formation("Validate",
+                    "valid=" + smelteryData.isValid()
+                            + " h=" + smelteryData.height()
+                            + " tier=" + smelteryData.tier()
+                            + " slots=" + smelteryData.getTotalSlots());
             int volume = smelteryData.isValid() ? smelteryData.volume() : 0;
             OUTPUT_TANK.setCapacity(smelteryData.isValid() ? smelteryData.height() * 9000 : 9000);
             updateSlotCount();

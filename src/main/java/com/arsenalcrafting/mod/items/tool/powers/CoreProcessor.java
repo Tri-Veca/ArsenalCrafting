@@ -44,15 +44,15 @@ public class CoreProcessor {
     public static void onBlockDestroyed(ItemStack tool, Level level,
                                         BlockState state, BlockPos pos,
                                         LivingEntity entity) {
-        System.out.println("[CoreProcessor] Block destroyed: " + state.getBlock());
+        CoreDebug.resolution("BlockDestroyed", "Block destroyed: " + state.getBlock());
 
         CoreHandler core = getActiveCore(tool);
         if (core == null) {
-            System.out.println("[CoreProcessor] No active core found");
+            CoreDebug.resolution("BlockDestroyed", "No active core found");
             return;
         }
 
-        System.out.println("[CoreProcessor] Found core: " + core.getClass().getSimpleName());
+        CoreDebug.resolution("BlockDestroyed", "Found core: " + core.getClass().getSimpleName());
         core.onBlockDestroyed(tool, level, state, pos, entity);
     }
 

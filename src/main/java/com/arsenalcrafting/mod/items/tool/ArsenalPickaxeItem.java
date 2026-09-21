@@ -142,7 +142,7 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
     public ItemStack getDefaultInstance() {
         ItemStack stack = super.getDefaultInstance();
         if (TestModeConfig.isTestModeEnabled()) {
-            System.out.println("[TestMode] Installing all pickaxe augments on new pickaxe");
+            ToolsDebug.interact("TestMode"," Installing all pickaxe augments on new pickaxe");
             for (AugmentManager.AugmentDefinition def : AugmentManager.getAll()) {
                 var handler = AugmentManager.getHandler(def.id());
                 if (handler != null && handler.supportsToolType(ArsenalToolType.PICKAXE)) {
@@ -151,7 +151,7 @@ public class ArsenalPickaxeItem extends PickaxeItem implements ArsenalTool {
                         if (freeSlot >= 0) {
                             setAugmentInSlot(stack, freeSlot, def.id());
                             AugmentManager.install(def.id(), stack, def.hasTiers() ? def.maxTier() : 1);
-                            System.out.println("[TestMode] Installed: " + def.name() + " in slot " + freeSlot);
+                            ToolsDebug.interact("TestMode", "Installed: " + def.name() + " in slot " + freeSlot);
                         }
                     }
                 }
