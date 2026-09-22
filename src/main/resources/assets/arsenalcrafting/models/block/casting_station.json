@@ -2,6 +2,7 @@
 	"format_version": "1.21.11",
 	"credit": "Made with Blockbench",
 	"ambientocclusion": false,
+	"parent": "minecraft:block/block",
 	"textures": {
 		"top": "block/cauldron_top",
 		"bottom": "block/cauldron_bottom",

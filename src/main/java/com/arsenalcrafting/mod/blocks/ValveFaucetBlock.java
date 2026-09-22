@@ -111,6 +111,25 @@ public class ValveFaucetBlock extends BaseEntityBlock {
             default ->    net.minecraft.world.phys.shapes.Shapes.block();
         };
     }
+
+    @Override
+    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock,
+                                BlockPos neighborPos, boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
+        if (level.isClientSide) return;
+
+        BlockPos casingPos = pos.relative(state.getValue(FACING));
+        if (!neighborPos.equals(casingPos)) return;
+
+        BlockState casingState = level.getBlockState(casingPos);
+        if (casingState.getBlock() instanceof CasingBlock && !casingState.getValue(CasingBlock.DRAIN)) {
+            level.setBlock(casingPos, casingState
+                    .setValue(CasingBlock.FACING, state.getValue(FACING).getOpposite())
+                    .setValue(CasingBlock.DRAIN, true), 3);
+            SmelteryDebug.faucetCasting("NeighborChanged",
+                    "Re-applied drain=true to replaced casing at " + casingPos);
+        }
+    }
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
                                                Player player, BlockHitResult hitResult) {

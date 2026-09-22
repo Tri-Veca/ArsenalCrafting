@@ -53,7 +53,7 @@ public class FoundryBasinRenderer implements BlockEntityRenderer<FoundryBasinBlo
 
         // Full brightness block when ready
         if (be.isReady() && be.getFluidMaterialName() != null) {
-            renderBlockItem(be, poseStack, bufferSource, packedLight, packedOverlay, 1.0f);
+            renderBlockItem(be, poseStack, bufferSource, packedLight, packedOverlay, 0.8f);
         }
     }
 

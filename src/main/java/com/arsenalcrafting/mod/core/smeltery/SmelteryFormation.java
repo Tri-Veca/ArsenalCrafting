@@ -691,7 +691,9 @@ public class SmelteryFormation {
         boolean south = pos.getZ() == wallMaxZ + 1 && pos.getX() >= wallMinX && pos.getX() <= wallMaxX;
         boolean west  = pos.getX() == wallMinX - 1 && pos.getZ() >= wallMinZ && pos.getZ() <= wallMaxZ;
         boolean east  = pos.getX() == wallMaxX + 1 && pos.getZ() >= wallMinZ && pos.getZ() <= wallMaxZ;
-        return north || south || west || east;
+        boolean corner = (pos.getX() == wallMinX || pos.getX() == wallMaxX)
+                && (pos.getZ() == wallMinZ || pos.getZ() == wallMaxZ);
+        return north || south || west || east || corner;
     }
 
     public static Optional<AlloySmelterBlockEntity> findController(

@@ -7,7 +7,7 @@ public final class ArsenalDebug {
     public static boolean GLOBAL_ENABLED = true;
 
     // ── SMELTERY ──────────────────────────────────────────────────────────
-    public static boolean SMELTERY_FORMATION = false;
+    public static boolean SMELTERY_FORMATION = true;
     public static boolean SMELTERY_LAVA = true;
     public static boolean SMELTERY_LIQUID = true;
     public static boolean SMELTERY_SETTINGS = false;

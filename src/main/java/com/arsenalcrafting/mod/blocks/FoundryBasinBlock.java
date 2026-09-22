@@ -9,6 +9,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.RenderShape;
@@ -17,6 +18,9 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 public class FoundryBasinBlock extends BaseEntityBlock {
@@ -42,6 +46,27 @@ public class FoundryBasinBlock extends BaseEntityBlock {
         return RenderShape.MODEL;
     }
 
+    private static final VoxelShape SHAPE = Shapes.or(
+            Shapes.box(0/16.0, 3/16.0, 0/16.0, 2/16.0, 16/16.0, 16/16.0),   // west wall
+            Shapes.box(2/16.0, 3/16.0, 2/16.0, 14/16.0, 4/16.0, 14/16.0),   // interior floor
+            Shapes.box(14/16.0, 3/16.0, 0/16.0, 16/16.0, 16/16.0, 16/16.0), // east wall
+            Shapes.box(2/16.0, 3/16.0, 0/16.0, 14/16.0, 16/16.0, 2/16.0),   // north wall
+            Shapes.box(2/16.0, 3/16.0, 14/16.0, 14/16.0, 16/16.0, 16/16.0), // south wall
+            Shapes.box(0/16.0, 0/16.0, 0/16.0, 4/16.0, 3/16.0, 2/16.0),     // 8 corner "feet" below
+            Shapes.box(0/16.0, 0/16.0, 2/16.0, 2/16.0, 3/16.0, 4/16.0),
+            Shapes.box(12/16.0, 0/16.0, 0/16.0, 16/16.0, 3/16.0, 2/16.0),
+            Shapes.box(14/16.0, 0/16.0, 2/16.0, 16/16.0, 3/16.0, 4/16.0),
+            Shapes.box(0/16.0, 0/16.0, 14/16.0, 4/16.0, 3/16.0, 16/16.0),
+            Shapes.box(0/16.0, 0/16.0, 12/16.0, 2/16.0, 3/16.0, 14/16.0),
+            Shapes.box(12/16.0, 0/16.0, 14/16.0, 16/16.0, 3/16.0, 16/16.0),
+            Shapes.box(14/16.0, 0/16.0, 12/16.0, 16/16.0, 3/16.0, 14/16.0)
+    );
+
+    @Override
+    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        return SHAPE;
+    }
+
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state,
@@ -62,8 +87,11 @@ public class FoundryBasinBlock extends BaseEntityBlock {
         if (basin.isReady()) {
             ItemStack result = basin.collectOutput();
             if (!result.isEmpty()) {
-                if (!player.addItem(result)) player.drop(result, false);
-                player.displayClientMessage(Component.literal("Collected " + result.getHoverName().getString()), true);
+                String itemName = result.getHoverName().getString();  // snapshot BEFORE mutation
+                if (!player.addItem(result)) {
+                    player.drop(result, false);
+                }
+                player.displayClientMessage(Component.literal("Collected " + itemName), true);
                 return ItemInteractionResult.SUCCESS;
             }
         }

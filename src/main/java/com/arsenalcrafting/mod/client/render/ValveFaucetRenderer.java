@@ -17,7 +17,7 @@ import net.neoforged.neoforge.fluids.FluidStack;
 public class ValveFaucetRenderer implements BlockEntityRenderer<ValveFaucetBlockEntity> {
 
     // ==== Falling stream (below the faucet, pouring into a mold/basin) ====
-    // Left/Right position (increase = move right) 
+    // Left/Right position (increase = move right)
     private static final float STREAM_X = 8f / 16f;
     // Forward/Back position (increase = move away from faucet)
     private static final float STREAM_Z = 10f / 16f;

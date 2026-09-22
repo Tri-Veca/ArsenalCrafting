@@ -81,7 +81,7 @@ public class CastingStationRenderer implements BlockEntityRenderer<CastingStatio
 
         // ── FULL BRIGHTNESS ITEM — when ready to collect ──────────────────────
         if (be.isReady() && be.getFluidMaterialName() != null) {
-            renderFlatItem(be, poseStack, bufferSource, packedLight, packedOverlay, 1.0f);
+            renderFlatItem(be, poseStack, bufferSource, packedLight, packedOverlay, 0.8f);
         }
     }
 
