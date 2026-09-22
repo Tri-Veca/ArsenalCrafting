@@ -1,3 +1,84 @@
 {
-  "parent": "arsenalcrafting:block/valve_faucet"
+  "credit": "Made with Blockbench",
+  "parent": "minecraft:block/block",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "1": "arsenalcrafting:block/basic_casing",
+    "particle": "arsenalcrafting:block/basic_casing"
+  },
+  "elements": [
+    {
+      "name": "The bottom platform, facing south with the dark texture side",
+      "from": [4, 4, 10],
+      "to": [12, 6, 16],
+      "faces": {
+        "north": {"uv": [4, 9, 12, 11], "texture": "#1"},
+        "east": {"uv": [12, 10, 14, 16], "rotation": 90, "texture": "#1"},
+        "south": {"uv": [4, 11, 12, 9], "texture": "#1", "cullface": "south"},
+        "west": {"uv": [2, 10, 4, 16], "rotation": 270, "texture": "#1"},
+        "up": {"uv": [4, 10, 12, 16], "texture": "#1"},
+        "down": {"uv": [4, 10, 12, 16], "rotation": 180, "texture": "#1"}
+      }
+    },
+    {
+      "name": "Left side from front (east)",
+      "from": [10, 6, 10],
+      "to": [12, 10, 16],
+      "faces": {
+        "north": {"uv": [4, 9, 6, 5], "texture": "#1"},
+        "east": {"uv": [8, 10, 12, 16], "rotation": 90, "texture": "#1"},
+        "south": {"uv": [10, 9, 12, 5], "texture": "#1", "cullface": "south"},
+        "west": {"uv": [2, 10, 6, 16], "rotation": 270, "texture": "#1"},
+        "up": {"uv": [13, 10, 15, 16], "texture": "#1"}
+      }
+    },
+    {
+      "name": "Right side from front (west)",
+      "from": [4, 6, 10],
+      "to": [6, 10, 16],
+      "faces": {
+        "north": {"uv": [10, 9, 12, 5], "texture": "#1"},
+        "east": {"uv": [2, 10, 6, 16], "rotation": 90, "texture": "#1"},
+        "south": {"uv": [6, 9, 4, 5], "texture": "#1", "cullface": "south"},
+        "west": {"uv": [7, 10, 11, 16], "rotation": 270, "texture": "#1"},
+        "up": {"uv": [1, 10, 3, 16], "texture": "#1"}
+      }
+    }
+  ],
+  "display": {
+    "thirdperson_righthand": {
+      "rotation": [75, 45, 0],
+      "translation": [0, 3, 0.5],
+      "scale": [0.4, 0.4, 0.4]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [75, 45, 0],
+      "translation": [0, 3, 0.5],
+      "scale": [0.4, 0.4, 0.4]
+    },
+    "firstperson_righthand": {
+      "rotation": [0, 135, 0],
+      "translation": [0, 0.5, 0],
+      "scale": [0.5, 0.5, 0.5]
+    },
+    "firstperson_lefthand": {
+      "rotation": [0, 135, 0],
+      "translation": [0, 0.5, 0],
+      "scale": [0.5, 0.5, 0.5]
+    },
+    "ground": {
+      "translation": [0, 3, -1],
+      "scale": [0.25, 0.25, 0.25]
+    },
+    "gui": {
+      "rotation": [30, 225, 0],
+      "translation": [0, 0, 0],
+      "scale": [0.625, 0.625, 0.625]
+    },
+    "fixed": {
+      "translation": [0, 0, -1],
+      "scale": [0.5, 0.5, 0.5]
+    }
+  },
+  "comment": "Model is facing South (as in: the block it's connected to is south of it)"
 }

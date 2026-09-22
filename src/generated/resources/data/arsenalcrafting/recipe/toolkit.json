@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "minecraft:iron_axe"
+    },
+    "B": {
+      "item": "arsenalcrafting:basic_casing"
+    },
+    "I": {
+      "item": "arsenalcrafting:iron_casing"
+    }
+  },
+  "pattern": [
+    " A ",
+    " I ",
+    "BBB"
+  ],
+  "result": {
+    "count": 1,
+    "id": "arsenalcrafting:toolkit"
+  }
+}

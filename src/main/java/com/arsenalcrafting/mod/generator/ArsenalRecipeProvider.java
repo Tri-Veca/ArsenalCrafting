@@ -10,6 +10,7 @@ import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -36,6 +37,10 @@ public class ArsenalRecipeProvider extends RecipeProvider {
         buildValveFaucetRecipe(output);
         buildBlueprintRecipe(output);
         buildBlueprintCastingTable(output);
+        buildCastingStation(output);
+        buildFoundryBasin(output);
+        buildRepairKit(output);
+        buildToolKit(output);
         buildBasicAugmentRecipe(output);
         buildFortuneAugmentT1(output);
         buildFortuneAugmentT2(output);
@@ -57,6 +62,26 @@ public class ArsenalRecipeProvider extends RecipeProvider {
                 .pattern("   ")
                 .pattern("M M")
                 .pattern(" M ")
+                .define('M', Ingredient.of(ModItems.BASIC_MATERIAL.get()))
+                .unlockedBy("has_basic_material", has(ModItems.BASIC_MATERIAL.get()))
+                .save(output);
+    }
+
+    private void buildCastingStation(RecipeOutput output) {
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ModBlocks.CASTING_STATION.get())
+                .pattern("M M")
+                .pattern("M M")
+                .pattern("MMM")
+                .define('M', Ingredient.of(ModItems.BASIC_MATERIAL.get()))
+                .unlockedBy("has_basic_material", has(ModItems.BASIC_MATERIAL.get()))
+                .save(output);
+    }
+
+    private void buildFoundryBasin(RecipeOutput output) {
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ModBlocks.FOUNDRY_BASIN.get())
+                .pattern("MMM")
+                .pattern("M M")
+                .pattern("M M")
                 .define('M', Ingredient.of(ModItems.BASIC_MATERIAL.get()))
                 .unlockedBy("has_basic_material", has(ModItems.BASIC_MATERIAL.get()))
                 .save(output);
@@ -114,6 +139,30 @@ public class ArsenalRecipeProvider extends RecipeProvider {
     }
 
     // Toolkit and Augments
+
+    private void buildToolKit(RecipeOutput output) {
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ModBlocks.TOOLKIT.get())
+                .pattern(" A ")
+                .pattern(" I ")
+                .pattern("BBB")
+                .define('I', Ingredient.of(ModBlocks.IRON_CASING.get()))
+                .define('A', Ingredient.of(Items.IRON_AXE))
+                .define('B', Ingredient.of(ModBlocks.BASIC_CASING.get()))
+                .unlockedBy("has_basic_material", has(ModBlocks.BASIC_CASING.get()))
+                .save(output);
+    }
+    private void buildRepairKit(RecipeOutput output) {
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ModItems.REPAIR_KIT.get())
+                .pattern("PPP")
+                .pattern("PIP")
+                .pattern("MMM")
+                .define('M', Ingredient.of(ModItems.BASIC_MATERIAL.get()))
+                .define('P', Ingredient.of(ItemTags.PLANKS))
+                .define('I', Ingredient.of(Items.IRON_INGOT))
+                .unlockedBy("has_basic_material", has(ModItems.BASIC_MATERIAL.get()))
+                .save(output);
+    }
+
 
     private void buildBasicAugmentRecipe(RecipeOutput output) {
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ModItems.BASIC_AUGMENT.get())

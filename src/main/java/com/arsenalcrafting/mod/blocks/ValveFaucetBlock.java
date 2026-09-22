@@ -104,10 +104,10 @@ public class ValveFaucetBlock extends BaseEntityBlock {
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return switch (state.getValue(FACING)) {
-            case NORTH -> net.minecraft.world.phys.shapes.Shapes.box(0.15, 0.15, 0.0, 0.75, 0.75, 0.5);
-            case SOUTH -> net.minecraft.world.phys.shapes.Shapes.box(0.15, 0.15, 0.5, 0.75, 0.75, 1.0);
-            case EAST ->  net.minecraft.world.phys.shapes.Shapes.box(0.5, 0.15, 0.15, 1.0, 0.75, 0.75);
-            case WEST ->  net.minecraft.world.phys.shapes.Shapes.box(0.0, 0.15, 0.15, 0.5, 0.75, 0.75);
+            case NORTH -> net.minecraft.world.phys.shapes.Shapes.box(0.376, 0.309, 0.03, 0.624, 0.495, 0.353);
+            case SOUTH -> net.minecraft.world.phys.shapes.Shapes.box(0.376, 0.309, 0.647, 0.624, 0.495, 0.97);
+            case EAST ->  net.minecraft.world.phys.shapes.Shapes.box(0.647, 0.309, 0.376, 0.97, 0.495, 0.624);
+            case WEST ->  net.minecraft.world.phys.shapes.Shapes.box(0.03, 0.309, 0.376, 0.353, 0.495, 0.624);
             default ->    net.minecraft.world.phys.shapes.Shapes.block();
         };
     }

@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "M": {
+      "item": "arsenalcrafting:basic_material"
+    },
+    "P": {
+      "tag": "minecraft:planks"
+    }
+  },
+  "pattern": [
+    "PPP",
+    "PIP",
+    "MMM"
+  ],
+  "result": {
+    "count": 1,
+    "id": "arsenalcrafting:repair_kit"
+  }
+}
