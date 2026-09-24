@@ -17,6 +17,7 @@ public final class ArsenalDebug {
     public static boolean FAUCET_POURING = true;
     public static boolean FAUCET_CASTING = true;
 
+
     // ── GUI / MENUS ───────────────────────────────────────────────────────
     public static boolean GUI_OPEN   = false;
     public static boolean GUI_SLOTS  = false;
@@ -24,7 +25,7 @@ public final class ArsenalDebug {
     public static boolean GUI_SYNC   = false;
 
     // ── COMBAT ────────────────────────────────────────────────────────────
-    public static boolean WEAPON_DAMAGE = false;
+    public static boolean WEAPON_DAMAGE = true;
     public static boolean WEAPON_ABILITIES = true;
 
     // ── TOOLS ─────────────────────────────────────────────────────────────
@@ -32,7 +33,7 @@ public final class ArsenalDebug {
     public static boolean TOOL_INTERACT = false;
 
     // ── CORE POWERS ───────────────────────────────────────────────────────
-    public static boolean CORE_POWERS = false;
+    public static boolean CORE_POWERS = true;
 
     // ── AUGMENTS ──────────────────────────────────────────────────────────
     public static boolean AUGMENTS = true;

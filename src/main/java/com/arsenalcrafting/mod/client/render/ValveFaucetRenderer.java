@@ -114,7 +114,6 @@ public class ValveFaucetRenderer implements BlockEntityRenderer<ValveFaucetBlock
             case WEST  -> -90f;
             default    -> 0f;
         };
-        SmelteryDebug.faucetPouring("Render", "pos=" + be.getBlockPos() + " facing=" + facing + " angle=" + angle);
         return angle;
     }
 

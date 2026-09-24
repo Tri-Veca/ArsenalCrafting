@@ -91,7 +91,7 @@
   "core.arsenalcrafting.greedy.desc.weapon": "+15% Attack Speed, -15% Durability",
   "core.arsenalcrafting.momentum": "Momentum",
   "core.arsenalcrafting.momentum.desc": "Consecutive mining grants increasing Haste levels",
-  "core.arsenalcrafting.momentum.desc.weapon": "Consecutive hits grant increasing attack speed",
+  "core.arsenalcrafting.momentum.desc.weapon": "Consecutive hits grant increasing crit chance (up to +7%)",
   "core.arsenalcrafting.perfect_strike": "Perfect Strike",
   "core.arsenalcrafting.perfect_strike.desc": "8% chance to Instantly breaks blocks, +1 ore drop",
   "core.arsenalcrafting.perfect_strike.desc.weapon": "8% chance to deal an extra hit ",

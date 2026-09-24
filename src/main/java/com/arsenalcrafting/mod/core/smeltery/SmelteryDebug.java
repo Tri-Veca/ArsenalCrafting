@@ -38,6 +38,18 @@ public final class SmelteryDebug {
         ArsenalDebug.log("FaucetCasting/" + tag, ArsenalDebug.FAUCET_CASTING, message);
     }
 
+    private static BlockPos lastFaucetCastingPos = null;
+    private static boolean lastFaucetCastingFound = false;
+
+    public static void faucetCastingIfChanged(String tag, BlockPos pos, boolean found) {
+        if (pos.equals(lastFaucetCastingPos) && found == lastFaucetCastingFound) return;
+        lastFaucetCastingPos = pos.immutable();
+        lastFaucetCastingFound = found;
+        faucetCasting(tag, pos + (found ? " found smelter" : " no smelter found"));
+    }
+
+
+
     // ── Self-checks (kept for now) ──────────────────────────────────────────
 
     /** Call once early (e.g. mod constructor) to sanity-check pure membership helpers. */

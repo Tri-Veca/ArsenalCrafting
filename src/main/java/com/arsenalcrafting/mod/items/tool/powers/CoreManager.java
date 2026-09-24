@@ -70,7 +70,7 @@ public class CoreManager {
         register(AlloyMaterial.TIN, new CoreDefinition(
                 "momentum", "Momentum",
                 "Consecutive mining grants increasing Haste levels",
-                "Consecutive hits grant increasing attack speed",
+                "Consecutive hits grant increasing crit chance (up to +7%)",
                 CoreHandlers.MOMENTUM
         ));
 

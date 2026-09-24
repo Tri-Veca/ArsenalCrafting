@@ -20,12 +20,19 @@ public class DynamicComponents {
     private static final Map<String, DeferredHolder<DataComponentType<?>, DataComponentType<Integer>>> TIER_COMPONENTS = new HashMap<>();
 
     private static DeferredHolder<DataComponentType<?>, DataComponentType<MomentumData>> MOMENTUM_HOLDER;
+    private static DeferredHolder<DataComponentType<?>, DataComponentType<MomentumData>> WEAPON_MOMENTUM_HOLDER;
+
     private static DeferredHolder<DataComponentType<?>, DataComponentType<BlockPos>> LIGHT_POS_HOLDER;
 
     // Getter for Momentum Component
     public static DataComponentType<MomentumData> MOMENTUM() {
         return MOMENTUM_HOLDER.get();
     }
+    public static DataComponentType<MomentumData> WEAPON_MOMENTUM() {
+        return WEAPON_MOMENTUM_HOLDER.get();
+    }
+
+
 
     public static DataComponentType<BlockPos> LIGHT_POS() {
         return LIGHT_POS_HOLDER.get();
@@ -46,10 +53,19 @@ public class DynamicComponents {
         public static final MomentumData EMPTY = new MomentumData(0, 0L);
     }
 
+
+
     public static void registerAll(DeferredRegister<DataComponentType<?>> register) {
 
         // 1. Register standalone components OUTSIDE the loop
         MOMENTUM_HOLDER = register.register("momentum_data",
+                () -> DataComponentType.<MomentumData>builder()
+                        .persistent(MomentumData.CODEC)
+                        .networkSynchronized(MomentumData.STREAM_CODEC)
+                        .build()
+        );
+
+        WEAPON_MOMENTUM_HOLDER = register.register("weapon_momentum_data",
                 () -> DataComponentType.<MomentumData>builder()
                         .persistent(MomentumData.CODEC)
                         .networkSynchronized(MomentumData.STREAM_CODEC)

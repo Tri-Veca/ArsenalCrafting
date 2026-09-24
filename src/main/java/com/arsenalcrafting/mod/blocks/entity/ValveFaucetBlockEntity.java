@@ -94,6 +94,12 @@ public class ValveFaucetBlockEntity extends BlockEntity {
             this.pouringMaterialName = mat.getName();
             this.remainingToPour = needed;
 
+            var facing = level.getBlockState(pos).getValue(
+                    com.arsenalcrafting.mod.blocks.ValveFaucetBlock.FACING);
+            SmelteryDebug.faucetPouring("Start",
+                    "pos=" + pos + " facing=" + facing + " mat=" + this.pouringMaterialName
+                            + " amount=" + this.remainingToPour);
+
         } else if (below instanceof FoundryBasinBlockEntity basin) {
             if (!basin.canReceiveFluid()) {
                 if (basin.isReady()) return "Basin has a block ready — collect it first";
@@ -108,6 +114,12 @@ public class ValveFaucetBlockEntity extends BlockEntity {
             this.pourState = PourState.POURING;
             this.pouringMaterialName = mat.getName();
             this.remainingToPour = 9000;
+
+            var facing = level.getBlockState(pos).getValue(
+                    com.arsenalcrafting.mod.blocks.ValveFaucetBlock.FACING);
+            SmelteryDebug.faucetPouring("Start",
+                    "pos=" + pos + " facing=" + facing + " mat=" + this.pouringMaterialName
+                            + " amount=" + this.remainingToPour);
 
         } else {
             return "No Casting Station or Foundry Basin found below faucet";
@@ -204,10 +216,7 @@ public class ValveFaucetBlockEntity extends BlockEntity {
         var result = com.arsenalcrafting.mod.core.smeltery.SmelteryFormation
                 .findController(level, pos,
                         com.arsenalcrafting.mod.core.smeltery.SmelteryFormation::isOnWallShell);
-        result.ifPresentOrElse(
-                s -> com.arsenalcrafting.mod.core.smeltery.SmelteryDebug.faucetCasting("Faucet", pos + " found smelter"),
-                () -> com.arsenalcrafting.mod.core.smeltery.SmelteryDebug.faucetCasting("Faucet", pos + " no smelter found")
-        );
+        SmelteryDebug.faucetCastingIfChanged("Faucet", pos, result.isPresent());
         return result.orElse(null);
     }
 

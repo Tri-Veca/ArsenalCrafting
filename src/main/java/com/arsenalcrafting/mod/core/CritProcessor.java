@@ -2,6 +2,7 @@ package com.arsenalcrafting.mod.core;
 
 import com.arsenalcrafting.mod.component.ToolAssemblyData;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
+import com.arsenalcrafting.mod.items.tool.powers.Momentum;
 import com.arsenalcrafting.mod.registry.ModComponents;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -76,6 +77,9 @@ public class CritProcessor {
         AlloyMaterial headMat = getHeadMaterial(weapon);
         if (headMat == null) return CritResult.noCrit(baseDamage);
 
+        // Tin momentum core — dynamic crit stacks (core ID checked inside getWeaponCritBonus)
+        float tinCoreBonus = Momentum.getWeaponCritBonus(weapon);
+        flatBonuses += tinCoreBonus;
         float chance = calcCritChance(headMat, weaponCritChanceMult, flatBonuses);
         if (!rollCrit(chance)) return CritResult.noCrit(baseDamage);
 

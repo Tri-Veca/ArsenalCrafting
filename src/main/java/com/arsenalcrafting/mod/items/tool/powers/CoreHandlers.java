@@ -1,5 +1,6 @@
 package com.arsenalcrafting.mod.items.tool.powers;
 
+import com.arsenalcrafting.mod.items.tool.ArsenalTool;
 import com.arsenalcrafting.mod.items.tool.ArsenalToolType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.BlockTags;
@@ -108,7 +109,7 @@ public final class CoreHandlers {
     public static final class MomentumCore implements CoreHandler {
         @Override
         public boolean supportsToolType(ArsenalToolType type) {
-            return type != null && type.isMiningTool();
+            return type != null && (type.isMiningTool() || type.isWeapon());
         }
 
         @Override
@@ -116,6 +117,19 @@ public final class CoreHandlers {
             // Only count the origin block the player directly mined — not vein mine extras (#22)
             if (!Momentum.isOriginBlock()) return;
             Momentum.onBlockMined(stack, entity);
+        }
+
+        @Override
+        public void onEntityHit(ItemStack weapon, LivingEntity attacker, Entity target, float damage) {
+            Momentum.onWeaponHit(weapon, attacker);
+        }
+
+        @Override
+        public void onToolUpdate(ItemStack tool, Player player) {
+            // Decay weapon stacks if expired — only for weapons
+            if (tool.getItem() instanceof ArsenalTool arsenalTool && arsenalTool.getToolType().isWeapon()) {
+                Momentum.decayWeaponStacksIfNeeded(tool, player.level());
+            }
         }
     }
 
