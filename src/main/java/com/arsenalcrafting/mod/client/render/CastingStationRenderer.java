@@ -104,9 +104,14 @@ public class CastingStationRenderer implements BlockEntityRenderer<CastingStatio
 
         poseStack.pushPose();
         poseStack.translate(0.5f, BASIN_FLOOR_Y + 0.01f, 0.5f);
+
+// Lock to the east/south orientation you prefer
+        poseStack.mulPose(Axis.YP.rotationDegrees(0f));   // try 0 first; if wrong try 90, 180, or 270
+
         poseStack.mulPose(Axis.XP.rotationDegrees(90f));
         poseStack.scale(0.85f, 0.85f, 0.85f);
 
+// original item render stays unchanged
         Minecraft.getInstance().getItemRenderer().renderStatic(
                 new ItemStack(moldHolder.get().asItem()),
                 ItemDisplayContext.FIXED,

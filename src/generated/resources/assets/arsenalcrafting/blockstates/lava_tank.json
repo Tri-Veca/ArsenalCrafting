@@ -2,92 +2,116 @@
   "variants": {
     "facing=east,tier=bronze": {
       "model": "arsenalcrafting:block/lava_tank_bronze",
+      "uvlock": true,
       "y": 90
     },
     "facing=east,tier=copper": {
       "model": "arsenalcrafting:block/lava_tank_copper",
+      "uvlock": true,
       "y": 90
     },
     "facing=east,tier=iron": {
       "model": "arsenalcrafting:block/lava_tank_iron",
+      "uvlock": true,
       "y": 90
     },
     "facing=east,tier=steel": {
       "model": "arsenalcrafting:block/lava_tank_steel",
+      "uvlock": true,
       "y": 90
     },
     "facing=east,tier=titanium": {
       "model": "arsenalcrafting:block/lava_tank_titanium",
+      "uvlock": true,
       "y": 90
     },
     "facing=east,tier=unformed": {
       "model": "arsenalcrafting:block/lava_tank_unformed",
+      "uvlock": true,
       "y": 90
     },
     "facing=north,tier=bronze": {
-      "model": "arsenalcrafting:block/lava_tank_bronze"
+      "model": "arsenalcrafting:block/lava_tank_bronze",
+      "uvlock": true
     },
     "facing=north,tier=copper": {
-      "model": "arsenalcrafting:block/lava_tank_copper"
+      "model": "arsenalcrafting:block/lava_tank_copper",
+      "uvlock": true
     },
     "facing=north,tier=iron": {
-      "model": "arsenalcrafting:block/lava_tank_iron"
+      "model": "arsenalcrafting:block/lava_tank_iron",
+      "uvlock": true
     },
     "facing=north,tier=steel": {
-      "model": "arsenalcrafting:block/lava_tank_steel"
+      "model": "arsenalcrafting:block/lava_tank_steel",
+      "uvlock": true
     },
     "facing=north,tier=titanium": {
-      "model": "arsenalcrafting:block/lava_tank_titanium"
+      "model": "arsenalcrafting:block/lava_tank_titanium",
+      "uvlock": true
     },
     "facing=north,tier=unformed": {
-      "model": "arsenalcrafting:block/lava_tank_unformed"
+      "model": "arsenalcrafting:block/lava_tank_unformed",
+      "uvlock": true
     },
     "facing=south,tier=bronze": {
       "model": "arsenalcrafting:block/lava_tank_bronze",
+      "uvlock": true,
       "y": 180
     },
     "facing=south,tier=copper": {
       "model": "arsenalcrafting:block/lava_tank_copper",
+      "uvlock": true,
       "y": 180
     },
     "facing=south,tier=iron": {
       "model": "arsenalcrafting:block/lava_tank_iron",
+      "uvlock": true,
       "y": 180
     },
     "facing=south,tier=steel": {
       "model": "arsenalcrafting:block/lava_tank_steel",
+      "uvlock": true,
       "y": 180
     },
     "facing=south,tier=titanium": {
       "model": "arsenalcrafting:block/lava_tank_titanium",
+      "uvlock": true,
       "y": 180
     },
     "facing=south,tier=unformed": {
       "model": "arsenalcrafting:block/lava_tank_unformed",
+      "uvlock": true,
       "y": 180
     },
     "facing=west,tier=bronze": {
       "model": "arsenalcrafting:block/lava_tank_bronze",
+      "uvlock": true,
       "y": 270
     },
     "facing=west,tier=copper": {
       "model": "arsenalcrafting:block/lava_tank_copper",
+      "uvlock": true,
       "y": 270
     },
     "facing=west,tier=iron": {
       "model": "arsenalcrafting:block/lava_tank_iron",
+      "uvlock": true,
       "y": 270
     },
     "facing=west,tier=steel": {
       "model": "arsenalcrafting:block/lava_tank_steel",
+      "uvlock": true,
       "y": 270
     },
     "facing=west,tier=titanium": {
       "model": "arsenalcrafting:block/lava_tank_titanium",
+      "uvlock": true,
       "y": 270
     },
     "facing=west,tier=unformed": {
       "model": "arsenalcrafting:block/lava_tank_unformed",
+      "uvlock": true,
       "y": 270
     }
   }

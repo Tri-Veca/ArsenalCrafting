@@ -4,11 +4,11 @@
 	"ambientocclusion": false,
 	"parent": "minecraft:block/block",
 	"textures": {
-		"top": "block/cauldron_top",
-		"bottom": "block/cauldron_bottom",
-		"particle": "block/cauldron_side",
-		"side": "block/cauldron_side",
-		"inside": "block/cauldron_inner"
+		"top": "arsenalcrafting:block/casting_station_top",
+		"bottom": "arsenalcrafting:block/casting_station_bottom",
+		"particle": "arsenalcrafting:block/casting_station_side",
+		"side": "arsenalcrafting:block/casting_station_side",
+		"inside": "arsenalcrafting:block/casting_station_inner"
 	},
 	"elements": [
 		{

@@ -14,17 +14,21 @@
     },
     "drain=true,facing=east": {
       "model": "arsenalcrafting:block/bronze_casing_drain",
+      "uvlock": true,
       "y": 90
     },
     "drain=true,facing=north": {
-      "model": "arsenalcrafting:block/bronze_casing_drain"
+      "model": "arsenalcrafting:block/bronze_casing_drain",
+      "uvlock": true
     },
     "drain=true,facing=south": {
       "model": "arsenalcrafting:block/bronze_casing_drain",
+      "uvlock": true,
       "y": 180
     },
     "drain=true,facing=west": {
       "model": "arsenalcrafting:block/bronze_casing_drain",
+      "uvlock": true,
       "y": 270
     }
   }

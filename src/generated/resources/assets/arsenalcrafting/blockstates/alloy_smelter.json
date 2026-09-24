@@ -2,182 +2,230 @@
   "variants": {
     "active=false,facing=east,tier=bronze": {
       "model": "arsenalcrafting:block/alloy_smelter_bronze_off",
+      "uvlock": true,
       "y": 90
     },
     "active=false,facing=east,tier=copper": {
       "model": "arsenalcrafting:block/alloy_smelter_copper_off",
+      "uvlock": true,
       "y": 90
     },
     "active=false,facing=east,tier=iron": {
       "model": "arsenalcrafting:block/alloy_smelter_iron_off",
+      "uvlock": true,
       "y": 90
     },
     "active=false,facing=east,tier=steel": {
       "model": "arsenalcrafting:block/alloy_smelter_steel_off",
+      "uvlock": true,
       "y": 90
     },
     "active=false,facing=east,tier=titanium": {
       "model": "arsenalcrafting:block/alloy_smelter_titanium_off",
+      "uvlock": true,
       "y": 90
     },
     "active=false,facing=east,tier=unformed": {
       "model": "arsenalcrafting:block/alloy_smelter_unformed_off",
+      "uvlock": true,
       "y": 90
     },
     "active=false,facing=north,tier=bronze": {
-      "model": "arsenalcrafting:block/alloy_smelter_bronze_off"
+      "model": "arsenalcrafting:block/alloy_smelter_bronze_off",
+      "uvlock": true
     },
     "active=false,facing=north,tier=copper": {
-      "model": "arsenalcrafting:block/alloy_smelter_copper_off"
+      "model": "arsenalcrafting:block/alloy_smelter_copper_off",
+      "uvlock": true
     },
     "active=false,facing=north,tier=iron": {
-      "model": "arsenalcrafting:block/alloy_smelter_iron_off"
+      "model": "arsenalcrafting:block/alloy_smelter_iron_off",
+      "uvlock": true
     },
     "active=false,facing=north,tier=steel": {
-      "model": "arsenalcrafting:block/alloy_smelter_steel_off"
+      "model": "arsenalcrafting:block/alloy_smelter_steel_off",
+      "uvlock": true
     },
     "active=false,facing=north,tier=titanium": {
-      "model": "arsenalcrafting:block/alloy_smelter_titanium_off"
+      "model": "arsenalcrafting:block/alloy_smelter_titanium_off",
+      "uvlock": true
     },
     "active=false,facing=north,tier=unformed": {
-      "model": "arsenalcrafting:block/alloy_smelter_unformed_off"
+      "model": "arsenalcrafting:block/alloy_smelter_unformed_off",
+      "uvlock": true
     },
     "active=false,facing=south,tier=bronze": {
       "model": "arsenalcrafting:block/alloy_smelter_bronze_off",
+      "uvlock": true,
       "y": 180
     },
     "active=false,facing=south,tier=copper": {
       "model": "arsenalcrafting:block/alloy_smelter_copper_off",
+      "uvlock": true,
       "y": 180
     },
     "active=false,facing=south,tier=iron": {
       "model": "arsenalcrafting:block/alloy_smelter_iron_off",
+      "uvlock": true,
       "y": 180
     },
     "active=false,facing=south,tier=steel": {
       "model": "arsenalcrafting:block/alloy_smelter_steel_off",
+      "uvlock": true,
       "y": 180
     },
     "active=false,facing=south,tier=titanium": {
       "model": "arsenalcrafting:block/alloy_smelter_titanium_off",
+      "uvlock": true,
       "y": 180
     },
     "active=false,facing=south,tier=unformed": {
       "model": "arsenalcrafting:block/alloy_smelter_unformed_off",
+      "uvlock": true,
       "y": 180
     },
     "active=false,facing=west,tier=bronze": {
       "model": "arsenalcrafting:block/alloy_smelter_bronze_off",
+      "uvlock": true,
       "y": 270
     },
     "active=false,facing=west,tier=copper": {
       "model": "arsenalcrafting:block/alloy_smelter_copper_off",
+      "uvlock": true,
       "y": 270
     },
     "active=false,facing=west,tier=iron": {
       "model": "arsenalcrafting:block/alloy_smelter_iron_off",
+      "uvlock": true,
       "y": 270
     },
     "active=false,facing=west,tier=steel": {
       "model": "arsenalcrafting:block/alloy_smelter_steel_off",
+      "uvlock": true,
       "y": 270
     },
     "active=false,facing=west,tier=titanium": {
       "model": "arsenalcrafting:block/alloy_smelter_titanium_off",
+      "uvlock": true,
       "y": 270
     },
     "active=false,facing=west,tier=unformed": {
       "model": "arsenalcrafting:block/alloy_smelter_unformed_off",
+      "uvlock": true,
       "y": 270
     },
     "active=true,facing=east,tier=bronze": {
       "model": "arsenalcrafting:block/alloy_smelter_bronze_on",
+      "uvlock": true,
       "y": 90
     },
     "active=true,facing=east,tier=copper": {
       "model": "arsenalcrafting:block/alloy_smelter_copper_on",
+      "uvlock": true,
       "y": 90
     },
     "active=true,facing=east,tier=iron": {
       "model": "arsenalcrafting:block/alloy_smelter_iron_on",
+      "uvlock": true,
       "y": 90
     },
     "active=true,facing=east,tier=steel": {
       "model": "arsenalcrafting:block/alloy_smelter_steel_on",
+      "uvlock": true,
       "y": 90
     },
     "active=true,facing=east,tier=titanium": {
       "model": "arsenalcrafting:block/alloy_smelter_titanium_on",
+      "uvlock": true,
       "y": 90
     },
     "active=true,facing=east,tier=unformed": {
       "model": "arsenalcrafting:block/alloy_smelter_unformed_on",
+      "uvlock": true,
       "y": 90
     },
     "active=true,facing=north,tier=bronze": {
-      "model": "arsenalcrafting:block/alloy_smelter_bronze_on"
+      "model": "arsenalcrafting:block/alloy_smelter_bronze_on",
+      "uvlock": true
     },
     "active=true,facing=north,tier=copper": {
-      "model": "arsenalcrafting:block/alloy_smelter_copper_on"
+      "model": "arsenalcrafting:block/alloy_smelter_copper_on",
+      "uvlock": true
     },
     "active=true,facing=north,tier=iron": {
-      "model": "arsenalcrafting:block/alloy_smelter_iron_on"
+      "model": "arsenalcrafting:block/alloy_smelter_iron_on",
+      "uvlock": true
     },
     "active=true,facing=north,tier=steel": {
-      "model": "arsenalcrafting:block/alloy_smelter_steel_on"
+      "model": "arsenalcrafting:block/alloy_smelter_steel_on",
+      "uvlock": true
     },
     "active=true,facing=north,tier=titanium": {
-      "model": "arsenalcrafting:block/alloy_smelter_titanium_on"
+      "model": "arsenalcrafting:block/alloy_smelter_titanium_on",
+      "uvlock": true
     },
     "active=true,facing=north,tier=unformed": {
-      "model": "arsenalcrafting:block/alloy_smelter_unformed_on"
+      "model": "arsenalcrafting:block/alloy_smelter_unformed_on",
+      "uvlock": true
     },
     "active=true,facing=south,tier=bronze": {
       "model": "arsenalcrafting:block/alloy_smelter_bronze_on",
+      "uvlock": true,
       "y": 180
     },
     "active=true,facing=south,tier=copper": {
       "model": "arsenalcrafting:block/alloy_smelter_copper_on",
+      "uvlock": true,
       "y": 180
     },
     "active=true,facing=south,tier=iron": {
       "model": "arsenalcrafting:block/alloy_smelter_iron_on",
+      "uvlock": true,
       "y": 180
     },
     "active=true,facing=south,tier=steel": {
       "model": "arsenalcrafting:block/alloy_smelter_steel_on",
+      "uvlock": true,
       "y": 180
     },
     "active=true,facing=south,tier=titanium": {
       "model": "arsenalcrafting:block/alloy_smelter_titanium_on",
+      "uvlock": true,
       "y": 180
     },
     "active=true,facing=south,tier=unformed": {
       "model": "arsenalcrafting:block/alloy_smelter_unformed_on",
+      "uvlock": true,
       "y": 180
     },
     "active=true,facing=west,tier=bronze": {
       "model": "arsenalcrafting:block/alloy_smelter_bronze_on",
+      "uvlock": true,
       "y": 270
     },
     "active=true,facing=west,tier=copper": {
       "model": "arsenalcrafting:block/alloy_smelter_copper_on",
+      "uvlock": true,
       "y": 270
     },
     "active=true,facing=west,tier=iron": {
       "model": "arsenalcrafting:block/alloy_smelter_iron_on",
+      "uvlock": true,
       "y": 270
     },
     "active=true,facing=west,tier=steel": {
       "model": "arsenalcrafting:block/alloy_smelter_steel_on",
+      "uvlock": true,
       "y": 270
     },
     "active=true,facing=west,tier=titanium": {
       "model": "arsenalcrafting:block/alloy_smelter_titanium_on",
+      "uvlock": true,
       "y": 270
     },
     "active=true,facing=west,tier=unformed": {
       "model": "arsenalcrafting:block/alloy_smelter_unformed_on",
+      "uvlock": true,
       "y": 270
     }
   }

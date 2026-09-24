@@ -53,10 +53,16 @@ public class ValveFaucetBlock extends BaseEntityBlock {
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        BlockState state = defaultBlockState().setValue(FACING, context.getHorizontalDirection());
+        Direction facing = context.getHorizontalDirection();
+        BlockState state = defaultBlockState().setValue(FACING, facing);
 
         BlockPos faucetPos = context.getClickedPos();
-        BlockPos casingPos = faucetPos.relative(context.getClickedFace().getOpposite());
+        // Derive the casing position from the same FACING value stored on this block's
+        // state (the value onRemove() and neighborChanged() already key off), rather than
+        // the raw clicked face. On a flat wall the two agree, but at a corner/cross-section
+        // between two casing blocks the clicked face and the placer's overall facing can
+        // diverge — previously causing placement and removal to target different casings.
+        BlockPos casingPos = faucetPos.relative(facing);
         BlockState casingState = context.getLevel().getBlockState(casingPos);
 
         SmelteryDebug.faucetCasting("Place", "==== FAUCET DEBUG ====");
@@ -65,9 +71,10 @@ public class ValveFaucetBlock extends BaseEntityBlock {
         SmelteryDebug.faucetCasting("Place", "casingState: " + casingState);
 
         if (casingState.getBlock() instanceof CasingBlock) {
-            SmelteryDebug.faucetCasting("Place", "Setting drain=true and facing=" + context.getClickedFace());
+            Direction casingFacing = facing.getOpposite();
+            SmelteryDebug.faucetCasting("Place", "Setting drain=true and facing=" + casingFacing);
             context.getLevel().setBlock(casingPos, casingState
-                    .setValue(CasingBlock.FACING, context.getClickedFace())
+                    .setValue(CasingBlock.FACING, casingFacing)
                     .setValue(CasingBlock.DRAIN, true), 3);
         }
 
@@ -89,30 +96,6 @@ public class ValveFaucetBlock extends BaseEntityBlock {
     }
 
     @Override
-    public RenderShape getRenderShape(BlockState state) {
-        return RenderShape.MODEL;
-    }
-
-    @Nullable
-    @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state,
-                                                                  BlockEntityType<T> type) {
-        if (level.isClientSide()) return null;
-        return createTickerHelper(type, ModBlockEntities.VALVE_FAUCET.get(),
-                (level1, pos, state1, be) -> ValveFaucetBlockEntity.tick(level1, pos, state1, be));
-    }
-    @Override
-    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return switch (state.getValue(FACING)) {
-            case NORTH -> net.minecraft.world.phys.shapes.Shapes.box(0.376, 0.309, 0.03, 0.624, 0.495, 0.353);
-            case SOUTH -> net.minecraft.world.phys.shapes.Shapes.box(0.376, 0.309, 0.647, 0.624, 0.495, 0.97);
-            case EAST ->  net.minecraft.world.phys.shapes.Shapes.box(0.647, 0.309, 0.376, 0.97, 0.495, 0.624);
-            case WEST ->  net.minecraft.world.phys.shapes.Shapes.box(0.03, 0.309, 0.376, 0.353, 0.495, 0.624);
-            default ->    net.minecraft.world.phys.shapes.Shapes.block();
-        };
-    }
-
-    @Override
     public void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock,
                                 BlockPos neighborPos, boolean movedByPiston) {
         super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
@@ -129,6 +112,30 @@ public class ValveFaucetBlock extends BaseEntityBlock {
             SmelteryDebug.faucetCasting("NeighborChanged",
                     "Re-applied drain=true to replaced casing at " + casingPos);
         }
+    }
+
+    @Override
+    public RenderShape getRenderShape(BlockState state) {
+        return RenderShape.MODEL;
+    }
+
+    @Nullable
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state,
+                                                                  BlockEntityType<T> type) {
+        if (level.isClientSide()) return null;
+        return createTickerHelper(type, ModBlockEntities.VALVE_FAUCET.get(),
+                (level1, pos, state1, be) -> ValveFaucetBlockEntity.tick(level1, pos, state1, be));
+    }
+    @Override
+    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        return switch (state.getValue(FACING)) {
+            case NORTH -> net.minecraft.world.phys.shapes.Shapes.box(0.15, 0.15, 0.0, 0.75, 0.75, 0.5);
+            case SOUTH -> net.minecraft.world.phys.shapes.Shapes.box(0.15, 0.15, 0.5, 0.75, 0.75, 1.0);
+            case EAST ->  net.minecraft.world.phys.shapes.Shapes.box(0.5, 0.15, 0.15, 1.0, 0.75, 0.75);
+            case WEST ->  net.minecraft.world.phys.shapes.Shapes.box(0.0, 0.15, 0.15, 0.5, 0.75, 0.75);
+            default ->    net.minecraft.world.phys.shapes.Shapes.block();
+        };
     }
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,

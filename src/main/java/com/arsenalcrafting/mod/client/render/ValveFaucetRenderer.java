@@ -2,6 +2,7 @@ package com.arsenalcrafting.mod.client.render;
 
 import com.arsenalcrafting.mod.blocks.entity.ValveFaucetBlockEntity;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
+import com.arsenalcrafting.mod.core.smeltery.SmelteryDebug;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
@@ -19,8 +20,8 @@ public class ValveFaucetRenderer implements BlockEntityRenderer<ValveFaucetBlock
     // ==== Falling stream (below the faucet, pouring into a mold/basin) ====
     // Left/Right position (increase = move right)
     private static final float STREAM_X = 8f / 16f;
-    // Forward/Back position (increase = move away from faucet)
-    private static final float STREAM_Z = 10f / 16f;
+    // Forward/Back position (increase = move closer to the faucet)
+    private static final float STREAM_Z = 9.78f / 16f;
     // Top height (increase = stream starts higher)
     private static final float STREAM_Y_TOP = 7f / 16f;
     // Stream thickness (increase = wider stream)
@@ -69,6 +70,14 @@ public class ValveFaucetRenderer implements BlockEntityRenderer<ValveFaucetBlock
         float a = 0.9f;
 
         VertexConsumer buffer = bufferSource.getBuffer(RenderType.translucent());
+
+        // Rotate the local coordinate space to match the faucet's actual facing —
+        // all quad coordinates below are authored for the default (NORTH) orientation,
+        // and this rotation carries them to whichever way the block is actually placed.
+        poseStack.pushPose();
+        poseStack.translate(0.5, 0.5, 0.5);
+        poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(getFacingAngle(be)));
+        poseStack.translate(-0.5, -0.5, -0.5);
         PoseStack.Pose pose = poseStack.last();
 
         // Falling stream below the faucet.
@@ -82,6 +91,31 @@ public class ValveFaucetRenderer implements BlockEntityRenderer<ValveFaucetBlock
         // Static fill sitting inside the faucet's own channel.
         renderFluidBox(buffer, pose, CHANNEL_X_MIN, CHANNEL_X_MAX, CHANNEL_Y_FLOOR, CHANNEL_Y_FILL,
                 CHANNEL_Z_MIN, CHANNEL_Z_MAX, r, g, b, a, sprite, packedLight);
+
+        poseStack.popPose();
+    }
+
+    /**
+     * Maps the faucet's FACING to the Y-axis rotation needed to align the fluid quads
+     * (authored for the default NORTH orientation) with the block's actual placement.
+     * Guards against a stale blockstate — if this position no longer holds a
+     * ValveFaucetBlock (e.g. it was just removed to air), fall back to 0 rather than crash.
+     */
+    private float getFacingAngle(ValveFaucetBlockEntity be) {
+        var level = be.getLevel();
+        if (level == null) return 0f;
+        var state = level.getBlockState(be.getBlockPos());
+        if (!(state.getBlock() instanceof com.arsenalcrafting.mod.blocks.ValveFaucetBlock)) return 0f;
+        var facing = state.getValue(com.arsenalcrafting.mod.blocks.ValveFaucetBlock.FACING);
+        float angle = switch (facing) {
+            case NORTH -> 0f;
+            case EAST  -> 90f;   // or keep -90 if you prefer; test both later
+            case SOUTH -> 0f;    // ← the only value that differs from ±180
+            case WEST  -> -90f;
+            default    -> 0f;
+        };
+        SmelteryDebug.faucetPouring("Render", "pos=" + be.getBlockPos() + " facing=" + facing + " angle=" + angle);
+        return angle;
     }
 
     /**

@@ -4,7 +4,6 @@
     {
       "faces": {
         "down": {
-          "rotation": 90,
           "texture": "#casing"
         },
         "east": {
@@ -17,7 +16,6 @@
           "texture": "#casing"
         },
         "up": {
-          "rotation": 270,
           "texture": "#casing"
         },
         "west": {

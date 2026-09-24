@@ -63,6 +63,7 @@ public class ArsenalBlockStateProvider extends BlockStateProvider {
             return ConfiguredModel.builder()
                     .modelFile(models().getExistingFile(modLoc("block/" + modelName)))
                     .rotationY(yRot)
+                    .uvLock(true)
                     .build();
         });
 
@@ -83,6 +84,7 @@ public class ArsenalBlockStateProvider extends BlockStateProvider {
             return ConfiguredModel.builder()
                     .modelFile(models().getExistingFile(modLoc("block/" + modelName)))
                     .rotationY(yRot)
+                    .uvLock(true)
                     .build();
         });
 
@@ -105,6 +107,7 @@ public class ArsenalBlockStateProvider extends BlockStateProvider {
                     .modelForState()
                     .modelFile(models().getExistingFile(modLoc("block/copper_casing_drain")))
                     .rotationY(getYRotation(facing))
+                    .uvLock(true)
                     .addModel();
         }
 
@@ -123,6 +126,7 @@ public class ArsenalBlockStateProvider extends BlockStateProvider {
                     .modelForState()
                     .modelFile(models().getExistingFile(modLoc("block/iron_casing_drain")))
                     .rotationY(getYRotation(facing))
+                    .uvLock(true)
                     .addModel();
         }
 
@@ -141,6 +145,7 @@ public class ArsenalBlockStateProvider extends BlockStateProvider {
                     .modelForState()
                     .modelFile(models().getExistingFile(modLoc("block/bronze_casing_drain")))
                     .rotationY(getYRotation(facing))
+                    .uvLock(true)
                     .addModel();
         }
 
@@ -159,6 +164,7 @@ public class ArsenalBlockStateProvider extends BlockStateProvider {
                     .modelForState()
                     .modelFile(models().getExistingFile(modLoc("block/steel_casing_drain")))
                     .rotationY(getYRotation(facing))
+                    .uvLock(true)
                     .addModel();
         }
 
@@ -177,6 +183,7 @@ public class ArsenalBlockStateProvider extends BlockStateProvider {
                     .modelForState()
                     .modelFile(models().getExistingFile(modLoc("block/titanium_casing_drain")))
                     .rotationY(getYRotation(facing))
+                    .uvLock(true)
                     .addModel();
         }
 
