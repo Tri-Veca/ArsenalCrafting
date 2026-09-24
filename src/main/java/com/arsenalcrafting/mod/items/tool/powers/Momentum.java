@@ -31,13 +31,13 @@ public final class Momentum {
     }
 
     private static final int TIER_1 = 10;
-    private static final int TIER_2 = 30;
+    private static final int TIER_2 = 25;
     private static final int TIER_3 = 60;
 
     // Scaling Leeway (Ticks: 20 ticks = 1 second)
-    private static final int LEEWAY_TIER_0 = 25; // 1.25s (Building up to Tier 1)
-    private static final int LEEWAY_TIER_1 = 25; // 1.25s  (Building up to Tier 2)
-    private static final int LEEWAY_TIER_2 = 25; // 1.25s  (Building up to Tier 3+)
+    private static final int LEEWAY_TIER_0 = 30; // 1.5s (Building up to Tier 1)
+    private static final int LEEWAY_TIER_1 = 30; // 1.5s  (Building up to Tier 2)
+    private static final int LEEWAY_TIER_2 = 30; // 1.5s  (Building up to Tier 3+)
 
     // Weapon-specific constants
     public static final int WEAPON_MAX_STACKS = 5;

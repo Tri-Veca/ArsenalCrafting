@@ -7,7 +7,7 @@
     }
   ],
   "isOreRecipe": false,
-  "lavaCost": 500,
+  "lavaCost": 200,
   "resultAmountMb": 1000,
   "resultMaterial": "Coal"
 }

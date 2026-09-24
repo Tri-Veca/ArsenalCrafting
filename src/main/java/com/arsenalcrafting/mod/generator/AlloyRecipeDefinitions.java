@@ -30,69 +30,69 @@ public class AlloyRecipeDefinitions {
         );
 
          */
-        addRecipe("hydrocarbon_from_alloy_smelting", AlloyMaterial.COAL, 1000, 500,
+        addRecipe("hydrocarbon_from_alloy_smelting", AlloyMaterial.COAL, 1000, 200,
                 Items.COAL
 
         );
-        addRecipe("copper_from_alloy_smelting", AlloyMaterial.COPPER, 1000, 500,
+        addRecipe("copper_from_alloy_smelting", AlloyMaterial.COPPER, 1000, 200,
                 Items.COPPER_INGOT
 
         );
-        addRecipe("tin_from_alloy_smelting", AlloyMaterial.TIN, 1000, 500,
+        addRecipe("tin_from_alloy_smelting", AlloyMaterial.TIN, 1000, 200,
                 ItemStackHelper.getAlloyStack(AlloyMaterial.TIN).getItem()
 
         );
-        addRecipe("iron_from_alloy_smelting", AlloyMaterial.IRON, 1000, 500,
+        addRecipe("iron_from_alloy_smelting", AlloyMaterial.IRON, 1000, 200,
                 Items.IRON_INGOT
 
         );
-        addRecipe("diamond_from_alloy_smelting", AlloyMaterial.DIAMOND, 1000, 500,
+        addRecipe("diamond_from_alloy_smelting", AlloyMaterial.DIAMOND, 1000, 200,
                 Items.DIAMOND
 
         );
 
-        addRecipe("gold_from_alloy_smelting", AlloyMaterial.GOLD, 1000, 500,
+        addRecipe("gold_from_alloy_smelting", AlloyMaterial.GOLD, 1000, 200,
                 Items.GOLD_INGOT
 
         );
 
-        addRecipe("netherite_from_alloy_smelting", AlloyMaterial.NETHERITE, 1000, 500,
+        addRecipe("netherite_from_alloy_smelting", AlloyMaterial.NETHERITE, 1000, 200,
                 Items.NETHERITE_INGOT
 
         );
 
-        addRecipe("steel_from_alloy_smelting", AlloyMaterial.STEEL, 1000, 750,
+        addRecipe("steel_from_alloy_smelting", AlloyMaterial.STEEL, 1000, 200,
                 ItemStackHelper.getAlloyStack(AlloyMaterial.STEEL).getItem()
         );
-        addRecipe("titanium_from_alloy_smelting", AlloyMaterial.TITANIUM, 1000, 500,
+        addRecipe("titanium_from_alloy_smelting", AlloyMaterial.TITANIUM, 1000, 200,
                 ItemStackHelper.getAlloyStack(AlloyMaterial.TITANIUM).getItem()
         );
         //blocks
-        addRecipe("gold_block_from_alloy_smelting", AlloyMaterial.GOLD, 9000, 1000,
+        addRecipe("gold_block_from_alloy_smelting", AlloyMaterial.GOLD, 9000, 800,
                 Items.GOLD_BLOCK
         );
-        addRecipe("iron_block_from_alloy_smelting", AlloyMaterial.IRON, 9000, 1000,
+        addRecipe("iron_block_from_alloy_smelting", AlloyMaterial.IRON, 9000, 800,
                 Items.IRON_BLOCK
         );
 
-        addRecipe("copper_block_from_alloy_smelting", AlloyMaterial.COPPER, 9000, 1000,
+        addRecipe("copper_block_from_alloy_smelting", AlloyMaterial.COPPER, 9000, 800,
                 Items.COPPER_BLOCK
         );
-        addRecipe("diamond_block_from_alloy_smelting", AlloyMaterial.DIAMOND, 9000, 1000,
+        addRecipe("diamond_block_from_alloy_smelting", AlloyMaterial.DIAMOND, 9000, 800,
                 Items.DIAMOND_BLOCK
         );
-        addRecipe("netherite_block_from_alloy_smelting", AlloyMaterial.NETHERITE, 9000, 1000,
+        addRecipe("netherite_block_from_alloy_smelting", AlloyMaterial.NETHERITE, 9000, 800,
                 Items.NETHERITE_BLOCK
         );
 
 
-        addOreRecipe("copper_ore_smelting", AlloyMaterial.COPPER, 1000, 500,
+        addOreRecipe("copper_ore_smelting", AlloyMaterial.COPPER, 1000, 200,
                 Items.RAW_COPPER);
-        addOreRecipe("iron_ore_smelting", AlloyMaterial.IRON, 1000, 500,
+        addOreRecipe("iron_ore_smelting", AlloyMaterial.IRON, 1000, 200,
                 Items.RAW_IRON);
-        addOreRecipe("gold_ore_smelting", AlloyMaterial.GOLD, 1000, 500,
+        addOreRecipe("gold_ore_smelting", AlloyMaterial.GOLD, 1000, 200,
                 Items.RAW_GOLD);
-        addOreRecipe("tin_ore_smelting", AlloyMaterial.TIN, 1000, 500,
+        addOreRecipe("tin_ore_smelting", AlloyMaterial.TIN, 1000, 200,
                 ItemStackHelper.getRawStack(AlloyMaterial.TIN).getItem());
 
 
