@@ -4,9 +4,11 @@ import com.arsenalcrafting.mod.component.RepairKitData;
 import com.arsenalcrafting.mod.component.ToolAssemblyData;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.items.RepairKitItem;
+import com.arsenalcrafting.mod.items.RepairDebug;
 import com.arsenalcrafting.mod.items.tool.ArsenalTool;
 import com.arsenalcrafting.mod.items.tool.powers.CoreManager;
 import com.arsenalcrafting.mod.items.tool.powers.RepairReduction;
+import com.arsenalcrafting.mod.client.GuiDebug;
 import com.arsenalcrafting.mod.network.PacketHandler;
 import com.arsenalcrafting.mod.network.SyncRepairKitPreviewPacket;
 import com.arsenalcrafting.mod.registry.ModComponents;
@@ -60,9 +62,11 @@ public class RepairKitMenu extends AbstractContainerMenu {
         container.setItem(0, data.tool().orElse(ItemStack.EMPTY).copy());
         container.setItem(1, data.ingot().orElse(ItemStack.EMPTY).copy());
 
-        // Seed change detection so broadcastChanges() doesn't false-fire on tick 1
         lastIngot = container.getItem(1).copy();
         lastTool  = container.getItem(0).copy();
+        if (!player.level().isClientSide()) {
+            GuiDebug.slots("RepairKit", "init tool=" + lastTool.getCount() + " ingot=" + lastIngot.getCount());
+        }
 
         // Tool slot
         addSlot(new Slot(container, 0, 80, 53) {
@@ -98,16 +102,17 @@ public class RepairKitMenu extends AbstractContainerMenu {
 
         boolean ingotChanged = !ItemStack.isSameItemSameComponents(lastIngot, currentIngot)
                 || lastIngot.getCount() != currentIngot.getCount();
-        System.out.println("[SERVER] broadcastChanges ingot=" + currentIngot.getCount() + " last=" + lastIngot.getCount() + " changed=" + ingotChanged);
         boolean toolChanged  = !ItemStack.isSameItemSameComponents(lastTool,  currentTool);
 
         if (!ingotChanged && !toolChanged) return;
+
+        GuiDebug.slots("RepairKit", "changed tool=" + currentTool.getCount() + " ingot=" + currentIngot.getCount());
 
         lastIngot = currentIngot.copy();
         lastTool  = currentTool.copy();
 
         attemptRepair();
-        System.out.println("[SERVER] before recalc - kitStored=" + RepairKitItem.getStoredValue(kitStack) + " kitMat=" + RepairKitItem.getMaterial(kitStack));
+        RepairDebug.repair("Recalc", "before recalc - kitStored=" + RepairKitItem.getStoredValue(kitStack) + " kitMat=" + RepairKitItem.getMaterial(kitStack));
         recalcDisplay();
         syncToClient();
     }
@@ -153,9 +158,18 @@ public class RepairKitMenu extends AbstractContainerMenu {
         ItemStack tool  = container.getItem(0);
         ItemStack ingot = container.getItem(1);
 
-        if (tool.isEmpty()) return;
-        if (!(tool.getItem() instanceof ArsenalTool arsenalTool)) return;
-        if (tool.getDamageValue() <= 0) return;
+        if (tool.isEmpty()) {
+            RepairDebug.repair("Attempt", "No tool in slot 0, skipping repair");
+            return;
+        }
+        if (!(tool.getItem() instanceof ArsenalTool arsenalTool)) {
+            RepairDebug.repair("Attempt", "Item in slot 0 is not an ArsenalTool: " + tool.getItem());
+            return;
+        }
+        if (tool.getDamageValue() <= 0) {
+            RepairDebug.repair("Attempt", "Tool is not damaged (damage=" + tool.getDamageValue() + "), skipping repair");
+            return;
+        }
 
         // No ingot — repair with stored value if material matches tool
         if (ingot.isEmpty()) {
@@ -233,7 +247,10 @@ public class RepairKitMenu extends AbstractContainerMenu {
         float totalRepairPct = storedValue * repairPctPerVal;
         int   maxPossible    = (int) (maxDurability * totalRepairPct / 100.0f);
         int   actualRepair   = Math.min(maxPossible, currentDamage);
-        if (actualRepair <= 0) return;
+        if (actualRepair <= 0) {
+            RepairDebug.repair("StoredValue", "No repair needed or possible (storedValue=" + storedValue + ", actualRepair=" + actualRepair + ")");
+            return;
+        }
 
         tool.setDamageValue(currentDamage - actualRepair);
         com.arsenalcrafting.mod.items.tool.BrokenToolHandler.markRepaired(tool);
@@ -270,7 +287,7 @@ public class RepairKitMenu extends AbstractContainerMenu {
     private boolean packetReceived = false;
 
     public void setClientPreview(int value, String material) {
-        System.out.println("[CLIENT] setClientPreview value=" + value + " material=" + material);
+        GuiDebug.sync("RepairKit", "setClientPreview value=" + value + " material=" + material);
         this.clientValue    = value;
         this.clientMaterial = material;
         this.packetReceived = true;

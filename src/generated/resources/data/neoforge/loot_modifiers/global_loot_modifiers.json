@@ -1,0 +1,25 @@
+{
+  "entries": [
+    "arsenalcrafting:chromium_from_deepslate_iron_ore",
+    "arsenalcrafting:chromium_from_deepslate_copper_ore",
+    "arsenalcrafting:chromium_from_copper_ore",
+    "arsenalcrafting:chromium_from_emerald_ore",
+    "arsenalcrafting:chromium_from_deepslate_diamond_ore",
+    "arsenalcrafting:chromium_from_deepslate_coal_ore",
+    "arsenalcrafting:chromium_from_deepslate_gold_ore",
+    "arsenalcrafting:chromium_from_deepslate_redstone_ore",
+    "arsenalcrafting:chromium_from_ancient_debris",
+    "arsenalcrafting:chromium_from_gold_ore",
+    "arsenalcrafting:chromium_from_nether_gold_ore",
+    "arsenalcrafting:chromium_from_coal_ore",
+    "arsenalcrafting:chromium_from_nether_quartz_ore",
+    "arsenalcrafting:chromium_from_iron_ore",
+    "arsenalcrafting:chromium_from_lapis_ore",
+    "arsenalcrafting:chromium_from_deepslate_lapis_ore",
+    "arsenalcrafting:chromium_from_deepslate_emerald_ore",
+    "arsenalcrafting:chromium_from_redstone_ore",
+    "arsenalcrafting:gravel_raw_tin",
+    "arsenalcrafting:chromium_from_diamond_ore"
+  ],
+  "replace": false
+}

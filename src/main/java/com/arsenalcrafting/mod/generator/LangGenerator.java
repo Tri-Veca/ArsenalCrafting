@@ -55,6 +55,11 @@ public class LangGenerator implements DataProvider {
         entries.put("block.arsenalcrafting.bronze_ingot_mold", "Bronze Ingot Mold");
         entries.put("block.arsenalcrafting.blueprint_casting_table", "Blueprint Casting Table");
         entries.put("block.arsenalcrafting.valve_faucet", "Valve Faucet");
+        entries.put("block.arsenalcrafting.rutile_budding", "Rutile Budding Block");
+        entries.put("block.arsenalcrafting.small_rutile_bud", "Small Rutile Bud");
+        entries.put("block.arsenalcrafting.medium_rutile_bud", "Medium Rutile Bud");
+        entries.put("block.arsenalcrafting.large_rutile_bud", "Large Rutile Bud");
+        entries.put("block.arsenalcrafting.rutile_cluster", "Rutile Cluster");
 
 
         // 3. Basic Items & Parts (Auto-generated Alloys)
@@ -104,6 +109,8 @@ public class LangGenerator implements DataProvider {
         entries.put("item.arsenalcrafting.arsenal_broadsword", "Arsenal Broadsword");
         entries.put("item.arsenalcrafting.arsenal_dagger", "Arsenal Dagger");
         entries.put("item.arsenalcrafting.repair_kit", "Tool Repair Kit");
+        entries.put("item.arsenalcrafting.chromium", "Chromium");
+        entries.put("item.arsenalcrafting.rutile_shard", "Rutile Shard");
         entries.put("item.arsenalcrafting.blueprint", "Blueprint");
         entries.put("item.arsenalcrafting.basic_augment", "Basic Augment");
         entries.put("item.arsenalcrafting.basic_material", "Basic Material");

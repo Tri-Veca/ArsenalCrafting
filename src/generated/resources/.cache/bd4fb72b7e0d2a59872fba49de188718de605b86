@@ -1,4 +1,4 @@
-// 1.21.1	2026-09-24T00:30:49.9594468	Alloy Smelting Recipes
+// 1.21.1	2026-09-27T00:03:47.9960414	Alloy Smelting Recipes
 e3b5806aba9a43a9694a3cb96efd84155799dc6b data/arsenalcrafting/recipe/alloy_smelting/copper_block_from_alloy_smelting.json
 4e0101a662bf4126b463d74c91344aecf3f4431f data/arsenalcrafting/recipe/alloy_smelting/copper_from_alloy_smelting.json
 46464d80e97f31d7a5de267c3c53e19138080901 data/arsenalcrafting/recipe/alloy_smelting/copper_ore_smelting.json
@@ -13,6 +13,7 @@ f0c9198fd37dbc7e41e03141304d66b429156b78 data/arsenalcrafting/recipe/alloy_smelt
 703439d7aefa75a81b6a4996bcd2a31f0a4711bb data/arsenalcrafting/recipe/alloy_smelting/iron_ore_smelting.json
 803790876ec5feb6c667730c6a82295547c66ee0 data/arsenalcrafting/recipe/alloy_smelting/netherite_block_from_alloy_smelting.json
 4f0ff061ccd67fadeceba6776d76462834ad98cf data/arsenalcrafting/recipe/alloy_smelting/netherite_from_alloy_smelting.json
+b90aeda521ab78c0429ef35b0fb0b8d0615573b4 data/arsenalcrafting/recipe/alloy_smelting/rutile_from_alloy_smelting.json
 561cfdf260b6f1e1c50d8274bcf6ffabe6847b96 data/arsenalcrafting/recipe/alloy_smelting/steel_from_alloy_smelting.json
 aa5b1265593fad78ef15f653384af4eeb339a2ea data/arsenalcrafting/recipe/alloy_smelting/tin_from_alloy_smelting.json
 4066b61eaf0dd7614e957a5f02285322fef9eb90 data/arsenalcrafting/recipe/alloy_smelting/tin_ore_smelting.json

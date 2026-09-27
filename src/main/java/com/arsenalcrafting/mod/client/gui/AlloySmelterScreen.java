@@ -1,6 +1,7 @@
 package com.arsenalcrafting.mod.client.gui;
 
 import com.arsenalcrafting.mod.ArsenalCrafting;
+import com.arsenalcrafting.mod.client.GuiDebug;
 import com.arsenalcrafting.mod.client.menu.AlloySmelterMenu;
 import com.arsenalcrafting.mod.core.ItemStackHelper;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
@@ -108,6 +109,7 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
 
     private int currentScrollRow = 0;
     private boolean isScrolling = false;
+    private int lastLoggedScrollRow = -1;
 
     // ── CONSTRUCTOR ───────────────────────────────────────────────────────────
 
@@ -162,9 +164,12 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
         if (!shouldShowScrollbar()) return false;
         int delta = (int) -Math.signum(scrollY);
         int maxRows = getMaxScrollRows();
-        currentScrollRow = Mth.clamp(currentScrollRow + delta, 0, maxRows);
-        menu.blockEntity.setScrolledRowClientOnly(currentScrollRow);
-        //System.out.println("[Scroll] row=" + currentScrollRow + "/" + maxRows + " slotCount=" + menu.blockEntity.getCurrentSlotCount());
+        int newRow = Mth.clamp(currentScrollRow + delta, 0, maxRows);
+        if (newRow != currentScrollRow) {
+            currentScrollRow = newRow;
+            menu.blockEntity.setScrolledRowClientOnly(currentScrollRow);
+            GuiDebug.slots("AlloySmelter", "scroll row=" + currentScrollRow + "/" + maxRows);
+        }
         return true;
     }
 
@@ -245,7 +250,10 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
         int newRow = Math.round(percent * maxRows);
         currentScrollRow = newRow;
         menu.blockEntity.setScrolledRowClientOnly(currentScrollRow);
-        System.out.println("[Scroll] drag row=" + currentScrollRow + "/" + maxRows);
+        if (currentScrollRow != lastLoggedScrollRow) {
+            GuiDebug.slots("AlloySmelter", "scroll row=" + currentScrollRow + "/" + maxRows);
+            lastLoggedScrollRow = currentScrollRow;
+        }
     }
     private boolean handleControlsClick(int mouseX, int mouseY, int button, int x, int y) {
         int popoutX = x + imageWidth + 2;

@@ -8,6 +8,7 @@ import com.arsenalcrafting.mod.power.PowerTier;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -232,6 +233,49 @@ public class ModBlocks {
             registerBlock("core_mold", MoldBlock::new);
 
      */
+
+    //Rutile
+
+    private static BlockBehaviour.Properties rutileBudProps() {
+        return BlockBehaviour.Properties.of()
+                .mapColor(MapColor.COLOR_BROWN)
+                .forceSolidOn()
+                .noOcclusion()
+                .strength(1.5f)
+                .pushReaction(PushReaction.DESTROY);
+    }
+
+    public static final DeferredHolder<Block, RutileBuddingBlock> RUTILE_BUDDING =
+            registerBlock("rutile_budding",
+                    () -> new RutileBuddingBlock(BlockBehaviour.Properties.of()
+                            .mapColor(MapColor.COLOR_BROWN) // placeholder
+                            .randomTicks()
+                            .strength(1.5f)
+                            .sound(SoundType.DEEPSLATE) // placeholder — no custom rutile sound yet
+                            .requiresCorrectToolForDrops()
+                            .pushReaction(PushReaction.DESTROY)));
+
+    public static final DeferredHolder<Block, RutileClusterBlock> RUTILE_CLUSTER =
+            registerBlock("rutile_cluster",
+                    () -> new RutileClusterBlock(rutileBudProps()
+                            .sound(SoundType.AMETHYST_CLUSTER))); // placeholder
+
+    public static final DeferredHolder<Block, LargerRutileBudBlock> LARGE_RUTILE_BUD =
+            registerBlock("large_rutile_bud",
+                    () -> new LargerRutileBudBlock(rutileBudProps()
+                            .sound(SoundType.MEDIUM_AMETHYST_BUD)));
+
+    public static final DeferredHolder<Block, MediumRutileBudBlock> MEDIUM_RUTILE_BUD =
+            registerBlock("medium_rutile_bud",
+                    () -> new MediumRutileBudBlock(rutileBudProps()
+                            .sound(SoundType.LARGE_AMETHYST_BUD)));
+
+    public static final DeferredHolder<Block, SmallRutileBudBlock> SMALL_RUTILE_BUD =
+            registerBlock("small_rutile_bud",
+                    () -> new SmallRutileBudBlock(rutileBudProps()
+                            .sound(SoundType.SMALL_AMETHYST_BUD)));
+
+
 
 
     public static final DeferredHolder<Block, MoldBlock> INGOT_MOLD =

@@ -1,0 +1,10 @@
+{
+  "type": "arsenalcrafting:chromium_ore_drop",
+  "chromium_chance": 0.03,
+  "conditions": [
+    {
+      "condition": "neoforge:loot_table_id",
+      "loot_table_id": "minecraft:blocks/coal_ore"
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 package com.arsenalcrafting.mod.client.render;
 
+import com.arsenalcrafting.mod.blocks.CastingStationBlock;
 import com.arsenalcrafting.mod.blocks.entity.CastingStationBlockEntity;
 import com.arsenalcrafting.mod.component.ToolComponentType;
 import com.arsenalcrafting.mod.core.ItemStackHelper;
@@ -16,6 +17,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -28,18 +30,12 @@ import net.minecraft.world.level.block.Block;
 
 public class CastingStationRenderer implements BlockEntityRenderer<CastingStationBlockEntity> {
 
-    // Basin interior bounds
-    private static final float BASIN_MIN_X  = 3f / 16f;
-    private static final float BASIN_MAX_X  = 13f / 16f;
-    private static final float BASIN_MIN_Z  = 3f / 16f;
-    private static final float BASIN_MAX_Z  = 13f / 16f;
     private static final float BASIN_FLOOR_Y = 15f / 16f;
 
-    // Fluid bounds (tighter — mold area only)
-    private static final float FLUID_MIN_X  = 3f / 16f;
-    private static final float FLUID_MAX_X  = 13f / 16f;
-    private static final float FLUID_MIN_Z  = 3f / 16f;
-    private static final float FLUID_MAX_Z  = 13f / 16f;
+    private static final float FLUID_MIN_X = 3f / 16f;
+    private static final float FLUID_MAX_X = 13f / 16f;
+    private static final float FLUID_MIN_Z = 3f / 16f;
+    private static final float FLUID_MAX_Z = 13f / 16f;
 
     private static final RandomSource RANDOM = RandomSource.create();
 
@@ -50,82 +46,87 @@ public class CastingStationRenderer implements BlockEntityRenderer<CastingStatio
                        PoseStack poseStack, MultiBufferSource bufferSource,
                        int packedLight, int packedOverlay) {
 
-        // ── MOLD — always visible when present and not yet collected ──────────
-        if (be.hasMold() && be.getMoldComponentId() != null)  {
+        if (be.hasMold() && be.getMoldComponentId() != null) {
             renderMold(be, poseStack, bufferSource, packedLight, packedOverlay);
         }
 
-        // ── BUCKET — visible when placed, no fluid yet ────────────────────────
         if (be.hasBucket() && be.getFluidAmount() == 0 && !be.isReady()) {
-            renderBucket(poseStack, bufferSource, packedLight, packedOverlay);
+            renderBucket(be, poseStack, bufferSource, packedLight, packedOverlay);
         }
 
-        // ── FLUID QUAD — only while pouring (fluid present but NOT yet setting)
         if (be.getFluidAmount() > 0 && !be.isSetting() && !be.isReady()
                 && be.getFluidMaterialName() != null) {
             renderFluid(be, poseStack, bufferSource, packedLight);
         }
 
-        // ── DARKENED ITEM — while setting, brightens as progress increases ────
         if (be.isSetting() && be.getFluidMaterialName() != null) {
             float progress = be.getSettingTime() > 0
                     ? (float) be.getSettingProgress() / be.getSettingTime()
                     : 0f;
-            // Brightness goes from 0.1 (very dark) to 0.85 (almost full)
             float brightness = 0.1f + (progress * 0.75f);
             renderFlatItem(be, poseStack, bufferSource, packedLight, packedOverlay, brightness);
-
-            // Spawn particles on client
             spawnSettingParticles(be, partialTick);
         }
 
-        // ── FULL BRIGHTNESS ITEM — when ready to collect ──────────────────────
         if (be.isReady() && be.getFluidMaterialName() != null) {
             renderFlatItem(be, poseStack, bufferSource, packedLight, packedOverlay, 0.8f);
         }
     }
 
+    private float getYRot(Direction facing) {
+        return switch (facing) {
+            case SOUTH -> 0f;
+            case EAST -> 90f;
+            case NORTH -> 180f;
+            case WEST -> 270f;
+            case UP, DOWN -> 0f;
+        };
+    }
+
     // ── MOLD ──────────────────────────────────────────────────────────────────
 
-    private void renderMold(CastingStationBlockEntity be, PoseStack poseStack,
-                            MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+    private void renderMold(CastingStationBlockEntity be, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         String moldId = be.getMoldComponentId();
         ToolComponentType type = ToolComponentType.fromId(moldId);
-
         DeferredHolder<Block, ?> moldHolder = null;
+
         if (moldId != null && moldId.equals("ingot")) {
             moldHolder = be.isBronzeMold() ? ModBlocks.BRONZE_INGOT_MOLD : ModBlocks.INGOT_MOLD;
         } else if (type != null) {
-            moldHolder = be.isBronzeMold()
-                    ? ModBlocks.BRONZE_MOLD_BLOCKS.get(type)
-                    : ModBlocks.MOLD_BLOCKS.get(type);
+            moldHolder = be.isBronzeMold() ? ModBlocks.BRONZE_MOLD_BLOCKS.get(type) : ModBlocks.MOLD_BLOCKS.get(type);
         }
+
         if (moldHolder == null) return;
 
+        Direction facing = be.getBlockState().getValue(CastingStationBlock.FACING);
+
         poseStack.pushPose();
+        poseStack.translate(0.5f, 0f, 0.5f);
+        poseStack.mulPose(Axis.YP.rotationDegrees(getYRot(facing)));
+        poseStack.translate(-0.5f, 0f, -0.5f);
         poseStack.translate(0.5f, BASIN_FLOOR_Y + 0.01f, 0.5f);
-
-// Lock to the east/south orientation you prefer
-        poseStack.mulPose(Axis.YP.rotationDegrees(0f));   // try 0 first; if wrong try 90, 180, or 270
-
         poseStack.mulPose(Axis.XP.rotationDegrees(90f));
         poseStack.scale(0.85f, 0.85f, 0.85f);
 
-// original item render stays unchanged
         Minecraft.getInstance().getItemRenderer().renderStatic(
-                new ItemStack(moldHolder.get().asItem()),
-                ItemDisplayContext.FIXED,
-                packedLight, packedOverlay,
-                poseStack, bufferSource, be.getLevel(), 0);
+                new ItemStack(moldHolder.get().asItem()), ItemDisplayContext.FIXED,
+                packedLight, packedOverlay, poseStack, bufferSource, be.getLevel(), 0);
 
         poseStack.popPose();
     }
 
     // ── BUCKET ────────────────────────────────────────────────────────────────
 
-    private void renderBucket(PoseStack poseStack, MultiBufferSource bufferSource,
-                              int packedLight, int packedOverlay) {
+    private void renderBucket(CastingStationBlockEntity be, PoseStack poseStack,
+                              MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        Direction facing = be.getBlockState().getValue(CastingStationBlock.FACING);
+
         poseStack.pushPose();
+
+        poseStack.translate(0.5f, 0f, 0.5f);
+        poseStack.mulPose(Axis.YP.rotationDegrees(getYRot(facing)));
+        poseStack.translate(-0.5f, 0f, -0.5f);
+
         poseStack.translate(0.5f, BASIN_FLOOR_Y + 0.01f, 0.5f);
         poseStack.mulPose(Axis.XP.rotationDegrees(90f));
         poseStack.scale(0.7f, 0.7f, 0.7f);
@@ -139,7 +140,7 @@ public class CastingStationRenderer implements BlockEntityRenderer<CastingStatio
         poseStack.popPose();
     }
 
-    // ── FLUID QUAD (while pouring only) ──────────────────────────────────────
+    // ── FLUID ─────────────────────────────────────────────────────────────────
 
     private void renderFluid(CastingStationBlockEntity be, PoseStack poseStack,
                              MultiBufferSource bufferSource, int packedLight) {
@@ -182,7 +183,7 @@ public class CastingStationRenderer implements BlockEntityRenderer<CastingStatio
                 .setColor(r, g, b, 0.9f).setUv(u1, v0).setLight(packedLight).setNormal(0, 1, 0);
     }
 
-    // ── FLAT ITEM (setting + ready) ───────────────────────────────────────────
+    // ── FLAT ITEM ─────────────────────────────────────────────────────────────
 
     private void renderFlatItem(CastingStationBlockEntity be, PoseStack poseStack,
                                 MultiBufferSource bufferSource, int packedLight,
@@ -194,12 +195,17 @@ public class CastingStationRenderer implements BlockEntityRenderer<CastingStatio
         if (output.isEmpty()) return;
 
         int adjustedLight = scalePackedLight(brightness);
+        Direction facing = be.getBlockState().getValue(CastingStationBlock.FACING);
 
         poseStack.pushPose();
 
+        // Rotate so item faces the faucet
+        poseStack.translate(0.5f, 0f, 0.5f);
+        poseStack.mulPose(Axis.YP.rotationDegrees(getYRot(facing)));
+        poseStack.translate(-0.5f, 0f, -0.5f);
+
         String moldId = be.getMoldComponentId();
 
-        // Default position (center of basin)
         float translateX = 0.5f;
         float translateY = BASIN_FLOOR_Y + 0.02f;
         float translateZ = 0.5f;
@@ -207,107 +213,23 @@ public class CastingStationRenderer implements BlockEntityRenderer<CastingStatio
 
         if (moldId != null) {
             switch (moldId) {
-                case "ingot":
-                    translateX = 0.5f;
-                    translateY = BASIN_FLOOR_Y + 0.02f;
-                    translateZ = 0.5f;
-                    scale = 0.8f;
-                    break;
-
-                case "core":
-                    translateX = 0.5f;
-                    translateY = BASIN_FLOOR_Y + 0.02f;
-                    translateZ = 0.5f;
-                    scale = 0.9f;
-                    break;
-
-                case "pickaxe_head":
-                    translateX = 0.65f;
-                    translateY = BASIN_FLOOR_Y + 0.02f;
-                    translateZ = 0.42f;
-                    scale = 1.0f;
-                    break;
-
-                case "axe_head":
-                    translateX = 0.65f;
-                    translateY = BASIN_FLOOR_Y + 0.02f;
-                    translateZ = 0.35f;
-                    scale = 1.0f;
-                    break;
-
-                case "shovel_head":
-                    translateX = 0.75f;
-                    translateY = BASIN_FLOOR_Y + 0.02f;
-                    translateZ = 0.3f;
-                    scale = 1.0f;
-                    break;
-
-                case "katana_blade_head":
-                    translateX = 0.7f;
-                    translateY = BASIN_FLOOR_Y + 0.02f;
-                    translateZ = 0.35f;
-                    scale = 1f;
-                    break;
-
-                case "broadsword_blade_head":
-                    translateX = 0.7f;
-                    translateY = BASIN_FLOOR_Y + 0.02f;
-                    translateZ = 0.35f;
-                    scale = 1f;
-                    break;
-
-                case "dagger_blade_head":
-                    translateX = 0.65f;
-                    translateY = BASIN_FLOOR_Y + 0.02f;
-                    translateZ = 0.35f;
-                    scale = 1f;
-                    break;
-
-                case "tool_rod":
-                    translateX = 0.45f;
-                    translateY = BASIN_FLOOR_Y + 0.02f;
-                    translateZ = 0.6f;
-                    scale = 1f;
-                    break;
-
-                case "shovel_tool_rod":
-                    translateX = 0.4f;
-                    translateY = BASIN_FLOOR_Y + 0.02f;
-                    translateZ = 0.65f;
-                    scale = 1f;
-                    break;
-
-                case "katana_hilt_rod":
-                    translateX = 0.25f;
-                    translateY = BASIN_FLOOR_Y + 0.02f;
-                    translateZ = 0.75f;
-                    scale = 1f;
-                    break;
-
-                case "broadsword_hilt_rod":
-                    translateX = 0.35f;
-                    translateY = BASIN_FLOOR_Y + 0.02f;
-                    translateZ = 0.69f;
-                    scale = 1f;
-                    break;
-
-                case "dagger_hilt_rod":
-                    translateX = 0.3f;
-                    translateY = BASIN_FLOOR_Y + 0.02f;
-                    translateZ = 0.69f;
-                    scale = 1f;
-                    break;
-
-                default:
-                    translateX = 0.5f;
-                    translateY = BASIN_FLOOR_Y + 0.02f;
-                    translateZ = 0.5f;
-                    scale = 0.8f;
-                    break;
+                case "ingot" -> { translateX = 0.5f; translateZ = 0.5f; scale = 0.8f; }
+                case "core" -> { translateX = 0.5f; translateZ = 0.5f; scale = 0.9f; }
+                case "pickaxe_head" -> { translateX = 0.65f; translateZ = 0.42f; scale = 1.0f; }
+                case "axe_head" -> { translateX = 0.65f; translateZ = 0.35f; scale = 1.0f; }
+                case "shovel_head" -> { translateX = 0.75f; translateZ = 0.3f; scale = 1.0f; }
+                case "katana_blade_head" -> { translateX = 0.7f; translateZ = 0.35f; scale = 1f; }
+                case "broadsword_blade_head" -> { translateX = 0.7f; translateZ = 0.35f; scale = 1f; }
+                case "dagger_blade_head" -> { translateX = 0.65f; translateZ = 0.35f; scale = 1f; }
+                case "tool_rod" -> { translateX = 0.45f; translateZ = 0.6f; scale = 1f; }
+                case "shovel_tool_rod" -> { translateX = 0.4f; translateZ = 0.65f; scale = 1f; }
+                case "katana_hilt_rod" -> { translateX = 0.25f; translateZ = 0.75f; scale = 1f; }
+                case "broadsword_hilt_rod" -> { translateX = 0.35f; translateZ = 0.69f; scale = 1f; }
+                case "dagger_hilt_rod" -> { translateX = 0.3f; translateZ = 0.69f; scale = 1f; }
+                default -> { translateX = 0.5f; translateZ = 0.5f; scale = 0.8f; }
             }
         }
 
-        // Apply translations
         poseStack.translate(translateX, translateY, translateZ);
         poseStack.mulPose(Axis.XP.rotationDegrees(90f));
         poseStack.scale(scale, scale, scale);
@@ -318,40 +240,27 @@ public class CastingStationRenderer implements BlockEntityRenderer<CastingStatio
 
         poseStack.popPose();
     }
-    /**
-     * Scale packed light value by brightness factor.
-     * Packed light format: sky light in bits 20-16, block light in bits 4-0 (shifted by 4).
-     */
+
     private int scalePackedLight(float brightness) {
         int lightLevel = Math.max(0, Math.min(15, (int)(brightness * 15)));
         return LightTexture.pack(lightLevel, lightLevel);
     }
 
-    // ── PARTICLES (during setting only) ──────────────────────────────────────
-
     private void spawnSettingParticles(CastingStationBlockEntity be, float partialTick) {
         if (be.getLevel() == null || !be.getLevel().isClientSide) return;
-
-        // Reduced from 0.15f to 0.05f (about 1/3 as many particles)
         if (RANDOM.nextFloat() > 0.05f) return;
 
-        // Only spawn flame particles occasionally, not with every smoke
-        boolean spawnFlame = RANDOM.nextFloat() > 0.8f; // Only 20% of smoke particles get flame
+        boolean spawnFlame = RANDOM.nextFloat() > 0.8f;
 
         double x = be.getBlockPos().getX() + 0.25 + RANDOM.nextDouble() * 0.5;
         double y = be.getBlockPos().getY() + BASIN_FLOOR_Y + 0.05;
         double z = be.getBlockPos().getZ() + 0.25 + RANDOM.nextDouble() * 0.5;
 
-        // Smoke particles (always)
         be.getLevel().addParticle(ParticleTypes.SMOKE, x, y, z, 0, 0.01, 0);
-
-        // Occasional flame particle (reduced)
         if (spawnFlame) {
             be.getLevel().addParticle(ParticleTypes.FLAME, x, y, z, 0, 0.005, 0);
         }
     }
-
-    // ── OUTPUT ITEM HELPER ────────────────────────────────────────────────────
 
     private ItemStack getOutputItem(CastingStationBlockEntity be, AlloyMaterial mat) {
         if (be.getMode() == CastingStationBlockEntity.CastMode.BUCKET) {
@@ -363,16 +272,15 @@ public class CastingStationRenderer implements BlockEntityRenderer<CastingStatio
         if (moldId == null) return ItemStack.EMPTY;
 
         if (moldId.equals("ingot")) {
-            // Return vanilla ingot for vanilla materials, modded ingot for modded materials
-            switch (mat) {
-                case COPPER: return new ItemStack(Items.COPPER_INGOT);
-                case IRON: return new ItemStack(Items.IRON_INGOT);
-                case GOLD: return new ItemStack(Items.GOLD_INGOT);
-                case DIAMOND: return new ItemStack(Items.DIAMOND);
-                case NETHERITE: return new ItemStack(Items.NETHERITE_INGOT);
-                case COAL: return new ItemStack(Items.COAL);
-                default: return ItemStackHelper.getAlloyStack(mat);
-            }
+            return switch (mat) {
+                case COPPER -> new ItemStack(Items.COPPER_INGOT);
+                case IRON -> new ItemStack(Items.IRON_INGOT);
+                case GOLD -> new ItemStack(Items.GOLD_INGOT);
+                case DIAMOND -> new ItemStack(Items.DIAMOND);
+                case NETHERITE -> new ItemStack(Items.NETHERITE_INGOT);
+                case COAL -> new ItemStack(Items.COAL);
+                default -> ItemStackHelper.getAlloyStack(mat);
+            };
         }
 
         ToolComponentType type = ToolComponentType.fromId(moldId);

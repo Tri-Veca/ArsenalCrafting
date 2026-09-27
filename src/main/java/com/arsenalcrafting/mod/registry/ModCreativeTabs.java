@@ -61,6 +61,8 @@ public class ModCreativeTabs {
                         output.accept(ModItems.BLUEPRINT.get());
                         output.accept(ModItems.BASIC_AUGMENT.get());
                         output.accept(ModItems.BASIC_MATERIAL.get());
+                        output.accept(ModItems.RUTILE_SHARD.get());
+                        output.accept(ModItems.CHROMIUM.get());
 
 
                         // ========== CASTING PACKAGES (Pre-filled) ==========

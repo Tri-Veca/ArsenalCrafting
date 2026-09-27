@@ -344,6 +344,7 @@ public enum AlloyMaterial {
         if (item == Items.RAW_COPPER) return COPPER;
         if (item == Items.RAW_IRON)   return IRON;
         if (item == Items.RAW_GOLD)   return GOLD;
+        if (item == ModItems.RUTILE_SHARD.get()) return TITANIUM;
         if (item == ModItems.RAW_ITEMS.get(AlloyMaterial.TIN).get()) return TIN;
 
 

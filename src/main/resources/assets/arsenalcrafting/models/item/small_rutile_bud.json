@@ -1,0 +1,6 @@
+{
+  "parent": "arsenalcrafting:item/rutile_bud",
+  "textures": {
+    "layer0": "arsenalcrafting:block/small_rutile_bud"
+  }
+}

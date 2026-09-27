@@ -62,11 +62,13 @@ public class AlloySmelterMenu extends AbstractContainerMenu {
 
 
 
-        for (int i = 0; i < slots.size(); i++) {
-            Slot slot = slots.get(i);
-            if (slot instanceof SlotItemHandler) {
-                GuiDebug.slots("AlloySmelter",
-                        "Slot " + i + " is SlotItemHandler with index " + slot.getSlotIndex());
+        if (!level.isClientSide()) {
+            for (int i = 0; i < slots.size(); i++) {
+                Slot slot = slots.get(i);
+                if (slot instanceof SlotItemHandler) {
+                    GuiDebug.slots("AlloySmelter",
+                            "Slot " + i + " is SlotItemHandler with index " + slot.getSlotIndex());
+                }
             }
         }
 

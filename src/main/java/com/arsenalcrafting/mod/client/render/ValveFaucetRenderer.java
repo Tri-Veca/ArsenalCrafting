@@ -108,9 +108,9 @@ public class ValveFaucetRenderer implements BlockEntityRenderer<ValveFaucetBlock
         if (!(state.getBlock() instanceof com.arsenalcrafting.mod.blocks.ValveFaucetBlock)) return 0f;
         var facing = state.getValue(com.arsenalcrafting.mod.blocks.ValveFaucetBlock.FACING);
         float angle = switch (facing) {
-            case NORTH -> 0f;
-            case EAST  -> 90f;   // or keep -90 if you prefer; test both later
-            case SOUTH -> 0f;    // ← the only value that differs from ±180
+            case NORTH -> 180f;
+            case EAST  -> 90f;
+            case SOUTH -> 0f;
             case WEST  -> -90f;
             default    -> 0f;
         };

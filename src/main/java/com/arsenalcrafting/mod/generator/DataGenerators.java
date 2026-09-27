@@ -38,7 +38,8 @@ public class DataGenerators {
         generator.addProvider(event.includeServer(), new AlloyRecipeProvider(packOutput, lookupProvider, existingFileHelper));
 
 
-
+        generator.addProvider(event.includeServer(),
+                new ArsenalLootModifierProvider(packOutput, lookupProvider));
 
         // You can add more providers here:
         // generator.addProvider(event.includeServer(), new ArsenalRecipeProvider(packOutput, lookupProvider));

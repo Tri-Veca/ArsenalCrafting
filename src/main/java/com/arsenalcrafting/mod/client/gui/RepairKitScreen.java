@@ -1,6 +1,8 @@
 package com.arsenalcrafting.mod.client.gui;
 
 import com.arsenalcrafting.mod.ArsenalCrafting;
+
+import com.arsenalcrafting.mod.client.GuiDebug;
 import com.arsenalcrafting.mod.client.menu.RepairKitMenu;
 import com.arsenalcrafting.mod.component.ToolAssemblyData;
 import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
@@ -41,6 +43,13 @@ public class RepairKitScreen extends AbstractContainerScreen<RepairKitMenu> {
         super(menu, inv, title);
         this.imageWidth  = 176;
         this.imageHeight = 220;
+        GuiDebug.open("RepairKit", "Screen opened");
+    }
+
+    @Override
+    public void onClose() {
+        GuiDebug.open("RepairKit", "Screen closed");
+        super.onClose();
     }
 
     // ── BACKGROUND ────────────────────────────────────────────────────────────

@@ -6,6 +6,7 @@ import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.core.alloy.PackageType;
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
 import com.arsenalcrafting.mod.items.CastingPackageItem;
+import com.arsenalcrafting.mod.items.ChromiumItem;
 import com.arsenalcrafting.mod.items.RepairKitItem;
 import com.arsenalcrafting.mod.items.augments.UniversalAugmentItem;
 import com.arsenalcrafting.mod.items.gadgets.ArsenalDrillItem;
@@ -56,6 +57,12 @@ public class ModItems {
 
     public static final DeferredHolder<Item, Item> BASIC_MATERIAL =
             ITEMS.register("basic_material", () -> new Item(new Item.Properties()));
+
+    public static final DeferredHolder<Item, ChromiumItem> CHROMIUM = ITEMS.register("chromium",
+            () -> new ChromiumItem(new Item.Properties()));
+
+    public static final DeferredHolder<Item, Item> RUTILE_SHARD =
+            ITEMS.register("rutile_shard", () -> new Item(new Item.Properties()));
 
 
     // --- Tools & Weapons (Base items use the lightest alloy by default) ---

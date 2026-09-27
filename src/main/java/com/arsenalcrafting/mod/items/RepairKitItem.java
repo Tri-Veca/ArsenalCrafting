@@ -92,6 +92,7 @@ public class RepairKitItem extends Item {
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
+        ItemDebug.use("RepairKit", "use() called by " + player.getName().getString() + " hand=" + hand);
         if (!level.isClientSide) {
             player.openMenu(new SimpleMenuProvider(
                     (id, inv, p) -> new com.arsenalcrafting.mod.client.menu.RepairKitMenu(id, inv, stack),

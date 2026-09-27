@@ -19,8 +19,8 @@ public final class ArsenalDebug {
 
 
     // ── GUI / MENUS ───────────────────────────────────────────────────────
-    public static boolean GUI_OPEN   = false;
-    public static boolean GUI_SLOTS  = false;
+    public static boolean GUI_OPEN   = true;
+    public static boolean GUI_SLOTS  = true;
     public static boolean GUI_PACKETS = true;
     public static boolean GUI_SYNC   = false;
 
@@ -42,6 +42,21 @@ public final class ArsenalDebug {
     public static boolean POWER_GENERATION = true;
     public static boolean POWER_NETWORK = true;
     public static boolean POWER_STORAGE = true;
+
+    // ── ITEMS ─────────────────────────────────────────────────────────────
+    public static boolean ITEM_USE = true;
+    public static boolean ITEM_CRAFT = false;
+    public static boolean ITEM_DROP = false;
+
+    // ── BLOCKS ────────────────────────────────────────────────────────────
+    public static boolean BLOCK_TICK = false;
+    public static boolean BLOCK_INTERACT = false;
+    public static boolean BLOCK_PLACE = false;
+    public static boolean BLOCK_BREAK = false;
+
+    // ── REPAIR KIT ────────────────────────────────────────────────────────
+    public static boolean REPAIR_KIT_REPAIR = true;
+    public static boolean REPAIR_KIT_CALC = true;
 
     public static void log(String category, boolean enabled, String message) {
         if (GLOBAL_ENABLED && enabled) {

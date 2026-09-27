@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "facing=down":  { "model": "arsenalcrafting:block/large_rutile_bud", "x": 180 },
+    "facing=up":    { "model": "arsenalcrafting:block/large_rutile_bud" },
+    "facing=north": { "model": "arsenalcrafting:block/large_rutile_bud", "x": 90 },
+    "facing=south": { "model": "arsenalcrafting:block/large_rutile_bud", "x": 90, "y": 180 },
+    "facing=east":  { "model": "arsenalcrafting:block/large_rutile_bud", "x": 90, "y": 90 },
+    "facing=west":  { "model": "arsenalcrafting:block/large_rutile_bud", "x": 90, "y": 270 }
+  }
+}

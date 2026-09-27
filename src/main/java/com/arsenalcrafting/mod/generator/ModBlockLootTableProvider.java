@@ -1,6 +1,7 @@
 package com.arsenalcrafting.mod.generator;
 
 import com.arsenalcrafting.mod.registry.ModBlocks;
+import com.arsenalcrafting.mod.registry.ModItems;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
@@ -63,8 +64,36 @@ public class ModBlockLootTableProvider extends BlockLootSubProvider {
         dropSelf(ModBlocks.IRON_POWER_BANK.get());
         dropSelf(ModBlocks.VOID_POWER_BANK.get());
 
+
         ModBlocks.MOLD_BLOCKS.values().forEach(holder -> dropSelf(holder.get()));
         ModBlocks.BRONZE_MOLD_BLOCKS.values().forEach(holder -> dropSelf(holder.get()));
+
+
+        // Rutile — mirrors vanilla amethyst's own loot pattern, not dropSelf.
+        // Budding block: cannot be obtained at all, even with Silk Touch — same as
+        // budding_amethyst, to stop players relocating/farming the growth source.
+        add(ModBlocks.RUTILE_BUDDING.get(), noDrop());
+
+        // Immature buds: only obtainable with Silk Touch; otherwise drop nothing,
+        // discouraging harvesting before the cluster is actually grown.
+        add(ModBlocks.SMALL_RUTILE_BUD.get(), createSilkTouchOnlyTable(ModBlocks.SMALL_RUTILE_BUD.get()));
+        add(ModBlocks.MEDIUM_RUTILE_BUD.get(), createSilkTouchOnlyTable(ModBlocks.MEDIUM_RUTILE_BUD.get()));
+        add(ModBlocks.LARGE_RUTILE_BUD.get(), createSilkTouchOnlyTable(ModBlocks.LARGE_RUTILE_BUD.get()));
+
+        // Fully grown cluster: Silk Touch keeps the cluster block itself (replantable);
+        // otherwise drops rutile shards — mirrors vanilla amethyst_cluster's real loot
+        // table exactly: a constant count (4) plus a Fortune bonus, not a random range.
+        HolderLookup.RegistryLookup<Enchantment> enchantmentLookup =
+                this.registries.lookupOrThrow(Registries.ENCHANTMENT);
+        add(ModBlocks.RUTILE_CLUSTER.get(), createSilkTouchDispatchTable(
+                ModBlocks.RUTILE_CLUSTER.get(),
+                this.applyExplosionDecay(ModBlocks.RUTILE_CLUSTER.get(),
+                        LootItem.lootTableItem(ModItems.RUTILE_SHARD.get())
+                                .apply(SetItemCountFunction.setCount(
+                                        net.minecraft.world.level.storage.loot.providers.number.ConstantValue.exactly(2.0F)))
+                                .apply(ApplyBonusCount.addUniformBonusCount(
+                                        enchantmentLookup.getOrThrow(Enchantments.FORTUNE))))));
+
         /*dropSelf(ModBlocks.PICKAXE_HEAD_MOLD.get());
         dropSelf(ModBlocks.TOOL_ROD_MOLD.get());
         dropSelf(ModBlocks.CORE_MOLD.get());

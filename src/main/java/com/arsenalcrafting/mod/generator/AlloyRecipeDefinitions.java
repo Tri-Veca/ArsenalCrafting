@@ -60,6 +60,10 @@ public class AlloyRecipeDefinitions {
                 Items.NETHERITE_INGOT
 
         );
+        addRecipe("rutile_from_alloy_smelting", AlloyMaterial.TITANIUM, 1000, 200,
+                ModItems.RUTILE_SHARD.get()
+
+        );
 
         addRecipe("steel_from_alloy_smelting", AlloyMaterial.STEEL, 1000, 200,
                 ItemStackHelper.getAlloyStack(AlloyMaterial.STEEL).getItem()

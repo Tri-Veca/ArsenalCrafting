@@ -31,5 +31,11 @@ public class ArsenalBlockTagProvider extends BlockTagsProvider {
             mineableTag.add(holder.get());
             toolTag.add(holder.get());
         });
+
+        mineableTag.add(ModBlocks.RUTILE_BUDDING.get());
+        mineableTag.add(ModBlocks.SMALL_RUTILE_BUD.get());
+        mineableTag.add(ModBlocks.MEDIUM_RUTILE_BUD.get());
+        mineableTag.add(ModBlocks.LARGE_RUTILE_BUD.get());
+        mineableTag.add(ModBlocks.RUTILE_CLUSTER.get());
     }
 }

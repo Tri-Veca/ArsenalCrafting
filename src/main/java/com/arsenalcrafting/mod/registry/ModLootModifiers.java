@@ -1,6 +1,7 @@
 package com.arsenalcrafting.mod.registry;
 
 import com.arsenalcrafting.mod.ArsenalCrafting;
+import com.arsenalcrafting.mod.loot.ChromiumOreDropModifier;
 import com.arsenalcrafting.mod.loot.GravelLootModifier;
 import com.mojang.serialization.MapCodec;
 import net.neoforged.bus.api.IEventBus;
@@ -16,6 +17,9 @@ public class ModLootModifiers {
 
     public static final DeferredHolder<MapCodec<? extends IGlobalLootModifier>, MapCodec<GravelLootModifier>> GRAVEL_RAW_TIN =
             LOOT_MODIFIER_SERIALIZERS.register("gravel_raw_tin", () -> GravelLootModifier.CODEC);
+
+    public static final DeferredHolder<MapCodec<? extends IGlobalLootModifier>, MapCodec<ChromiumOreDropModifier>> CHROMIUM_ORE_DROP =
+            LOOT_MODIFIER_SERIALIZERS.register("chromium_ore_drop", () -> ChromiumOreDropModifier.CODEC);
 
     public static void register(IEventBus eventBus) {
         LOOT_MODIFIER_SERIALIZERS.register(eventBus);

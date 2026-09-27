@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "facing=down":  { "model": "arsenalcrafting:block/rutile_cluster", "x": 180 },
+    "facing=up":    { "model": "arsenalcrafting:block/rutile_cluster" },
+    "facing=north": { "model": "arsenalcrafting:block/rutile_cluster", "x": 90 },
+    "facing=south": { "model": "arsenalcrafting:block/rutile_cluster", "x": 90, "y": 180 },
+    "facing=east":  { "model": "arsenalcrafting:block/rutile_cluster", "x": 90, "y": 90 },
+    "facing=west":  { "model": "arsenalcrafting:block/rutile_cluster", "x": 90, "y": 270 }
+  }
+}
