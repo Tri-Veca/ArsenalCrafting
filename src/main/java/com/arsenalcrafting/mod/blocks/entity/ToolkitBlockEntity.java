@@ -228,12 +228,31 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
 
         // Check if they match
         return switch (headType) {
-            case PICKAXE_HEAD -> rodType == ToolComponentType.TOOL_ROD; // Generic rod for pickaxe
-            case SHOVEL_HEAD -> rodType == ToolComponentType.SHOVEL_TOOL_ROD; // Shovel-specific rod
+            case PICKAXE_HEAD -> rodType == ToolComponentType.TOOL_ROD;
+            case SHOVEL_HEAD -> rodType == ToolComponentType.SHOVEL_TOOL_ROD;
             case AXE_HEAD -> rodType == ToolComponentType.TOOL_ROD;
             case KATANA_BLADE -> rodType == ToolComponentType.KATANA_HILT;
             case DAGGER_BLADE -> rodType == ToolComponentType.DAGGER_HILT;
             case BROADSWORD_BLADE -> rodType == ToolComponentType.BROADSWORD_HILT;
+            default -> false;
+        };
+    }
+
+    private boolean isHeadCompatibleWithRod(ItemStack headStack, ItemStack rodStack) {
+        if (headStack.isEmpty() || rodStack.isEmpty()) return true;
+
+        if (!(headStack.getItem() instanceof ToolComponentItem headComp)) return false;
+        if (!(rodStack.getItem() instanceof ToolComponentItem rodComp)) return false;
+
+        ToolComponentType headType = headComp.getComponentType();
+        ToolComponentType rodType = rodComp.getComponentType();
+
+        return switch (rodType) {
+            case TOOL_ROD -> headType == ToolComponentType.PICKAXE_HEAD || headType == ToolComponentType.AXE_HEAD;
+            case SHOVEL_TOOL_ROD -> headType == ToolComponentType.SHOVEL_HEAD;
+            case KATANA_HILT -> headType == ToolComponentType.KATANA_BLADE;
+            case DAGGER_HILT -> headType == ToolComponentType.DAGGER_BLADE;
+            case BROADSWORD_HILT -> headType == ToolComponentType.BROADSWORD_BLADE;
             default -> false;
         };
     }
@@ -478,14 +497,35 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
             boolean isNewTool = outputStack.isEmpty();
             if (isNewTool && (!hasHeadInput || !hasCoreInput || !hasRodInput)) return;
 
-            // NEW: Validate head and rod compatibility
             if (hasHeadInput && hasRodInput) {
-                if (!isRodCompatibleWithHead(headStack, rodStack)) {
-                    // Incompatible! Clear output and return
-                    if (!outputStack.isEmpty()) {
-                        itemHandler.setStackInSlot(OUTPUT_SLOT, ItemStack.EMPTY);
-                        setChanged();
-                    }
+                if (!isRodCompatibleWithHead(headStack, rodStack) || !isHeadCompatibleWithRod(headStack, rodStack)) {
+                    return;
+                }
+            }
+
+            if (hasRodInput && !outputStack.isEmpty() && outputStack.getItem() instanceof ArsenalTool tool) {
+                ToolComponentType requiredRodType = switch (tool.getToolType()) {
+                    case BROADSWORD -> ToolComponentType.BROADSWORD_HILT;
+                    case KATANA -> ToolComponentType.KATANA_HILT;
+                    case DAGGER -> ToolComponentType.DAGGER_HILT;
+                    case SHOVEL -> ToolComponentType.SHOVEL_TOOL_ROD;
+                    default -> ToolComponentType.TOOL_ROD;
+                };
+                if (rodStack.getItem() instanceof ToolComponentItem rodComp && rodComp.getComponentType() != requiredRodType) {
+                    return;
+                }
+            }
+
+            if (hasHeadInput && !outputStack.isEmpty() && outputStack.getItem() instanceof ArsenalTool tool) {
+                ToolComponentType requiredHeadType = switch (tool.getToolType()) {
+                    case BROADSWORD -> ToolComponentType.BROADSWORD_BLADE;
+                    case KATANA -> ToolComponentType.KATANA_BLADE;
+                    case DAGGER -> ToolComponentType.DAGGER_BLADE;
+                    case SHOVEL -> ToolComponentType.SHOVEL_HEAD;
+                    case AXE -> ToolComponentType.AXE_HEAD;
+                    default -> ToolComponentType.PICKAXE_HEAD;
+                };
+                if (headStack.getItem() instanceof ToolComponentItem headComp && headComp.getComponentType() != requiredHeadType) {
                     return;
                 }
             }
