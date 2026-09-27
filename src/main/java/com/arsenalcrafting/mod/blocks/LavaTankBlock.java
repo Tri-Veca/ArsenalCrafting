@@ -87,7 +87,20 @@ public class LavaTankBlock extends BaseEntityBlock {
         BlockEntity be = level.getBlockEntity(pos);
         if (!(be instanceof LavaTankBlockEntity tank))
             return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
-        boolean interacted = FluidUtil.interactWithFluidHandler(player, hand, tank.fluidTank);
+        boolean interacted = false;
+        if (stack.is(net.minecraft.world.item.Items.LAVA_BUCKET) && !tank.isFull()) {
+            int capacity = tank.getCapacity();
+            int current = tank.getFluidAmount();
+            int space = capacity - current;
+            tank.addFluid(Math.min(1000, space));
+            if (!player.isCreative()) {
+                stack.shrink(1);
+                player.getInventory().add(new ItemStack(net.minecraft.world.item.Items.BUCKET));
+            }
+            interacted = true;
+        } else {
+            interacted = FluidUtil.interactWithFluidHandler(player, hand, tank.fluidTank);
+        }
         if (interacted) {
             level.sendBlockUpdated(pos, state, state, 3);
             return ItemInteractionResult.CONSUME;

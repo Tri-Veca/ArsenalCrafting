@@ -262,6 +262,7 @@ public class RepairKitMenu extends AbstractContainerMenu {
 
         valueUsed = Math.min(valueUsed, storedValue);
         RepairKitItem.setStoredValue(kitStack, storedValue - valueUsed);
+        RepairDebug.repair("Repaired", "durability " + (maxDurability - currentDamage) + " -> " + (maxDurability - currentDamage + actualRepair) + " (repaired " + actualRepair + " for " + valueUsed + " value)");
     }
 
     // ── HELPERS ───────────────────────────────────────────────────────────────
