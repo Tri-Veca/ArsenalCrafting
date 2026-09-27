@@ -74,22 +74,35 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
                 ItemStack current = getStackInSlot(OUTPUT_SLOT);
 
                 if (current.isEmpty()) {
-                    // Tool was removed → clear the representation slots
                     if (!lastOutput.isEmpty()) {
-                        isSyncing = true;
-                        try {
-                            for (int i = AUGMENT_SLOT_START; i < AUGMENT_SLOT_END; i++) {
-                                setStackInSlot(i, ItemStack.EMPTY);
+                        boolean hasStaged = !getStackInSlot(HEAD_SLOT).isEmpty()
+                                || !getStackInSlot(CORE_SLOT).isEmpty()
+                                || !getStackInSlot(ROD_SLOT).isEmpty();
+                        if (hasStaged) {
+                            isSyncing = true;
+                            try {
+                                for (int i = AUGMENT_SLOT_START; i < AUGMENT_SLOT_END; i++) {
+                                    setStackInSlot(i, ItemStack.EMPTY);
+                                }
+                            } finally {
+                                isSyncing = false;
                             }
-                        } finally {
-                            isSyncing = false;
+                            assembleTool();
+                        } else {
+                            isSyncing = true;
+                            try {
+                                for (int i = AUGMENT_SLOT_START; i < AUGMENT_SLOT_END; i++) {
+                                    setStackInSlot(i, ItemStack.EMPTY);
+                                }
+                            } finally {
+                                isSyncing = false;
+                            }
                         }
                     }
                     lastOutput = ItemStack.EMPTY;
                 } else if (current.getItem() instanceof ArsenalTool) {
-                    // A real tool is now present.
+                    boolean isNewToolPlacement = !ItemStack.isSameItemSameComponents(current, lastOutput);
 
-                    // Only call install if there is actually something staged.
                     boolean hasStaged = false;
                     for (int i = AUGMENT_SLOT_START; i < AUGMENT_SLOT_END; i++) {
                         if (!getStackInSlot(i).isEmpty()) {
@@ -102,9 +115,12 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
                         installAugments();
                     }
 
-                    // Always sync the GUI representation from the tool
                     syncAugmentsFromTool();
                     lastOutput = current.copy();
+
+                    if (isNewToolPlacement) {
+                        assembleTool();
+                    }
                 }
             }
         }
@@ -587,19 +603,19 @@ public class ToolkitBlockEntity extends BlockEntity implements MenuProvider {
                 itemHandler.setStackInSlot(CORE_SLOT, swapCore);
             }
 
-            // 3. HEAD SWAP (Index 0)
             if (hasHeadInput) {
                 ItemStack swapHead = ItemStack.EMPTY;
                 if (!oldHeadMat.isEmpty() && !outputStack.isEmpty()) {
                     ArsenalTool tool = (ArsenalTool) outputStack.getItem();
                     ToolComponentType oldType = tool.getHeadComponentType();
                     if (oldType == null) {
-                        oldType = tool.getHeadType(); // fallback for older tools (shovel etc.)
+                        oldType = tool.getHeadType();
                     }
                     if (oldType != null) {
                         swapHead = findComponentStack(oldType, oldHeadMat);
                     }
                 }
+                itemHandler.setStackInSlot(HEAD_SLOT, ItemStack.EMPTY);
                 itemHandler.setStackInSlot(HEAD_SLOT, swapHead);
             }
 
