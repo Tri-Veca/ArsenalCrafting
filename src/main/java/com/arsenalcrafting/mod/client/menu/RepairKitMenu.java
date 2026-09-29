@@ -258,8 +258,8 @@ public class RepairKitMenu extends AbstractContainerMenu {
     }
 
     public void setClientPreview(int storedValue, String material) {
-        clientPreviewValue = storedValue;
-        clientPreviewMaterial = material;
+        RepairKitItem.setMaterial(kitStack, material);
+        RepairKitItem.setStoredValue(kitStack, storedValue);
     }
 
     public int getCalculatedValue() {
