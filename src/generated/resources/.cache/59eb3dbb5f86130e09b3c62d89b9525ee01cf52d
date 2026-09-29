@@ -1,4 +1,4 @@
-// 1.21.1	2026-09-27T00:12:18.1039865	Loot Tables
+// 1.21.1	2026-09-29T08:33:37.9766852	Loot Tables
 58bd3afa0d8ef894c93abad1d0559b512d42142c data/arsenalcrafting/loot_table/blocks/alloy_smelter.json
 e54757485028992b89edd3e9c3d58a6cb4600e15 data/arsenalcrafting/loot_table/blocks/axe_head_mold.json
 c8018ea60a7b311624d1e56fd3cf1b4d7ae8e502 data/arsenalcrafting/loot_table/blocks/basic_casing.json
@@ -43,7 +43,7 @@ b5fba11c681bf288dd8c32a917b2570cfca3cd7c data/arsenalcrafting/loot_table/blocks/
 b6a77ca823356afb78644a48f9918038e02de291 data/arsenalcrafting/loot_table/blocks/pickaxe_head_mold.json
 b1de416a95aac01541b09153f35cb925c863a782 data/arsenalcrafting/loot_table/blocks/power_cable.json
 b84c9f8a25fd08a79f97850321e695706920c011 data/arsenalcrafting/loot_table/blocks/rutile_budding.json
-ad632eed8bcf18eea3c92de0ae36ebcf68e85f94 data/arsenalcrafting/loot_table/blocks/rutile_cluster.json
+f13590eea916032f2eb5560ad5ffd0c030fe6526 data/arsenalcrafting/loot_table/blocks/rutile_cluster.json
 7e09976b892a5dc4e665351629339fd45e9e513d data/arsenalcrafting/loot_table/blocks/shovel_head_mold.json
 a6ae0843d641a0f138b47df9e3a230ff638d5752 data/arsenalcrafting/loot_table/blocks/shovel_tool_rod_mold.json
 4db77f57556dba859d553552e09567066a9a52e9 data/arsenalcrafting/loot_table/blocks/small_rutile_bud.json

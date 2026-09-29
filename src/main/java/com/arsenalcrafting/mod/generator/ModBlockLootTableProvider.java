@@ -90,7 +90,7 @@ public class ModBlockLootTableProvider extends BlockLootSubProvider {
                 this.applyExplosionDecay(ModBlocks.RUTILE_CLUSTER.get(),
                         LootItem.lootTableItem(ModItems.RUTILE_SHARD.get())
                                 .apply(SetItemCountFunction.setCount(
-                                        net.minecraft.world.level.storage.loot.providers.number.ConstantValue.exactly(2.0F)))
+                                        net.minecraft.world.level.storage.loot.providers.number.ConstantValue.exactly(1.0F)))
                                 .apply(ApplyBonusCount.addUniformBonusCount(
                                         enchantmentLookup.getOrThrow(Enchantments.FORTUNE))))));
 

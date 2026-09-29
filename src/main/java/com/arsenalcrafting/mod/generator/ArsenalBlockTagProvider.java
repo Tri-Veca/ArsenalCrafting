@@ -37,5 +37,17 @@ public class ArsenalBlockTagProvider extends BlockTagsProvider {
         mineableTag.add(ModBlocks.MEDIUM_RUTILE_BUD.get());
         mineableTag.add(ModBlocks.LARGE_RUTILE_BUD.get());
         mineableTag.add(ModBlocks.RUTILE_CLUSTER.get());
+        mineableTag.add(ModBlocks.BASIC_CASING.get());
+        mineableTag.add(ModBlocks.BRONZE_CASING.get());
+        mineableTag.add(ModBlocks.STEEL_CASING.get());
+        mineableTag.add(ModBlocks.IRON_CASING.get());
+        mineableTag.add(ModBlocks.TITANIUM_CASING.get());
+        mineableTag.add(ModBlocks.COPPER_CASING.get());
+        mineableTag.add(ModBlocks.CASTING_STATION.get());
+        mineableTag.add(ModBlocks.FOUNDRY_BASIN.get());
+        mineableTag.add(ModBlocks.VALVE_FAUCET.get());
+        mineableTag.add(ModBlocks.BLUEPRINT_CASTING_TABLE.get());
+        mineableTag.add(ModBlocks.TOOLKIT.get());
+
     }
 }
