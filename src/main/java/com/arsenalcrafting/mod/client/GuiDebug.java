@@ -24,4 +24,8 @@ public final class GuiDebug {
     public static void sync(String tag, String message) {
         ArsenalDebug.log("GuiSync/" + tag, ArsenalDebug.GUI_SYNC, message);
     }
+
+    public static void render(String tag, String message) {
+        ArsenalDebug.log("GuiRender/" + tag, ArsenalDebug.REPAIR_KIT_SCREEN, message);
+    }
 }

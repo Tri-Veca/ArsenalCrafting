@@ -39,6 +39,12 @@ public class RepairKitScreen extends AbstractContainerScreen<RepairKitMenu> {
     private static final int FILLED_BAR_V = 0;
     private static final int MAX_VALUE    = 128;
 
+    private int lastBarValue = -1;
+    private String lastBarMaterial = "";
+    private int lastTooltipValue = -1;
+    private String lastTooltipMaterial = "";
+    private String lastTooltipTool = "";
+
     public RepairKitScreen(RepairKitMenu menu, Inventory inv, Component title) {
         super(menu, inv, title);
         this.imageWidth  = 176;
@@ -60,6 +66,12 @@ public class RepairKitScreen extends AbstractContainerScreen<RepairKitMenu> {
 
         int displayValue       = menu.getCalculatedValue();
         String displayMaterial = menu.getCalculatedMaterial();
+
+        if (displayValue != lastBarValue || !displayMaterial.equals(lastBarMaterial)) {
+            lastBarValue = displayValue;
+            lastBarMaterial = displayMaterial;
+            GuiDebug.render("RepairKit", "bar value=" + displayValue + " material=" + displayMaterial);
+        }
 
         if (displayValue <= 0) return;
 
@@ -127,6 +139,18 @@ public class RepairKitScreen extends AbstractContainerScreen<RepairKitMenu> {
         int    displayValue    = menu.getCalculatedValue();
         String displayMaterial = menu.getCalculatedMaterial();
         ItemStack tool         = menu.getSlot(0).getItem();
+        String toolName        = tool.isEmpty() ? "none" : tool.getHoverName().getString();
+
+        if (displayValue != lastTooltipValue
+                || !displayMaterial.equals(lastTooltipMaterial)
+                || !toolName.equals(lastTooltipTool)) {
+            lastTooltipValue = displayValue;
+            lastTooltipMaterial = displayMaterial;
+            lastTooltipTool = toolName;
+            GuiDebug.render("RepairKit", "tooltip value=" + displayValue + " material=" + displayMaterial
+                    + " tool=" + toolName);
+        }
+
         List<Component> barTooltip = new ArrayList<>();
 
         barTooltip.add(Component.literal("Stored Value: " + displayValue + "/" + MAX_VALUE)

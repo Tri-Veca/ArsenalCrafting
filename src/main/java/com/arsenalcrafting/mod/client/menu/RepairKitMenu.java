@@ -10,11 +10,9 @@ import com.arsenalcrafting.mod.items.tool.powers.CoreManager;
 import com.arsenalcrafting.mod.items.tool.powers.RepairReduction;
 import com.arsenalcrafting.mod.client.GuiDebug;
 import com.arsenalcrafting.mod.network.PacketHandler;
-import com.arsenalcrafting.mod.network.SyncRepairKitPreviewPacket;
 import com.arsenalcrafting.mod.registry.ModComponents;
 import com.arsenalcrafting.mod.registry.ModMenus;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -29,35 +27,21 @@ public class RepairKitMenu extends AbstractContainerMenu {
     public final ItemStack kitStack;
     private final Player player;
 
-    // Server-side display values — sent to client via packet
-    private int displayValue = 0;
-    private String displayMaterial = "";
-
-    // Change detection
     private ItemStack lastIngot = ItemStack.EMPTY;
     private ItemStack lastTool  = ItemStack.EMPTY;
 
-    // Client-side cached values — set by sync packet once it arrives
-    private int clientValue = 0;
-    private String clientMaterial = "";
-
-    // ── CLIENT CONSTRUCTOR ────────────────────────────────────────────────────
+    private int clientPreviewValue = -1;
+    private String clientPreviewMaterial = null;
 
     public RepairKitMenu(int id, Inventory playerInventory, FriendlyByteBuf extraData) {
         this(id, playerInventory, playerInventory.player.getMainHandItem());
-        // clientValue and clientMaterial start at 0/"".
-        // getCalculatedValue/Material fall back to reading kitStack directly
-        // until the sync packet arrives and calls setClientPreview().
     }
-
-    // ── SERVER CONSTRUCTOR ────────────────────────────────────────────────────
 
     public RepairKitMenu(int id, Inventory inv, ItemStack kitStack) {
         super(ModMenus.REPAIRKIT.get(), id);
         this.kitStack = kitStack;
         this.player   = inv.player;
 
-        // Restore slots from saved kit data
         RepairKitData data = RepairKitItem.getData(kitStack);
         container.setItem(0, data.tool().orElse(ItemStack.EMPTY).copy());
         container.setItem(1, data.ingot().orElse(ItemStack.EMPTY).copy());
@@ -68,7 +52,6 @@ public class RepairKitMenu extends AbstractContainerMenu {
             GuiDebug.slots("RepairKit", "init tool=" + lastTool.getCount() + " ingot=" + lastIngot.getCount());
         }
 
-        // Tool slot
         addSlot(new Slot(container, 0, 80, 53) {
             @Override
             public boolean mayPlace(ItemStack stack) {
@@ -76,26 +59,14 @@ public class RepairKitMenu extends AbstractContainerMenu {
             }
         });
 
-        // Ingot slot
         addSlot(new Slot(container, 1, 80, 16));
 
         addPlayerInventory(inv);
-
-        // FIX: Run repair + recalc + sync on construction so client always
-        // gets correct state on open without needing to reseat items.
-        if (!player.level().isClientSide()) {
-            attemptRepair();
-            recalcDisplay();
-            syncToClient();
-        }
     }
-
-    // ── BROADCAST ────────────────────────────────────────────────────────────
 
     @Override
     public void broadcastChanges() {
         super.broadcastChanges();
-        if (player.level().isClientSide()) return;
 
         ItemStack currentIngot = container.getItem(1);
         ItemStack currentTool  = container.getItem(0);
@@ -111,124 +82,106 @@ public class RepairKitMenu extends AbstractContainerMenu {
         lastIngot = currentIngot.copy();
         lastTool  = currentTool.copy();
 
-        attemptRepair();
-        RepairDebug.repair("Recalc", "before recalc - kitStored=" + RepairKitItem.getStoredValue(kitStack) + " kitMat=" + RepairKitItem.getMaterial(kitStack));
-        recalcDisplay();
-        syncToClient();
+        if (ingotChanged) consumeIngot();
+        if (toolChanged || ingotChanged || !player.level().isClientSide()) repairTool();
     }
 
-    // ── DISPLAY CALCULATION ───────────────────────────────────────────────────
-
-    private void recalcDisplay() {
-        ItemStack tool  = container.getItem(0);
+    private void consumeIngot() {
         ItemStack ingot = container.getItem(1);
+        ItemStack countedIngot = RepairKitItem.getIngot(kitStack);
 
-        // No ingot — always blank, theoretical value requires ingots in slot
+        if (ItemStack.isSameItemSameComponents(ingot, countedIngot) && ingot.getCount() == countedIngot.getCount()) {
+            return;
+        }
+
+        if (player.level().isClientSide()) {
+            updateClientPreview();
+            return;
+        }
+
         if (ingot.isEmpty()) {
-            displayValue    = 0;
-            displayMaterial = "";
+            if (!countedIngot.isEmpty()) {
+                RepairKitItem.setStoredValue(kitStack, 0);
+                RepairKitItem.setIngot(kitStack, ItemStack.EMPTY);
+            }
+            return;
+        }
+
+        AlloyMaterial mat = AlloyMaterial.fromItem(ingot.getItem());
+        if (mat == null) return;
+
+        String ingotMat = mat.getName();
+        String storedMat = RepairKitItem.getMaterial(kitStack);
+
+        if (!storedMat.isEmpty() && !storedMat.equals(ingotMat)) {
+            RepairKitItem.setMaterial(kitStack, "");
+            RepairKitItem.setStoredValue(kitStack, 0);
+        }
+
+        int storedVal = RepairKitItem.getStoredValue(kitStack);
+        int valueToAdd = Math.min(ingot.getCount() * 2, 128 - storedVal);
+        if (valueToAdd <= 0) return;
+
+        int ingotsToCount = (int) Math.ceil(valueToAdd / 2.0f);
+
+        RepairKitItem.setMaterial(kitStack, ingotMat);
+        RepairKitItem.setStoredValue(kitStack, storedVal + (ingotsToCount * 2));
+        RepairKitItem.setIngot(kitStack, ingot.copy());
+    }
+
+    private void updateClientPreview() {
+        ItemStack ingot = container.getItem(1);
+        int realValue = RepairKitItem.getStoredValue(kitStack);
+        String realMaterial = RepairKitItem.getMaterial(kitStack);
+
+        if (ingot.isEmpty()) {
+            clientPreviewValue = realValue;
+            clientPreviewMaterial = realMaterial;
+            GuiDebug.slots("RepairKit", "preview reset value=" + realValue + " material=" + realMaterial);
             return;
         }
 
         AlloyMaterial mat = AlloyMaterial.fromItem(ingot.getItem());
         if (mat == null) {
-            displayValue    = 0;
-            displayMaterial = "";
+            clientPreviewValue = realValue;
+            clientPreviewMaterial = realMaterial;
+            GuiDebug.slots("RepairKit", "preview null mat value=" + realValue + " material=" + realMaterial);
             return;
         }
 
         String ingotMat = mat.getName();
 
-        if (!tool.isEmpty() && tool.getItem() instanceof ArsenalTool arsenalTool) {
-            String toolMat = arsenalTool.getMaterialName(tool);
-            if (!toolMat.isEmpty() && !toolMat.equals(ingotMat)) {
-                displayValue    = 0;
-                displayMaterial = ingotMat;
-                return;
-            }
+        if (!realMaterial.isEmpty() && !realMaterial.equals(ingotMat)) {
+            int space = 128;
+            int valueToAdd = Math.min(ingot.getCount() * 2, space);
+            int ingotsToCount = (int) Math.ceil(valueToAdd / 2.0f);
+            clientPreviewValue = ingotsToCount * 2;
+            clientPreviewMaterial = ingotMat;
+            GuiDebug.slots("RepairKit", "preview override value=" + clientPreviewValue + " material=" + clientPreviewMaterial);
+            return;
         }
 
-        displayValue    = Math.min(ingot.getCount() * 2, 128);
-        displayMaterial = ingotMat;
+        int valueToAdd = Math.min(ingot.getCount() * 2, 128 - realValue);
+        int ingotsToCount = (int) Math.ceil(valueToAdd / 2.0f);
+        clientPreviewValue = realValue + (ingotsToCount * 2);
+        clientPreviewMaterial = ingotMat;
+        GuiDebug.slots("RepairKit", "preview add value=" + clientPreviewValue + " material=" + clientPreviewMaterial);
     }
 
-    // ── REPAIR LOGIC ─────────────────────────────────────────────────────────
-
-    private void attemptRepair() {
-        ItemStack tool  = container.getItem(0);
-        ItemStack ingot = container.getItem(1);
-
-        if (tool.isEmpty()) {
-            RepairDebug.repair("Attempt", "No tool in slot 0, skipping repair");
-            return;
-        }
-        if (!(tool.getItem() instanceof ArsenalTool arsenalTool)) {
-            RepairDebug.repair("Attempt", "Item in slot 0 is not an ArsenalTool: " + tool.getItem());
-            return;
-        }
-        if (tool.getDamageValue() <= 0) {
-            RepairDebug.repair("Attempt", "Tool is not damaged (damage=" + tool.getDamageValue() + "), skipping repair");
-            return;
-        }
-
-        // No ingot — repair with stored value if material matches tool
-        if (ingot.isEmpty()) {
-            int stored = RepairKitItem.getStoredValue(kitStack);
-            if (stored <= 0) return;
-            String kitMat  = RepairKitItem.getMaterial(kitStack);
-            String toolMat = arsenalTool.getMaterialName(tool);
-            if (!toolMat.isEmpty() && !kitMat.equals(toolMat)) return;
-            repairWithStoredValue(tool, arsenalTool, stored);
-            return;
-        }
-
-        // Ingot present — validate material
-        AlloyMaterial mat = AlloyMaterial.fromItem(ingot.getItem());
-        if (mat == null) return;
-
-        String ingotMat = mat.getName();
-        String toolMat  = arsenalTool.getMaterialName(tool);
-        if (!toolMat.isEmpty() && !toolMat.equals(ingotMat)) return;
-
-        // If kit has stored value from a different material, reset it
-        String kitMat = RepairKitItem.getMaterial(kitStack);
-        if (!kitMat.isEmpty() && !kitMat.equals(ingotMat)) {
-            RepairKitItem.setStoredValue(kitStack, 0);
-        }
-
-        // Repair with existing stored value first
-        int stored = RepairKitItem.getStoredValue(kitStack);
-        if (stored > 0 && tool.getDamageValue() > 0) {
-            repairWithStoredValue(tool, arsenalTool, stored);
-            stored = RepairKitItem.getStoredValue(kitStack);
-        }
-
+    private void repairTool() {
+        ItemStack tool = container.getItem(0);
+        if (tool.isEmpty() || !(tool.getItem() instanceof ArsenalTool arsenalTool)) return;
         if (tool.getDamageValue() <= 0) return;
-        if (stored >= 128) return;
 
-        // Calculate how much value to add from ingots
-        float efficiency      = arsenalTool.getRepairEfficiency(tool);
-        float repairPctPerVal = 15.0f / efficiency;
-        float minRepairPct    = 10.0f;
-        int   minValNeeded    = (int) Math.ceil(minRepairPct / repairPctPerVal);
+        String toolMat = arsenalTool.getMaterialName(tool);
+        String kitMat = RepairKitItem.getMaterial(kitStack);
+        int stored = RepairKitItem.getStoredValue(kitStack);
 
-        int valueNeeded  = Math.max(0, minValNeeded - stored);
-        int maxCanAdd    = 128 - stored;
-        int valueToAdd   = Math.min(valueNeeded, maxCanAdd);
-        if (valueToAdd <= 0) return;
+        if (stored <= 0) return;
 
-        int ingotsNeeded = (int) Math.ceil(valueToAdd / 2.0f);
-        ingotsNeeded     = Math.min(ingotsNeeded, ingot.getCount());
-        if (ingotsNeeded <= 0) return;
+        if (!toolMat.isEmpty() && !kitMat.isEmpty() && !toolMat.equals(kitMat)) return;
 
-        RepairKitItem.setMaterial(kitStack, ingotMat);
-        RepairKitItem.setStoredValue(kitStack, stored + (ingotsNeeded * 2));
-        ingot.shrink(ingotsNeeded);
-
-        stored = RepairKitItem.getStoredValue(kitStack);
-        if (stored > 0 && tool.getDamageValue() > 0) {
-            repairWithStoredValue(tool, arsenalTool, stored);
-        }
+        repairWithStoredValue(tool, arsenalTool, stored);
     }
 
     private void repairWithStoredValue(ItemStack tool, ArsenalTool arsenalTool, int storedValue) {
@@ -253,7 +206,9 @@ public class RepairKitMenu extends AbstractContainerMenu {
         }
 
         tool.setDamageValue(currentDamage - actualRepair);
-        com.arsenalcrafting.mod.items.tool.BrokenToolHandler.markRepaired(tool);
+        if (!player.level().isClientSide()) {
+            com.arsenalcrafting.mod.items.tool.BrokenToolHandler.markRepaired(tool);
+        }
 
         float pctRepaired = (actualRepair * 100.0f) / maxDurability;
         int valueUsed = hasRepairReduction
@@ -261,11 +216,37 @@ public class RepairKitMenu extends AbstractContainerMenu {
                 : Math.max(1, (int) Math.ceil((pctRepaired * efficiency) / 15.0f));
 
         valueUsed = Math.min(valueUsed, storedValue);
-        RepairKitItem.setStoredValue(kitStack, storedValue - valueUsed);
+        int remaining = storedValue - valueUsed;
+        RepairKitItem.setStoredValue(kitStack, remaining);
+        if (remaining <= 0) {
+            RepairKitItem.setMaterial(kitStack, "");
+        }
+
+        int ingotsToShrink = (int) Math.ceil(valueUsed / 2.0f);
+        ItemStack countedIngot = RepairKitItem.getIngot(kitStack);
+        if (!countedIngot.isEmpty()) {
+            ingotsToShrink = Math.min(ingotsToShrink, countedIngot.getCount());
+            countedIngot.shrink(ingotsToShrink);
+            RepairKitItem.setIngot(kitStack, countedIngot.isEmpty() ? ItemStack.EMPTY : countedIngot);
+
+            ItemStack slotIngot = container.getItem(1);
+            if (!slotIngot.isEmpty()) {
+                int slotShrink = Math.min(ingotsToShrink, slotIngot.getCount());
+                slotIngot.shrink(slotShrink);
+            }
+        }
+
+        if (!player.level().isClientSide()) {
+            PacketHandler.sendToPlayer(
+                    (net.minecraft.server.level.ServerPlayer) player,
+                    new com.arsenalcrafting.mod.network.SyncRepairKitPreviewPacket(
+                            RepairKitItem.getStoredValue(kitStack),
+                            RepairKitItem.getMaterial(kitStack))
+            );
+        }
+
         RepairDebug.repair("Repaired", "durability " + (maxDurability - currentDamage) + " -> " + (maxDurability - currentDamage + actualRepair) + " (repaired " + actualRepair + " for " + valueUsed + " value)");
     }
-
-    // ── HELPERS ───────────────────────────────────────────────────────────────
 
     private boolean hasRepairReductionCore(ItemStack tool) {
         ToolAssemblyData data = tool.get(ModComponents.TOOL_ASSEMBLY_DATA.get());
@@ -276,53 +257,72 @@ public class RepairKitMenu extends AbstractContainerMenu {
         return def != null && def.id().equals("repair_reduction");
     }
 
-    private void syncToClient() {
-        if (player instanceof ServerPlayer sp) {
-            PacketHandler.sendToPlayer(sp,
-                    new SyncRepairKitPreviewPacket(displayValue, displayMaterial));
-        }
-    }
-
-    // ── CLIENT API ────────────────────────────────────────────────────────────
-
-    private boolean packetReceived = false;
-
-    public void setClientPreview(int value, String material) {
-        GuiDebug.sync("RepairKit", "setClientPreview value=" + value + " material=" + material);
-        this.clientValue    = value;
-        this.clientMaterial = material;
-        this.packetReceived = true;
+    public void setClientPreview(int storedValue, String material) {
+        clientPreviewValue = storedValue;
+        clientPreviewMaterial = material;
     }
 
     public int getCalculatedValue() {
         if (player.level().isClientSide()) {
-            if (!packetReceived) {
-                return RepairKitItem.getData(kitStack).storedValue();
-            }
-            return clientValue;
+            return calculateClientValue();
         }
-        return displayValue;
+        return RepairKitItem.getStoredValue(kitStack);
     }
 
     public String getCalculatedMaterial() {
         if (player.level().isClientSide()) {
-            if (!packetReceived) {
-                return RepairKitItem.getData(kitStack).material();
-            }
-            return clientMaterial;
+            return calculateClientMaterial();
         }
-        return displayMaterial;
+        return RepairKitItem.getMaterial(kitStack);
     }
 
-    // ── LIFECYCLE ─────────────────────────────────────────────────────────────
+    private int calculateClientValue() {
+        ItemStack ingot = container.getItem(1);
+        int realValue = RepairKitItem.getStoredValue(kitStack);
+
+        if (ingot.isEmpty()) {
+            return realValue;
+        }
+
+        AlloyMaterial mat = AlloyMaterial.fromItem(ingot.getItem());
+        if (mat == null) {
+            return realValue;
+        }
+
+        String realMaterial = RepairKitItem.getMaterial(kitStack);
+        String ingotMat = mat.getName();
+
+        if (!realMaterial.isEmpty() && !realMaterial.equals(ingotMat)) {
+            int valueToAdd = Math.min(ingot.getCount() * 2, 128);
+            int ingotsToCount = (int) Math.ceil(valueToAdd / 2.0f);
+            return ingotsToCount * 2;
+        }
+
+        int valueToAdd = Math.min(ingot.getCount() * 2, 128 - realValue);
+        int ingotsToCount = (int) Math.ceil(valueToAdd / 2.0f);
+        return realValue + (ingotsToCount * 2);
+    }
+
+    private String calculateClientMaterial() {
+        ItemStack ingot = container.getItem(1);
+        String realMaterial = RepairKitItem.getMaterial(kitStack);
+
+        if (ingot.isEmpty()) {
+            return realMaterial;
+        }
+
+        AlloyMaterial mat = AlloyMaterial.fromItem(ingot.getItem());
+        if (mat == null) {
+            return realMaterial;
+        }
+
+        return mat.getName();
+    }
 
     @Override
     public void removed(Player player) {
         super.removed(player);
         if (!player.level().isClientSide()) {
-            // Persist display state back to kit so reopen shows correct values
-            RepairKitItem.setMaterial(kitStack, displayMaterial);
-            RepairKitItem.setStoredValue(kitStack, displayValue);
             RepairKitItem.setTool(kitStack, container.getItem(0));
             RepairKitItem.setIngot(kitStack, container.getItem(1));
         }
@@ -337,8 +337,6 @@ public class RepairKitMenu extends AbstractContainerMenu {
     public boolean stillValid(Player player) {
         return true;
     }
-
-    // ── PLAYER INVENTORY ──────────────────────────────────────────────────────
 
     private void addPlayerInventory(Inventory inv) {
         for (int row = 0; row < 3; row++) {

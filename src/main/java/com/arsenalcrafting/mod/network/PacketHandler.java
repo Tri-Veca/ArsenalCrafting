@@ -22,6 +22,7 @@ public class PacketHandler {
                 ToggleAugmentPacket.STREAM_CODEC,
                 ToggleAugmentPacket::handle
         );
+
         registrar.playToClient(
                 SyncRepairKitPreviewPacket.TYPE,
                 SyncRepairKitPreviewPacket.STREAM_CODEC,

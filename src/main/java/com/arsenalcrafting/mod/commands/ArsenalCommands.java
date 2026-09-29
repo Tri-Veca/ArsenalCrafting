@@ -7,6 +7,7 @@ import com.arsenalcrafting.mod.items.tool.BrokenToolHandler;
 import com.arsenalcrafting.mod.registry.ModItems;
 import com.arsenalcrafting.mod.registry.ModComponents;
 import com.mojang.brigadier.Command;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.commands.CommandSourceStack;
@@ -154,6 +155,14 @@ public class ArsenalCommands {
                         // /arsenal repair — repairs held tool to full and clears broken state
                         .then(Commands.literal("repair")
                                 .executes(ArsenalCommands::repairTool)
+                        )
+
+                        // /arsenal durability <percent>
+                        .then(Commands.literal("durability")
+                                .then(Commands.argument("percent", IntegerArgumentType.integer(0, 100))
+                                        .executes(ctx -> setDurability(ctx,
+                                                IntegerArgumentType.getInteger(ctx, "percent")))
+                                )
                         )
 
                         // /arsenal info
@@ -335,6 +344,31 @@ public class ArsenalCommands {
 
         ctx.getSource().sendSuccess(() ->
                         Component.literal("§a✓ " + held.getHoverName().getString() + " fully repaired."),
+                false);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    // ── DURABILITY (debug) ────────────────────────────────────────────────────
+
+    private static int setDurability(CommandContext<CommandSourceStack> ctx, int percent) {
+        ServerPlayer player;
+        try { player = ctx.getSource().getPlayerOrException(); }
+        catch (Exception e) { return 0; }
+
+        ItemStack held = player.getMainHandItem();
+        if (!(held.getItem() instanceof com.arsenalcrafting.mod.items.tool.ArsenalTool)) {
+            ctx.getSource().sendFailure(Component.literal("Hold an Arsenal tool or weapon first."));
+            return 0;
+        }
+
+        int maxDamage = held.getMaxDamage();
+        int targetDamage = maxDamage - (int) Math.round(maxDamage * percent / 100.0);
+        held.setDamageValue(targetDamage);
+        BrokenToolHandler.markRepaired(held);
+
+        ctx.getSource().sendSuccess(() ->
+                        Component.literal("§aSet §f" + held.getHoverName().getString()
+                                + " §ato §e" + percent + "% §adurability."),
                 false);
         return Command.SINGLE_SUCCESS;
     }

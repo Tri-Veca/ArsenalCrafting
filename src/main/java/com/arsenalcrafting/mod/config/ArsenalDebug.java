@@ -22,7 +22,7 @@ public final class ArsenalDebug {
     public static boolean GUI_OPEN   = true;
     public static boolean GUI_SLOTS  = true;
     public static boolean GUI_PACKETS = true;
-    public static boolean GUI_SYNC   = false;
+    public static boolean GUI_SYNC   = true;
 
     // ── COMBAT ────────────────────────────────────────────────────────────
     public static boolean WEAPON_DAMAGE = true;
@@ -57,6 +57,7 @@ public final class ArsenalDebug {
     // ── REPAIR KIT ────────────────────────────────────────────────────────
     public static boolean REPAIR_KIT_REPAIR = true;
     public static boolean REPAIR_KIT_CALC = true;
+    public static boolean REPAIR_KIT_SCREEN = true;
 
     public static void log(String category, boolean enabled, String message) {
         if (GLOBAL_ENABLED && enabled) {
