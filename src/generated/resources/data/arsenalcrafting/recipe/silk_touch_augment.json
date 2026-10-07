@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "arsenalcrafting:basic_augment"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "S": {
+      "item": "minecraft:string"
+    }
+  },
+  "pattern": [
+    " D ",
+    "SAS",
+    " S "
+  ],
+  "result": {
+    "count": 1,
+    "id": "arsenalcrafting:silk_touch_augment"
+  }
+}

@@ -41,10 +41,18 @@ public class ArsenalRecipeProvider extends RecipeProvider {
         buildFoundryBasin(output);
         buildRepairKit(output);
         buildToolKit(output);
+        buildLightAugment(output);
+        buildSilkTouchAugment(output);
+        buildMagnetismAugment(output);
+        buildOreMinerAugment(output);
         buildBasicAugmentRecipe(output);
         buildFortuneAugmentT1(output);
         buildFortuneAugmentT2(output);
         buildFortuneAugmentT3(output);
+        buildAutoSmeltAugment(output);
+        buildLootingAugmentT1(output);
+        buildLootingAugmentT2(output);
+        buildLootingAugmentT3(output);
     }
 
     // Core loop for crafting multiblock Smeltery Blocks
@@ -173,6 +181,66 @@ public class ArsenalRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_basic_material", has(ModItems.BASIC_MATERIAL.get()))
                 .save(output);
     }
+    private void buildLightAugment(RecipeOutput output) {
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ItemStackHelper.getUniversalAugmentStack("light", 0))
+                .pattern(" C ")
+                .pattern("GAG")
+                .pattern(" G ")
+                .define('G', Ingredient.of(Items.GLOWSTONE))
+                .define('A', Ingredient.of(ModItems.BASIC_AUGMENT.get()))
+                .define('C', Ingredient.of(Items.COAL_BLOCK))
+                .unlockedBy("has_basic_material", has(ModItems.BASIC_AUGMENT.get()))
+                .save(output);
+    }
+
+    private void buildAutoSmeltAugment(RecipeOutput output) {
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ItemStackHelper.getUniversalAugmentStack("auto_smelt", 0))
+                .pattern(" F ")
+                .pattern("SAS")
+                .pattern(" S ")
+                .define('F', Ingredient.of(Items.FURNACE))
+                .define('A', Ingredient.of(ModItems.BASIC_AUGMENT.get()))
+                .define('S', Ingredient.of(ItemStackHelper.getAlloyStack(AlloyMaterial.STEEL)))
+                .unlockedBy("has_basic_material", has(ModItems.BASIC_AUGMENT.get()))
+                .save(output);
+    }
+
+    private void buildMagnetismAugment(RecipeOutput output) {
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ItemStackHelper.getUniversalAugmentStack("magnetism", 0))
+                .pattern(" R ")
+                .pattern("IAI")
+                .pattern(" I ")
+                .define('R', Ingredient.of(Items.REDSTONE_BLOCK))
+                .define('A', Ingredient.of(ModItems.BASIC_AUGMENT.get()))
+                .define('I', Ingredient.of(Items.IRON_INGOT))
+                .unlockedBy("has_basic_material", has(ModItems.BASIC_AUGMENT.get()))
+                .save(output);
+    }
+    private void buildOreMinerAugment(RecipeOutput output) {
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ItemStackHelper.getUniversalAugmentStack("ore_miner", 0))
+                .pattern(" R ")
+                .pattern("LAC")
+                .pattern(" I ")
+                .define('R', Ingredient.of(Items.REDSTONE_BLOCK))
+                .define('A', Ingredient.of(ModItems.BASIC_AUGMENT.get()))
+                .define('I', Ingredient.of(Items.IRON_BLOCK))
+                .define('L', Ingredient.of(Items.LAPIS_BLOCK))
+                .define('C', Ingredient.of(Items.COAL_BLOCK))
+                .unlockedBy("has_basic_material", has(ModItems.BASIC_AUGMENT.get()))
+                .save(output);
+    }
+    private void buildSilkTouchAugment(RecipeOutput output) {
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ItemStackHelper.getUniversalAugmentStack("silk_touch", 0))
+                .pattern(" D ")
+                .pattern("SAS")
+                .pattern(" S ")
+                .define('D', Ingredient.of(Items.DIAMOND))
+                .define('A', Ingredient.of(ModItems.BASIC_AUGMENT.get()))
+                .define('S', Ingredient.of(Items.STRING))
+                .unlockedBy("has_basic_material", has(ModItems.BASIC_AUGMENT.get()))
+                .save(output);
+    }
+
 
     private void buildFortuneAugmentT1(RecipeOutput output) {
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ItemStackHelper.getUniversalAugmentStack("fortune", 1))
@@ -205,6 +273,42 @@ public class ArsenalRecipeProvider extends RecipeProvider {
                 .pattern("TLT")
                 .define('L', Ingredient.of(Items.LAPIS_BLOCK))
                 .define('A', Ingredient.of(ItemStackHelper.getUniversalAugmentStack("fortune", 2)))
+                .define('T', Ingredient.of(ItemStackHelper.getAlloyStack(AlloyMaterial.TITANIUM)))
+                .define('D', Ingredient.of(Items.DIAMOND_BLOCK))
+                .unlockedBy("has_basic_material", has(ModItems.BASIC_AUGMENT.get()))
+                .save(output);
+    }
+    private void buildLootingAugmentT1(RecipeOutput output) {
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ItemStackHelper.getUniversalAugmentStack("looting", 1))
+                .pattern(" B ")
+                .pattern("LAL")
+                .pattern(" L ")
+                .define('L', Ingredient.of(Items.LAPIS_BLOCK))
+                .define('A', Ingredient.of(ModItems.BASIC_AUGMENT.get()))
+                .define('B', Ingredient.of(Items.BONE_BLOCK))
+                .unlockedBy("has_basic_material", has(ModItems.BASIC_AUGMENT.get()))
+                .save(output);
+    }
+    private void buildLootingAugmentT2(RecipeOutput output) {
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ItemStackHelper.getUniversalAugmentStack("looting", 2))
+                .pattern("SGS")
+                .pattern("LAL")
+                .pattern("SLS")
+                .define('L', Ingredient.of(Items.LAPIS_BLOCK))
+                .define('A', Ingredient.of(ItemStackHelper.getUniversalAugmentStack("looting", 1)))
+                .define('S', Ingredient.of(ItemStackHelper.getAlloyStack(AlloyMaterial.STEEL)))
+                .define('G', Ingredient.of(Items.GOLD_BLOCK))
+                .unlockedBy("has_basic_material", has(ModItems.BASIC_AUGMENT.get()))
+                .save(output);
+    }
+
+    private void buildLootingAugmentT3(RecipeOutput output) {
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ItemStackHelper.getUniversalAugmentStack("looting", 3))
+                .pattern("TDT")
+                .pattern("LAL")
+                .pattern("TLT")
+                .define('L', Ingredient.of(Items.LAPIS_BLOCK))
+                .define('A', Ingredient.of(ItemStackHelper.getUniversalAugmentStack("looting", 2)))
                 .define('T', Ingredient.of(ItemStackHelper.getAlloyStack(AlloyMaterial.TITANIUM)))
                 .define('D', Ingredient.of(Items.DIAMOND_BLOCK))
                 .unlockedBy("has_basic_material", has(ModItems.BASIC_AUGMENT.get()))

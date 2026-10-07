@@ -48,6 +48,8 @@ public class ArsenalBlockTagProvider extends BlockTagsProvider {
         mineableTag.add(ModBlocks.VALVE_FAUCET.get());
         mineableTag.add(ModBlocks.BLUEPRINT_CASTING_TABLE.get());
         mineableTag.add(ModBlocks.TOOLKIT.get());
+        mineableTag.add(ModBlocks.ALLOY_SMELTER.get());
+        mineableTag.add(ModBlocks.LAVA_TANK.get());
 
     }
 }

@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "arsenalcrafting:basic_augment"
+    },
+    "F": {
+      "item": "minecraft:furnace"
+    },
+    "S": {
+      "item": "arsenalcrafting:steel_alloy"
+    }
+  },
+  "pattern": [
+    " F ",
+    "SAS",
+    " S "
+  ],
+  "result": {
+    "count": 1,
+    "id": "arsenalcrafting:auto_smelt_augment"
+  }
+}

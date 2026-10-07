@@ -35,7 +35,11 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
 
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ArsenalCrafting.MOD_ID,
-                    "textures/gui/container/alloy_smelter_gui_2.png");
+                    "textures/gui/container/alloy_smelter_gui_3.png");
+
+    private static final ResourceLocation POPOUT_TEXTURE =
+            ResourceLocation.fromNamespaceAndPath(ArsenalCrafting.MOD_ID,
+                    "textures/gui/container/alloy_smelter_popout.png");
 
     // ── TANKS ─────────────────────────────────────────────────────────────────
     private static final int FLUID_TANK_X      = 151;
@@ -50,14 +54,32 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
 
     // ── POPOUT BUTTONS ────────────────────────────────────────────────────────
     private static final int POPOUT_BUTTON_X    = 176;
-    private static final int POPOUT_BUTTON_SIZE = 16;
+    private static final int POPOUT_BUTTON_W    = 32;
+    private static final int POPOUT_BUTTON_H    = 32;
     private static final int CONTROLS_BUTTON_Y  = 6;
-    private static final int FLUID_OUT_BUTTON_Y = CONTROLS_BUTTON_Y + POPOUT_BUTTON_SIZE + 4;
+    private static final int FLUID_OUT_BUTTON_Y = CONTROLS_BUTTON_Y + POPOUT_BUTTON_H + 4;
+
+    private static final int BUTTON_DESELECT_U  = 152;
+    private static final int BUTTON_DESELECT_V  = 20;
+    private static final int BUTTON_SELECT_U    = 152;
+    private static final int BUTTON_SELECT_V    = 66;
 
     // ── POPOUT PANEL ──────────────────────────────────────────────────────────
-    private static final int POPOUT_WIDTH   = 100;
-    private static final int POPOUT_PADDING = 14;
+    // Panel art is 147x166. Mixing uses it at native size; fluids shrink it.
+    private static final int POPOUT_WIDTH   = 147;
+    private static final int POPOUT_PADDING = 10;
     private static final int BTN_SIZE       = 16;
+    // Recipe-book style grid: 5 columns, 25px cells, 11px left inset.
+    private static final int GRID_COLS      = 5;
+    private static final int GRID_CELL      = 25;
+    private static final int GRID_LEFT      = 11;
+    private static final int GRID_BTN_PAD   = (GRID_CELL - BTN_SIZE) / 2;
+    private static final int FORCE_H        = 12;
+
+    private static final int PANEL_U = 3;
+    private static final int PANEL_V = 2;
+    private static final int PANEL_W = 147;
+    private static final int PANEL_H = 166;
 
     // ── SMELTER CONTROLS MATERIALS ────────────────────────────────────────────
     private static final AlloyMaterial[] MELT_MATERIALS = {
@@ -95,9 +117,18 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
 
     // ── EXTRA SLOT BACKGROUNDS ────────────────────────────────────────────────
     private static final int EXTRA_SLOT_U = 176;
-    private static final int EXTRA_SLOT_V = 100;  // Far from blue lines (21) and scrollbar (1)
+    private static final int EXTRA_SLOT_V = 77;   // extra-slot art (incl. burn-meter track)
     private static final int EXTRA_SLOT_W = 18;
     private static final int EXTRA_SLOT_H = 18;
+
+    // ── BURN METER ────────────────────────────────────────────────────────────
+    private static final int BURN_METER_U = 176;
+    private static final int BURN_METER_V = 100;
+    private static final int BURN_METER_W = 4;
+    private static final int BURN_METER_H = 18;
+    // Slot art starts 1px up/left of the menu slot positions (10,19) -> (9,18)
+    private static final int SLOT_ART_X = 9;
+    private static final int SLOT_ART_Y = 18;
    // Grid position
 
     // ── STATE ─────────────────────────────────────────────────────────────────
@@ -126,12 +157,15 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
         int y = (height - imageHeight) / 2;
         List<Rect2i> areas = new ArrayList<>();
         areas.add(new Rect2i(x + POPOUT_BUTTON_X, y + CONTROLS_BUTTON_Y,
-                POPOUT_BUTTON_SIZE + 4, POPOUT_BUTTON_SIZE));
+                POPOUT_BUTTON_W, POPOUT_BUTTON_H));
         areas.add(new Rect2i(x + POPOUT_BUTTON_X, y + FLUID_OUT_BUTTON_Y,
-                POPOUT_BUTTON_SIZE + 4, POPOUT_BUTTON_SIZE));
+                POPOUT_BUTTON_W, POPOUT_BUTTON_H));
         if (activePopout != null) {
-            int popoutHeight = activePopout.equals("controls") ? getControlsHeight() : getFluidOutHeight();
-            areas.add(new Rect2i(x + imageWidth + 2, y, POPOUT_WIDTH, popoutHeight));
+            // Hide JEI's overlays beside the GUI while a popout is open by excluding the
+            // whole strip from the GUI's right edge to the screen edge. This leaves JEI
+            // with no room next to the GUI, so its ingredient list hides itself.
+            int left = x + imageWidth;
+            areas.add(new Rect2i(left, 0, width - left, height));
         }
         return areas;
     }
@@ -256,8 +290,8 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
         }
     }
     private boolean handleControlsClick(int mouseX, int mouseY, int button, int x, int y) {
-        int popoutX = x + imageWidth + 2;
-        int popoutY = y;
+        int popoutX = popoutPanelX(x);
+        int popoutY = controlsPanelY(y);
 
         // Alloy mix buttons
         for (int i = 0; i < ALLOY_MATERIALS.length; i++) {
@@ -279,8 +313,8 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
         // Force Mix button
         int forceMixY = popoutY + POPOUT_PADDING + 10 + BTN_SIZE + 8;
         if (highlightedMaterial != null && !highlightedIsMelt &&
-                isOver(mouseX, mouseY, popoutX + POPOUT_PADDING, forceMixY,
-                        POPOUT_WIDTH - POPOUT_PADDING * 2, 12)) {
+                isOver(mouseX, mouseY, forceButtonX(popoutX), forceMixY,
+                        forceButtonWidth(), FORCE_H)) {
             PacketHandler.sendToServer(new ForceMixPacket(menu.blockEntity.getBlockPos(), highlightedMaterial));
             highlightedMaterial = null;
             return true;
@@ -306,8 +340,8 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
         // Force Recipe button
         int forceRecipeY = popoutY + getControlsHeight() - 20;
         if (highlightedMaterial != null && highlightedIsMelt &&
-                isOver(mouseX, mouseY, popoutX + POPOUT_PADDING, forceRecipeY,
-                        POPOUT_WIDTH - POPOUT_PADDING * 2, 12)) {
+                isOver(mouseX, mouseY, forceButtonX(popoutX), forceRecipeY,
+                        forceButtonWidth(), FORCE_H)) {
             PacketHandler.sendToServer(new ForceRecipePacket(menu.blockEntity.getBlockPos(), highlightedMaterial));
             highlightedMaterial = null;
             return true;
@@ -317,8 +351,8 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
     }
 
     private boolean handleFluidOutClick(int mouseX, int mouseY, int button, int x, int y) {
-        int popoutX = x + imageWidth + 2;
-        int popoutY = y;
+        int popoutX = popoutPanelX(x);
+        int popoutY = fluidPanelY(y);
 
         List<FluidStack> fluids = menu.getAllOutputFluids();
 
@@ -344,8 +378,8 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
         // Dump button
         int dumpY = popoutY + getFluidOutHeight() - 20;
         if (highlightedFluid != null &&
-                isOver(mouseX, mouseY, popoutX + POPOUT_PADDING, dumpY,
-                        POPOUT_WIDTH - POPOUT_PADDING * 2, 12)) {
+                isOver(mouseX, mouseY, forceButtonX(popoutX), dumpY,
+                        forceButtonWidth(), FORCE_H)) {
             if (highlightedFluid.equals(castTargetFluid)) castTargetFluid = null;
             PacketHandler.sendToServer(new DumpFluidPacket(menu.blockEntity.getBlockPos(), highlightedFluid));
             highlightedFluid = null;
@@ -357,39 +391,41 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
 
     // ── POSITION HELPERS ──────────────────────────────────────────────────────
 
+    // Recipe-book style: button top-left centered inside a 25px grid cell.
+    private int gridButtonX(int popoutX, int col) {
+        return popoutX + GRID_LEFT + col * GRID_CELL + GRID_BTN_PAD;
+    }
+    private int forceButtonX(int popoutX)    { return popoutX + GRID_LEFT; }
+    private int forceButtonWidth()           { return GRID_COLS * GRID_CELL; }
+
     private int[] getAlloyButtonPos(int popoutX, int popoutY, int index) {
+        int col = index % GRID_COLS;
         return new int[]{
-                popoutX + POPOUT_PADDING + index * (BTN_SIZE + 4),
-                popoutY + POPOUT_PADDING + 10
+                gridButtonX(popoutX, col),
+                popoutY + POPOUT_PADDING + 10 + GRID_BTN_PAD
         };
     }
 
     private int[] getMeltButtonPos(int popoutX, int popoutY, int index) {
-        int col        = index % 3;
-        int row        = index / 3;
-        int gridStartY = popoutY + POPOUT_PADDING + 10 + BTN_SIZE + 8 + 14 + 8 + 10;
+        int col        = index % GRID_COLS;
+        int row        = index / GRID_COLS;
+        int gridStartY = popoutY + POPOUT_PADDING + 10 + BTN_SIZE + 8 + 14 + 8 + 10 + GRID_BTN_PAD;
         return new int[]{
-                popoutX + POPOUT_PADDING + col * (BTN_SIZE + 4),
-                gridStartY + row * (BTN_SIZE + 4)
+                gridButtonX(popoutX, col),
+                gridStartY + row * GRID_CELL
         };
     }
 
     private int[] getFluidButtonPos(int popoutX, int popoutY, int index) {
         return new int[]{
-                popoutX + POPOUT_PADDING,
+                popoutX + GRID_LEFT,
                 popoutY + POPOUT_PADDING + 10 + index * (BTN_SIZE + 4)
         };
     }
 
     private int getControlsHeight() {
-        int meltRows = (int) Math.ceil(MELT_MATERIALS.length / 3.0);
-        return POPOUT_PADDING
-                + 10 + BTN_SIZE + 8
-                + 14
-                + 8 + 10
-                + meltRows * (BTN_SIZE + 4)
-                + 20
-                + POPOUT_PADDING;
+        // Native mixing panel height.
+        return PANEL_H;
     }
 
     private int getFluidOutHeight() {
@@ -407,8 +443,13 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
     }
 
     private boolean isOverButton(int mx, int my, int x, int y, int buttonY) {
-        return isOver(mx, my, x + POPOUT_BUTTON_X, y + buttonY, POPOUT_BUTTON_SIZE, POPOUT_BUTTON_SIZE);
+        return isOver(mx, my, x + POPOUT_BUTTON_X, y + buttonY, POPOUT_BUTTON_W, POPOUT_BUTTON_H);
     }
+
+    // Panels sit directly to the right of the button that owns them, aligned with it.
+    private int popoutPanelX(int x)   { return x + POPOUT_BUTTON_X + POPOUT_BUTTON_W + 2; }
+    private int controlsPanelY(int y) { return y + CONTROLS_BUTTON_Y; }
+    private int fluidPanelY(int y)    { return y + FLUID_OUT_BUTTON_Y; }
 
     // ── RENDER BG ─────────────────────────────────────────────────────────────
 
@@ -458,6 +499,7 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
         int y = (height - imageHeight) / 2;
         int lastTexture = RenderSystem.getShaderTexture(0);
 
+        renderBurnMeters(guiGraphics, x, y);
         renderSideButtons(guiGraphics, x, y, mouseX, mouseY);
 
         if ("controls".equals(activePopout)) renderControlsPopout(guiGraphics, x, y, mouseX, mouseY);
@@ -485,9 +527,31 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
             int col = i % 3;
             int row = i / 3;
             guiGraphics.blit(TEXTURE,
-                    x + 10 + col * 18,
-                    y + 19 + row * 18,
+                    x + SLOT_ART_X + col * 18,
+                    y + SLOT_ART_Y + row * 18,
                     EXTRA_SLOT_U, EXTRA_SLOT_V, EXTRA_SLOT_W, EXTRA_SLOT_H);
+        }
+    }
+
+    // ── BURN METERS ───────────────────────────────────────────────────────────
+    // One fill overlay per visible melting slot, bottom-up by that slot's progress.
+
+    private void renderBurnMeters(GuiGraphics guiGraphics, int x, int y) {
+        for (int i = 0; i < 9; i++) {
+            int slotIndex = currentScrollRow * 9 + i;
+            if (slotIndex >= menu.blockEntity.getCurrentSlotCount()) continue;
+
+            int max = menu.getSlotMaxProgress(slotIndex);
+            int cur = menu.getSlotProgress(slotIndex);
+            if (max <= 0 || cur <= 0) continue;
+
+            int h = Mth.clamp(Math.round((float) cur / max * BURN_METER_H), 1, BURN_METER_H);
+            int col = i % 3;
+            int row = i / 3;
+            int dx = x + SLOT_ART_X + col * 18;
+            int dy = y + SLOT_ART_Y + row * 18 + (BURN_METER_H - h);
+            int srcV = BURN_METER_V + (BURN_METER_H - h);
+            guiGraphics.blit(TEXTURE, dx, dy, BURN_METER_U, srcV, BURN_METER_W, h);
         }
     }
 
@@ -526,21 +590,28 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
         int bx = x + POPOUT_BUTTON_X;
         int by = y + buttonY;
         boolean hovered = isOverButton(mouseX, mouseY, x, y, buttonY);
-        int bgColor = (active || hovered) ? 0xFFAAAAAA : 0xFF888888;
-        guiGraphics.fill(bx - 1, by - 1, bx + POPOUT_BUTTON_SIZE + 1, by + POPOUT_BUTTON_SIZE + 1, bgColor);
-        guiGraphics.renderItem(icon, bx, by);
+        int u = active ? BUTTON_SELECT_U : BUTTON_DESELECT_U;
+        int v = active ? BUTTON_SELECT_V : BUTTON_DESELECT_V;
+        guiGraphics.blit(POPOUT_TEXTURE, bx, by, u, v, POPOUT_BUTTON_W, POPOUT_BUTTON_H);
+        // Vanilla-style hover highlight (only while not selected).
+        if (hovered && !active) {
+            guiGraphics.fill(bx, by, bx + POPOUT_BUTTON_W, by + POPOUT_BUTTON_H, 0x40FFFFFF);
+        }
+        guiGraphics.renderItem(icon,
+                bx + (POPOUT_BUTTON_W - 16) / 2,
+                by + (POPOUT_BUTTON_H - 16) / 2);
     }
 
     // ── CONTROLS POPOUT ───────────────────────────────────────────────────────
 
     private void renderControlsPopout(GuiGraphics guiGraphics, int x, int y, int mouseX, int mouseY) {
-        int popoutX      = x + imageWidth + 2;
-        int popoutY      = y;
+        int popoutX      = popoutPanelX(x);
+        int popoutY      = controlsPanelY(y);
         int popoutHeight = getControlsHeight();
 
-        renderPopoutBackground(guiGraphics, popoutX, popoutY, popoutHeight);
+        renderPopoutBackground(guiGraphics, popoutX, popoutY, popoutHeight, true);
 
-        guiGraphics.drawString(font, "Alloys", popoutX + POPOUT_PADDING, popoutY + POPOUT_PADDING, 0xFFAAAAAA, false);
+        guiGraphics.drawString(font, "Alloys", popoutX + GRID_LEFT, popoutY + POPOUT_PADDING, 0xFFAAAAAA, false);
         for (int i = 0; i < ALLOY_MATERIALS.length; i++) {
             AlloyMaterial mat = ALLOY_MATERIALS[i];
             int[] pos = getAlloyButtonPos(popoutX, popoutY, i);
@@ -555,9 +626,9 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
                 highlightedMaterial != null && !highlightedIsMelt);
 
         int dividerY = forceMixY + 16;
-        guiGraphics.fill(popoutX + POPOUT_PADDING, dividerY,
-                popoutX + POPOUT_WIDTH - POPOUT_PADDING, dividerY + 1, 0xFF444444);
-        guiGraphics.drawString(font, "Melting", popoutX + POPOUT_PADDING, dividerY + 3, 0xFFAAAAAA, false);
+        guiGraphics.fill(forceButtonX(popoutX), dividerY,
+                forceButtonX(popoutX) + forceButtonWidth(), dividerY + 1, 0xFF444444);
+        guiGraphics.drawString(font, "Melting", popoutX + GRID_LEFT, dividerY + 3, 0xFFAAAAAA, false);
 
         for (int i = 0; i < MELT_MATERIALS.length; i++) {
             AlloyMaterial mat = MELT_MATERIALS[i];
@@ -576,19 +647,19 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
     // ── FLUID OUTPUT POPOUT ───────────────────────────────────────────────────
 
     private void renderFluidOutPopout(GuiGraphics guiGraphics, int x, int y, int mouseX, int mouseY) {
-        int popoutX      = x + imageWidth + 2;
-        int popoutY      = y;
+        int popoutX      = popoutPanelX(x);
+        int popoutY      = fluidPanelY(y);
         int popoutHeight = getFluidOutHeight();
 
-        renderPopoutBackground(guiGraphics, popoutX, popoutY, popoutHeight);
+        renderPopoutBackground(guiGraphics, popoutX, popoutY, popoutHeight, false);
 
-        guiGraphics.drawString(font, "Fluid Output", popoutX + POPOUT_PADDING, popoutY + POPOUT_PADDING, 0xFFAAAAAA, false);
+        guiGraphics.drawString(font, "Fluid Output", popoutX + GRID_LEFT, popoutY + POPOUT_PADDING, 0xFFAAAAAA, false);
 
         List<FluidStack> fluids = menu.getAllOutputFluids();
 
         if (fluids.isEmpty()) {
             guiGraphics.drawString(font, "Tank empty",
-                    popoutX + POPOUT_PADDING, popoutY + POPOUT_PADDING + 14, 0xFF666666, false);
+                    popoutX + GRID_LEFT, popoutY + POPOUT_PADDING + 14, 0xFF666666, false);
         } else {
             for (int i = 0; i < fluids.size(); i++) {
                 FluidStack fluid = fluids.get(i);
@@ -640,12 +711,16 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
 
     // ── SHARED PANEL RENDERING ────────────────────────────────────────────────
 
-    private void renderPopoutBackground(GuiGraphics guiGraphics, int popoutX, int popoutY, int height) {
-        guiGraphics.fill(popoutX, popoutY, popoutX + POPOUT_WIDTH, popoutY + height, 0xFF1A1A1A);
-        guiGraphics.fill(popoutX, popoutY, popoutX + POPOUT_WIDTH, popoutY + 1, 0xFF555555);
-        guiGraphics.fill(popoutX, popoutY + height - 1, popoutX + POPOUT_WIDTH, popoutY + height, 0xFF555555);
-        guiGraphics.fill(popoutX, popoutY, popoutX + 1, popoutY + height, 0xFF555555);
-        guiGraphics.fill(popoutX + POPOUT_WIDTH - 1, popoutY, popoutX + POPOUT_WIDTH, popoutY + height, 0xFF555555);
+    private void renderPopoutBackground(GuiGraphics guiGraphics, int popoutX, int popoutY,
+                                        int height, boolean mixing) {
+        if (mixing) {
+            // Mixing panel: native size, no stretching.
+            guiGraphics.blit(POPOUT_TEXTURE, popoutX, popoutY, PANEL_U, PANEL_V, PANEL_W, PANEL_H);
+        } else {
+            // Fluid panel: same art reduced down to the (much shorter) fluid height.
+            guiGraphics.blit(POPOUT_TEXTURE, popoutX, popoutY, PANEL_W, height,
+                    PANEL_U, PANEL_V, PANEL_W, PANEL_H, 256, 256);
+        }
     }
 
     private void renderIngotButton(GuiGraphics guiGraphics, int bx, int by,
@@ -659,19 +734,18 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
 
     private void renderForceButton(GuiGraphics guiGraphics, int popoutX, int y,
                                    String label, boolean active) {
-        guiGraphics.fill(popoutX + POPOUT_PADDING, y,
-                popoutX + POPOUT_WIDTH - POPOUT_PADDING, y + 12,
-                active ? 0xFF886600 : 0xFF2A2A2A);
-        guiGraphics.drawCenteredString(font, label,
-                popoutX + POPOUT_WIDTH / 2, y + 2,
+        int x = forceButtonX(popoutX);
+        int w = forceButtonWidth();
+        guiGraphics.fill(x, y, x + w, y + FORCE_H, active ? 0xFF886600 : 0xFF2A2A2A);
+        guiGraphics.drawCenteredString(font, label, x + w / 2, y + 2,
                 active ? 0xFFFFDD00 : 0xFF555555);
     }
 
     // ── CONTROLS TOOLTIPS ─────────────────────────────────────────────────────
 
     private void renderControlsTooltips(GuiGraphics guiGraphics, int mouseX, int mouseY, int x, int y) {
-        int popoutX = x + imageWidth + 2;
-        int popoutY = y;
+        int popoutX = popoutPanelX(x);
+        int popoutY = controlsPanelY(y);
 
         for (int i = 0; i < ALLOY_MATERIALS.length; i++) {
             AlloyMaterial mat = ALLOY_MATERIALS[i];
@@ -700,8 +774,8 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
         }
 
         int forceMixY = popoutY + POPOUT_PADDING + 10 + BTN_SIZE + 8;
-        if (isOver(mouseX, mouseY, popoutX + POPOUT_PADDING, forceMixY,
-                POPOUT_WIDTH - POPOUT_PADDING * 2, 12)) {
+        if (isOver(mouseX, mouseY, forceButtonX(popoutX), forceMixY,
+                forceButtonWidth(), FORCE_H)) {
             List<Component> tip = new ArrayList<>();
             if (highlightedMaterial != null && !highlightedIsMelt) {
                 tip.add(Component.literal("Force Mix: " + highlightedMaterial).withStyle(ChatFormatting.YELLOW));
@@ -716,8 +790,8 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
         }
 
         int forceRecipeY = popoutY + getControlsHeight() - 20;
-        if (isOver(mouseX, mouseY, popoutX + POPOUT_PADDING, forceRecipeY,
-                POPOUT_WIDTH - POPOUT_PADDING * 2, 12)) {
+        if (isOver(mouseX, mouseY, forceButtonX(popoutX), forceRecipeY,
+                forceButtonWidth(), FORCE_H)) {
             List<Component> tip = new ArrayList<>();
             if (highlightedMaterial != null && highlightedIsMelt) {
                 tip.add(Component.literal("Force Recipe: " + highlightedMaterial).withStyle(ChatFormatting.YELLOW));
@@ -734,8 +808,8 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
     // ── FLUID OUTPUT TOOLTIPS ─────────────────────────────────────────────────
 
     private void renderFluidOutTooltips(GuiGraphics guiGraphics, int mouseX, int mouseY, int x, int y) {
-        int popoutX = x + imageWidth + 2;
-        int popoutY = y;
+        int popoutX = popoutPanelX(x);
+        int popoutY = fluidPanelY(y);
 
         List<FluidStack> fluids = menu.getAllOutputFluids();
 
@@ -772,8 +846,8 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterMenu
         }
 
         int dumpY = popoutY + getFluidOutHeight() - 20;
-        if (isOver(mouseX, mouseY, popoutX + POPOUT_PADDING, dumpY,
-                POPOUT_WIDTH - POPOUT_PADDING * 2, 12)) {
+        if (isOver(mouseX, mouseY, forceButtonX(popoutX), dumpY,
+                forceButtonWidth(), FORCE_H)) {
             List<Component> tip = new ArrayList<>();
             if (highlightedFluid != null) {
                 tip.add(Component.literal("Dump: " + highlightedFluid).withStyle(ChatFormatting.YELLOW));

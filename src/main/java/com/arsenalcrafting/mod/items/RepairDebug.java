@@ -3,8 +3,8 @@ package com.arsenalcrafting.mod.items;
 import com.arsenalcrafting.mod.config.ArsenalDebug;
 
 /**
- * Thin debug facade for repair kit system.
- * On/off control lives in {@link ArsenalDebug}.
+ * Debug logging for the repair kit. Toggle via ArsenalDebug config.
+ * NOTE: calc() currently has no callers — can be removed later.
  */
 public final class RepairDebug {
     private RepairDebug() {}

@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "arsenalcrafting:basic_augment"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "R": {
+      "item": "minecraft:redstone_block"
+    }
+  },
+  "pattern": [
+    " R ",
+    "IAI",
+    " I "
+  ],
+  "result": {
+    "count": 1,
+    "id": "arsenalcrafting:magnetism_augment"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "arsenalcrafting:basic_augment"
+    },
+    "B": {
+      "item": "minecraft:bone_block"
+    },
+    "L": {
+      "item": "minecraft:lapis_block"
+    }
+  },
+  "pattern": [
+    " B ",
+    "LAL",
+    " L "
+  ],
+  "result": {
+    "count": 1,
+    "id": "arsenalcrafting:looting_augment.tier1"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "arsenalcrafting:basic_augment"
+    },
+    "C": {
+      "item": "minecraft:coal_block"
+    },
+    "G": {
+      "item": "minecraft:glowstone"
+    }
+  },
+  "pattern": [
+    " C ",
+    "GAG",
+    " G "
+  ],
+  "result": {
+    "count": 1,
+    "id": "arsenalcrafting:light_augment"
+  }
+}

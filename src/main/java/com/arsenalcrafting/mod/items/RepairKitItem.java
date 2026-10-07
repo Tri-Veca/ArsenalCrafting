@@ -19,6 +19,13 @@ import net.minecraft.world.level.Level;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * RepairKitItem — the Tool Repair Kit.
+ *
+ * Holds no state itself; all data lives in ModComponents.REPAIR_KIT_DATA.
+ * Static helpers below are read/write shortcuts that copy stacks on the
+ * way out so callers can't mutate the originals.
+ */
 public class RepairKitItem extends Item {
 
     public RepairKitItem(Properties props) {
@@ -94,6 +101,7 @@ public class RepairKitItem extends Item {
         ItemStack stack = player.getItemInHand(hand);
         ItemDebug.use("RepairKit", "use() called by " + player.getName().getString() + " hand=" + hand);
         if (!level.isClientSide) {
+            // Open the menu server-side, handing it the REAL held stack so repairs persist.
             player.openMenu(new SimpleMenuProvider(
                     (id, inv, p) -> new com.arsenalcrafting.mod.client.menu.RepairKitMenu(id, inv, stack),
                     Component.translatable("item.arsenalcrafting.repair_kit")
@@ -121,6 +129,7 @@ public class RepairKitItem extends Item {
         }
 
         // Show repair reduction bonus if stored tool has that core
+        // NOTE: repair-reduction check is duplicated 3x (item, menu, screen).
         ItemStack tool = getTool(stack);
         if (!tool.isEmpty()) {
             ToolAssemblyData toolData = tool.get(ModComponents.TOOL_ASSEMBLY_DATA.get());

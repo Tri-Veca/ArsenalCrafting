@@ -23,7 +23,15 @@ import net.minecraft.world.item.ItemStack;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * RepairKitScreen — client-side display for the kit.
+ *
+ * No game logic; shows whatever the menu reports.
+ * Bar is tinted by the loaded alloy's color so material is visible at a glance.
+ */
 public class RepairKitScreen extends AbstractContainerScreen<RepairKitMenu> {
+
+    // ── CONSTANTS ──────────────────────────────────────────────────────────
 
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(
@@ -31,6 +39,7 @@ public class RepairKitScreen extends AbstractContainerScreen<RepairKitMenu> {
                     "textures/gui/container/repair_kit_gui.png"
             );
 
+    /** Texture coords for the bar. MAX_VALUE mirrors the 128 cap in the menu. */
     private static final int BAR_X        = 63;
     private static final int BAR_Y        = 39;
     private static final int BAR_WIDTH    = 51;
@@ -39,6 +48,9 @@ public class RepairKitScreen extends AbstractContainerScreen<RepairKitMenu> {
     private static final int FILLED_BAR_V = 0;
     private static final int MAX_VALUE    = 128;
 
+    // ── CACHE (debug only) ─────────────────────────────────────────────────
+
+    /** Only for debug logging (skip printing unchanged lines) — no render effect. */
     private int lastBarValue = -1;
     private String lastBarMaterial = "";
     private int lastTooltipValue = -1;
@@ -80,6 +92,7 @@ public class RepairKitScreen extends AbstractContainerScreen<RepairKitMenu> {
         int   barLeft   = leftPos + BAR_X;
         int   barTop    = topPos  + BAR_Y;
 
+        // Bar fill tinted by alloy color; gray fallback when no material.
         AlloyMaterial mat = AlloyMaterial.fromName(displayMaterial);
         if (mat != null) {
             int   color = mat.getItemColor();
@@ -95,6 +108,7 @@ public class RepairKitScreen extends AbstractContainerScreen<RepairKitMenu> {
         gfx.setColor(1.0f, 1.0f, 1.0f, 1.0f);
     }
 
+    /** No text labels drawn — the GUI is icon-only. */
     @Override
     protected void renderLabels(GuiGraphics gfx, int mouseX, int mouseY) {
         // No labels
@@ -102,6 +116,7 @@ public class RepairKitScreen extends AbstractContainerScreen<RepairKitMenu> {
 
     // ── TOOLTIP ───────────────────────────────────────────────────────────────
 
+    /** Bar tooltip; mismatch warning drawn BEFORE super so it overrides. */
     @Override
     protected void renderTooltip(GuiGraphics gfx, int mouseX, int mouseY) {
         // Mismatch check BEFORE super so it can't be overridden

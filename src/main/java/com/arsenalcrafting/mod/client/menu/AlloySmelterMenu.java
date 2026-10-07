@@ -24,11 +24,16 @@ public class AlloySmelterMenu extends AbstractContainerMenu {
     private final Level level;
     private final ContainerData data;
 
+    // 0 = progress, 1 = maxProgress, 2 = connected tank count,
+    // 3 + slot*2 = slot progress, 3 + slot*2 + 1 = slot max progress
+    public static final int SLOT_DATA_START = 3;
+    private static final int DATA_SLOT_COUNT = SLOT_DATA_START + 45 * 2;
+
     // Client constructor
     public AlloySmelterMenu(int containerId, Inventory playerInventory, FriendlyByteBuf extraData) {
         this(containerId, playerInventory,
                 playerInventory.player.level().getBlockEntity(extraData.readBlockPos()),
-                new SimpleContainerData(4));
+                new SimpleContainerData(DATA_SLOT_COUNT));
     }
 
     // Server constructor
@@ -191,11 +196,16 @@ public class AlloySmelterMenu extends AbstractContainerMenu {
         return maxProgress != 0 ? (progress * arrowSize / maxProgress) : 0;
     }
 
-    public int getScaledFuelProgress() {
-        int fuelTime    = data.get(2);
-        int maxFuelTime = data.get(3);
-        int fuelBarSize = 14;
-        return maxFuelTime != 0 ? (fuelTime * fuelBarSize / maxFuelTime) : 0;
+    // ── PER-SLOT SMELTING PROGRESS (for burn meters) ──────────────────────────
+
+    public int getSlotProgress(int slot) {
+        int i = SLOT_DATA_START + slot * 2;
+        return i < data.getCount() ? data.get(i) : 0;
+    }
+
+    public int getSlotMaxProgress(int slot) {
+        int i = SLOT_DATA_START + slot * 2 + 1;
+        return i < data.getCount() ? data.get(i) : 0;
     }
 
 

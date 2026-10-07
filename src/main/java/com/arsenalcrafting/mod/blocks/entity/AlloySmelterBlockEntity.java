@@ -372,7 +372,14 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
                     case 0 -> progress;
                     case 1 -> maxProgress;
                     case 2 -> connectedTanks.size();
-                    default -> 0;
+                    default -> {
+                        int rel = i - 3;
+                        int slot = rel / 2;
+                        if (slot >= 0 && slot < slotProgress.length) {
+                            yield (rel % 2 == 0) ? slotProgress[slot] : slotMaxProgress[slot];
+                        }
+                        yield 0;
+                    }
                 };
             }
 
@@ -386,7 +393,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
             }
 
             @Override
-            public int getCount() { return 3; }
+            public int getCount() { return 3 + 45 * 2; }
         };
     }
 

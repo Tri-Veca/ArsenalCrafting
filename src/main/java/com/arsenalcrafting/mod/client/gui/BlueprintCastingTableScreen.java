@@ -25,7 +25,7 @@ public class BlueprintCastingTableScreen extends AbstractContainerScreen<Bluepri
 
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ArsenalCrafting.MOD_ID,
-                    "textures/gui/container/blueprint_casting_table.png");
+                    "textures/gui/container/blueprint_casting_table_gui.png");
 
     // Slot positions
     private static final int BLUEPRINT_SLOT_X = 14;
@@ -37,7 +37,7 @@ public class BlueprintCastingTableScreen extends AbstractContainerScreen<Bluepri
 
     // 3x3 Grid starting position
     private static final int GRID_START_X = 115;
-    private static final int GRID_START_Y = 11;
+    private static final int GRID_START_Y = 17;
     private static final int SLOT_SIZE = 18;
 
     private PackageType[] packages = PackageType.values();
@@ -136,6 +136,8 @@ public class BlueprintCastingTableScreen extends AbstractContainerScreen<Bluepri
 
         // Reset hovered package
         hoveredPackage = null;
+        PackageType tooltipPackage = null;
+        boolean tooltipCanAfford = false;
 
         // Render package icons in the 3x3 grid
         for (int row = 0; row < 3; row++) {
@@ -152,10 +154,10 @@ public class BlueprintCastingTableScreen extends AbstractContainerScreen<Bluepri
                     ItemStack icon = getPackageIcon(pkg);
                     renderPackageIcon(guiGraphics, icon, slotX, slotY, !canAfford);
 
-                    // Check hover for tooltip ONLY
                     if (isMouseOverSlot(mouseX, mouseY, slotX, slotY)) {
                         hoveredPackage = pkg;
-                        renderCostTooltip(guiGraphics, pkg, mouseX, mouseY);
+                        tooltipPackage = pkg;
+                        tooltipCanAfford = canAfford;
                     }
                 }
             }
@@ -174,6 +176,13 @@ public class BlueprintCastingTableScreen extends AbstractContainerScreen<Bluepri
         } else {
             // Clear selection if server doesn't have it
             selectedPackage = null;
+        }
+
+        // Draw the hovered package's cost tooltip last, after every grid icon, so
+        // later icons can't paint over it (which made earlier packages look different
+        // from the last one).
+        if (tooltipPackage != null) {
+            renderCostTooltip(guiGraphics, tooltipPackage, mouseX, mouseY, tooltipCanAfford);
         }
 
         renderTooltip(guiGraphics, mouseX, mouseY);
@@ -196,8 +205,11 @@ public class BlueprintCastingTableScreen extends AbstractContainerScreen<Bluepri
         return null;
     }
 
-    private void renderCostTooltip(GuiGraphics guiGraphics, PackageType pkg, int mouseX, int mouseY) {
+    private void renderCostTooltip(GuiGraphics guiGraphics, PackageType pkg, int mouseX, int mouseY, boolean canAfford) {
         List<Component> tooltip = new ArrayList<>();
+
+        // Yellow while affordable, greyed out once the player can't pay for this package.
+        ChatFormatting accent = canAfford ? ChatFormatting.YELLOW : ChatFormatting.DARK_GRAY;
 
         tooltip.add(Component.literal(pkg.getDisplayName()).withStyle(ChatFormatting.GOLD));
         tooltip.add(Component.literal("Cost: " + pkg.getIngotCost() + " Gold/Bronze Ingots + 1 Blueprint")
@@ -207,17 +219,17 @@ public class BlueprintCastingTableScreen extends AbstractContainerScreen<Bluepri
         boolean showGold = (gameTime / 1000) % 2 == 0;
 
         tooltip.add(Component.literal(showGold ? "Gold Ingot" : "Bronze Ingot")
-                .withStyle(ChatFormatting.YELLOW));
+                .withStyle(accent));
 
         tooltip.add(Component.literal("Contains:").withStyle(ChatFormatting.GRAY));
 
         for (var mold : pkg.getMolds()) {
             tooltip.add(Component.literal("  • " + mold.getDisplayName())
-                    .withStyle(ChatFormatting.YELLOW));
+                    .withStyle(accent));
         }
         for (var extra : pkg.getExtraMolds()) {
             tooltip.add(Component.literal("  • " + extra.getDisplayName())
-                    .withStyle(ChatFormatting.YELLOW));
+                    .withStyle(accent));
         }
 
         guiGraphics.renderComponentTooltip(font, tooltip, mouseX, mouseY);

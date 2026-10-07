@@ -21,18 +21,35 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
+/**
+ * RepairKitMenu — repair kit logic (server repairs, client predicts).
+ *
+ * Slot 0 = tool, slot 1 = ingots.
+ *   ingots -> storedValue (+2 each, cap 128)
+ *   tool   -> storedValue repairs its damage every tick
+ *
+ * Mutates the player's actual held kit stack (not a copy) so contents
+ * survive closing the GUI. Repairs are server-authoritative.
+ */
 public class RepairKitMenu extends AbstractContainerMenu {
+
+    // ── FIELDS ─────────────────────────────────────────────────────────────
 
     private final Container container = new SimpleContainer(2);
     public final ItemStack kitStack;
     private final Player player;
 
+    /** Last-seen slot contents, for change detection in broadcastChanges(). */
     private ItemStack lastIngot = ItemStack.EMPTY;
     private ItemStack lastTool  = ItemStack.EMPTY;
 
+    // Vestigial — set but never read (packet now writes into the kit stack directly).
     private int clientPreviewValue = -1;
     private String clientPreviewMaterial = null;
 
+    // ── CONSTRUCTOR ────────────────────────────────────────────────────────
+
+    /** Menu opened from a packet: the kit is whatever is in the main hand. */
     public RepairKitMenu(int id, Inventory playerInventory, FriendlyByteBuf extraData) {
         this(id, playerInventory, playerInventory.player.getMainHandItem());
     }
@@ -64,6 +81,9 @@ public class RepairKitMenu extends AbstractContainerMenu {
         addPlayerInventory(inv);
     }
 
+    // ── SLOT CHANGE HANDLING ───────────────────────────────────────────────
+
+    /** Called every tick; reacts to slot changes (polling, not button-driven). */
     @Override
     public void broadcastChanges() {
         super.broadcastChanges();
@@ -86,6 +106,9 @@ public class RepairKitMenu extends AbstractContainerMenu {
         if (toolChanged || ingotChanged || !player.level().isClientSide()) repairTool();
     }
 
+    // ── INGOT → VALUE ──────────────────────────────────────────────────────
+
+    /** Slot 1 changed: convert ingots to stored value. Same material → add; different → wipe. */
     private void consumeIngot() {
         ItemStack ingot = container.getItem(1);
         ItemStack countedIngot = RepairKitItem.getIngot(kitStack);
@@ -129,6 +152,10 @@ public class RepairKitMenu extends AbstractContainerMenu {
         RepairKitItem.setIngot(kitStack, ingot.copy());
     }
 
+    // HONEST FLAG: the ingot→value math lives 3x (consumeIngot, updateClientPreview,
+    // calculateClientValue). Change all three together.
+
+    /** Client-only mirror of consumeIngot() for the bar — math duplicated, keep in sync. */
     private void updateClientPreview() {
         ItemStack ingot = container.getItem(1);
         int realValue = RepairKitItem.getStoredValue(kitStack);
@@ -168,6 +195,9 @@ public class RepairKitMenu extends AbstractContainerMenu {
         GuiDebug.slots("RepairKit", "preview add value=" + clientPreviewValue + " material=" + clientPreviewMaterial);
     }
 
+    // ── REPAIR ─────────────────────────────────────────────────────────────
+
+    /** Repairs the tool from stored value if its material matches the kit. */
     private void repairTool() {
         ItemStack tool = container.getItem(0);
         if (tool.isEmpty() || !(tool.getItem() instanceof ArsenalTool arsenalTool)) return;
@@ -184,6 +214,11 @@ public class RepairKitMenu extends AbstractContainerMenu {
         repairWithStoredValue(tool, arsenalTool, stored);
     }
 
+    /**
+     * Core repair math: 1 value ≈ 15%/efficiency of max durability.
+     * repair_reduction core swaps in RepairReduction's numbers.
+     * Server repairs, then syncs the client via SyncRepairKitPreviewPacket.
+     */
     private void repairWithStoredValue(ItemStack tool, ArsenalTool arsenalTool, int storedValue) {
         if (storedValue <= 0) return;
         int currentDamage = tool.getDamageValue();
@@ -248,6 +283,7 @@ public class RepairKitMenu extends AbstractContainerMenu {
         RepairDebug.repair("Repaired", "durability " + (maxDurability - currentDamage) + " -> " + (maxDurability - currentDamage + actualRepair) + " (repaired " + actualRepair + " for " + valueUsed + " value)");
     }
 
+    /** True if the tool's core is the repair-reduction core. */
     private boolean hasRepairReductionCore(ItemStack tool) {
         ToolAssemblyData data = tool.get(ModComponents.TOOL_ASSEMBLY_DATA.get());
         if (data == null || data.isEmpty()) return false;
@@ -257,11 +293,15 @@ public class RepairKitMenu extends AbstractContainerMenu {
         return def != null && def.id().equals("repair_reduction");
     }
 
+    // ── CLIENT PREVIEW ─────────────────────────────────────────────────────
+
+    /** Server pushes authoritative value+material to the client (from packet). */
     public void setClientPreview(int storedValue, String material) {
         RepairKitItem.setMaterial(kitStack, material);
         RepairKitItem.setStoredValue(kitStack, storedValue);
     }
 
+    /** Value/material the screen should show — client predicts, server reads real. */
     public int getCalculatedValue() {
         if (player.level().isClientSide()) {
             return calculateClientValue();
@@ -269,6 +309,7 @@ public class RepairKitMenu extends AbstractContainerMenu {
         return RepairKitItem.getStoredValue(kitStack);
     }
 
+    /** Value/material the screen should show — client predicts, server reads real. */
     public String getCalculatedMaterial() {
         if (player.level().isClientSide()) {
             return calculateClientMaterial();
@@ -276,6 +317,7 @@ public class RepairKitMenu extends AbstractContainerMenu {
         return RepairKitItem.getMaterial(kitStack);
     }
 
+    /** Client prediction of what storedValue WILL be with the current slot 1. */
     private int calculateClientValue() {
         ItemStack ingot = container.getItem(1);
         int realValue = RepairKitItem.getStoredValue(kitStack);
@@ -303,6 +345,7 @@ public class RepairKitMenu extends AbstractContainerMenu {
         return realValue + (ingotsToCount * 2);
     }
 
+    /** Client prediction of what material WILL be with the current slot 1. */
     private String calculateClientMaterial() {
         ItemStack ingot = container.getItem(1);
         String realMaterial = RepairKitItem.getMaterial(kitStack);
@@ -319,6 +362,9 @@ public class RepairKitMenu extends AbstractContainerMenu {
         return mat.getName();
     }
 
+    // ── LIFECYCLE ──────────────────────────────────────────────────────────
+
+    /** Close: persist slot contents back into the kit (server only). */
     @Override
     public void removed(Player player) {
         super.removed(player);
@@ -328,16 +374,19 @@ public class RepairKitMenu extends AbstractContainerMenu {
         }
     }
 
+    /** Shift-click not implemented — always returns EMPTY. */
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
         return ItemStack.EMPTY;
     }
 
+    /** Kit never invalidates, even if moved out of the inventory. */
     @Override
     public boolean stillValid(Player player) {
         return true;
     }
 
+    /** Standard 36-slot player inventory layout. */
     private void addPlayerInventory(Inventory inv) {
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
