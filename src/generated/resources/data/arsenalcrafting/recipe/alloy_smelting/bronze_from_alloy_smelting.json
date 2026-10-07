@@ -1,0 +1,13 @@
+{
+  "type": "arsenalcrafting:alloy_smelting",
+  "craftTime": 40,
+  "ingredients": [
+    {
+      "item": "arsenalcrafting:bronze_alloy"
+    }
+  ],
+  "isOreRecipe": false,
+  "lavaCost": 200,
+  "resultAmountMb": 1000,
+  "resultMaterial": "Bronze"
+}

@@ -6,6 +6,7 @@ import com.arsenalcrafting.mod.core.alloy.AlloyMaterial;
 import com.arsenalcrafting.mod.core.alloy.AlloyRecipe;
 import com.arsenalcrafting.mod.core.alloy.AlloyRecipeType;
 import com.arsenalcrafting.mod.core.augments.AugmentManager;
+import com.arsenalcrafting.mod.generator.AlloyRecipeDefinitions;
 import com.arsenalcrafting.mod.registry.ModBlocks;
 import com.arsenalcrafting.mod.registry.ModItems;
 import mezz.jei.api.IModPlugin;
@@ -33,6 +34,8 @@ public class ArsenalCraftingJeiPlugin implements IModPlugin {
     public void registerCategories(IRecipeCategoryRegistration registration) {
         registration.addRecipeCategories(new AlloySmelterRecipeCategory(
                 registration.getJeiHelpers().getGuiHelper()));
+        registration.addRecipeCategories(new AlloyLiquidMixingRecipeCategory(
+                registration.getJeiHelpers().getGuiHelper()));
         registration.addRecipeCategories(new ToolkitRecipeCategory(
                 registration.getJeiHelpers().getGuiHelper()));
         registration.addRecipeCategories(new AugmentInfoCategory(
@@ -51,6 +54,16 @@ public class ArsenalCraftingJeiPlugin implements IModPlugin {
         }
         System.out.println("[JEI] Registering " + alloyRecipes.size() + " alloy smelter recipes");
         registration.addRecipes(AlloySmelterRecipeCategory.RECIPE_TYPE, alloyRecipes);
+
+        // Liquid (fluid) mixing recipes are defined statically rather than as datapack
+        // recipes, so make sure they've been initialised before handing them to JEI.
+        if (AlloyRecipeDefinitions.LIQUID_MIXING_RECIPES.isEmpty()) {
+            AlloyRecipeDefinitions.init();
+        }
+        List<AlloyRecipeDefinitions.LiquidMixingRecipeDefinition> liquidRecipes =
+                new ArrayList<>(AlloyRecipeDefinitions.LIQUID_MIXING_RECIPES.values());
+        System.out.println("[JEI] Registering " + liquidRecipes.size() + " liquid mixing recipes");
+        registration.addRecipes(AlloyLiquidMixingRecipeCategory.RECIPE_TYPE, liquidRecipes);
 
         List<ToolkitRecipeCategory.ToolkitRecipe> toolkitRecipes =
                 ToolkitRecipeCategory.ToolkitRecipe.createTemplates();
@@ -74,6 +87,9 @@ public class ArsenalCraftingJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(
                 new ItemStack(ModBlocks.ALLOY_SMELTER.get()),
                 AlloySmelterRecipeCategory.RECIPE_TYPE);
+        registration.addRecipeCatalyst(
+                new ItemStack(ModBlocks.ALLOY_SMELTER.get()),
+                AlloyLiquidMixingRecipeCategory.RECIPE_TYPE);
 
         // All alloy items (ingots and buckets) - R on any shows the recipe
         for (AlloyMaterial material : AlloyMaterial.values()) {
@@ -82,6 +98,9 @@ public class ArsenalCraftingJeiPlugin implements IModPlugin {
                 registration.addRecipeCatalyst(
                         new ItemStack(ingotHolder.get()),
                         AlloySmelterRecipeCategory.RECIPE_TYPE);
+                registration.addRecipeCatalyst(
+                        new ItemStack(ingotHolder.get()),
+                        AlloyLiquidMixingRecipeCategory.RECIPE_TYPE);
             }
 
             var bucketHolder = ModItems.ALLOY_BUCKETS.get(material);
@@ -89,6 +108,9 @@ public class ArsenalCraftingJeiPlugin implements IModPlugin {
                 registration.addRecipeCatalyst(
                         new ItemStack(bucketHolder.get()),
                         AlloySmelterRecipeCategory.RECIPE_TYPE);
+                registration.addRecipeCatalyst(
+                        new ItemStack(bucketHolder.get()),
+                        AlloyLiquidMixingRecipeCategory.RECIPE_TYPE);
             }
         }
     }

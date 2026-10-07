@@ -42,6 +42,11 @@ public class AlloyRecipeDefinitions {
                 ItemStackHelper.getAlloyStack(AlloyMaterial.TIN).getItem()
 
         );
+
+        addRecipe("bronze_from_alloy_smelting", AlloyMaterial.BRONZE, 1000, 200,
+                ItemStackHelper.getAlloyStack(AlloyMaterial.BRONZE).getItem()
+
+        );
         addRecipe("iron_from_alloy_smelting", AlloyMaterial.IRON, 1000, 200,
                 Items.IRON_INGOT
 
@@ -137,13 +142,6 @@ public class AlloyRecipeDefinitions {
                 ItemStackHelper.getFluidFromBucket(AlloyMaterial.IRON, 3000),
                 ItemStackHelper.getFluidFromBucket(AlloyMaterial.COAL, 3000)
         );
-        addLiquidMixingRecipe("titanium_from_liquids",
-                ItemStackHelper.getFluidFromBucket(AlloyMaterial.TITANIUM, 2000),
-                10,
-                ItemStackHelper.getFluidFromBucket(AlloyMaterial.DIAMOND, 1000),
-                ItemStackHelper.getFluidFromBucket(AlloyMaterial.STEEL, 2000)
-        );
-
 
 
     }

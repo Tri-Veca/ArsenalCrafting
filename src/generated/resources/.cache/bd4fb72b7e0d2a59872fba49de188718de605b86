@@ -1,4 +1,5 @@
-// 1.21.1	2026-09-27T00:03:47.9960414	Alloy Smelting Recipes
+// 1.21.1	2026-10-06T21:36:43.1986309	Alloy Smelting Recipes
+cc2c914f8d322ea87f752dad7551abe892788c33 data/arsenalcrafting/recipe/alloy_smelting/bronze_from_alloy_smelting.json
 e3b5806aba9a43a9694a3cb96efd84155799dc6b data/arsenalcrafting/recipe/alloy_smelting/copper_block_from_alloy_smelting.json
 4e0101a662bf4126b463d74c91344aecf3f4431f data/arsenalcrafting/recipe/alloy_smelting/copper_from_alloy_smelting.json
 46464d80e97f31d7a5de267c3c53e19138080901 data/arsenalcrafting/recipe/alloy_smelting/copper_ore_smelting.json
@@ -20,4 +21,3 @@ aa5b1265593fad78ef15f653384af4eeb339a2ea data/arsenalcrafting/recipe/alloy_smelt
 8a5b7c33a8cbda764924290259bf260a2cffaaa1 data/arsenalcrafting/recipe/alloy_smelting/titanium_from_alloy_smelting.json
 46746a099f3bb829c7a6351a1b5e931576dbcc6c data/arsenalcrafting/recipe/liquid_mixing/bronze_from_liquids.json
 ceee98bd13969bc8c94aa25eb2db2fde2d1f75c1 data/arsenalcrafting/recipe/liquid_mixing/steel_from_liquids.json
-55e62a7dd867a19f07b19ab00f7b5e1219531914 data/arsenalcrafting/recipe/liquid_mixing/titanium_from_liquids.json
